@@ -1,12 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <alloc.h>
-#include <dos.h>
 #include <assert.h>
 #include <string.h>
-#include <mem.h>
 #include <stdarg.h>
+
+#ifndef __GNUC__
+ #include <alloc.h>
+ #include <dos.h>
+ #include <mem.h>
+#endif
+
+#ifdef __GNUC__
+ #define far
+ #define farcalloc calloc
+ #define farfree free
+ #define MK_FP(seg, off) ((void *)((unsigned long)(((seg) << 4) + (off)) + (byte *)psp))
+ #define FP_SEG(ptr) ((unsigned long)((byte *)(ptr) - (byte *)psp) >> 4)
+ #define FP_OFF(ptr) ((unsigned long)((byte *)(ptr) - (byte *)psp) & 0xF)
+#endif
+
+#ifdef __GNUC__
+ #define ADVANCE_PTR(ptr, step) \
+	ptr = (void *)((byte *)ptr + step);
+#else
+ #define ADVANCE_PTR(ptr, step) \
+	{ \
+		word seg = FP_SEG(ptr); \
+		word off = FP_OFF(ptr); \
+		\
+		unsigned long address = ((unsigned long)seg << 4) + (unsigned long)off; \
+		address += step; \
+		(ptr) = MK_FP((address >> 4), address & 0xF); \
+	}
+#endif
+
+
 
 /*
 
@@ -65,16 +94,6 @@ typedef struct tagDosHeader
 DosHeader;
 
 #pragma pack(pop)
-
-#define ADVANCE_PTR(ptr, step) \
-	{ \
-		word seg = FP_SEG(ptr); \
-		word off = FP_OFF(ptr); \
-		\
-		unsigned long address = ((unsigned long)seg << 4) + (unsigned long)off; \
-		address += step; \
-		(ptr) = MK_FP((address >> 4), address & 0xF); \
-	}
 
 static long total_memory_to_alloc;
 static DosHeader far * file;
@@ -2562,7 +2581,11 @@ void dumpFile()
 		char buf[1024];
 		size_t bytes_to_write = (bytes_left > sizeof(buf) ? sizeof(buf) : (size_t)bytes_left);
 
+	#ifdef __GNUC__
+		memcpy(buf, ptr, bytes_to_write);
+	#else
 		movedata(FP_SEG(ptr), FP_OFF(ptr), FP_SEG(buf), FP_OFF(buf), bytes_to_write);
+	#endif
 
 		if (fwrite(buf, 1, bytes_to_write, f) != bytes_to_write)
 		{
@@ -2627,6 +2650,9 @@ int main()
 	}
 
 	/* Clear allocated memory */
+#ifdef __GNUC__
+	memset(mem_alloced, 0, total_memory_to_alloc + 0x10L);
+#else
 	seg = FP_SEG(mem_alloced);
 	off = FP_OFF(mem_alloced);
 	for (ii = 0; ii < total_memory_to_alloc + 0x10L; ii++)
@@ -2640,8 +2666,13 @@ int main()
 			off = 0;
 		}
 	}
+#endif
 
 	/* Align memory to the segment boundary */
+#ifdef __GNUC__
+	psp = mem_alloced;
+	file = (DosHeader *)((byte *)mem_alloced + 0x100);
+#else
 	p.value = mem_alloced;
 	assert(p.addr.off < 0x10);
 	p.addr.off = 0;
@@ -2649,13 +2680,22 @@ int main()
 	psp = p.value;
 	p.addr.seg += 0x10;
 	file = p.value;
+#endif
 
 	/* Display info */
+#ifdef __GNUC__
+	fprintf(stderr, "Allocated %ld bytes at %04X:%04X - %04lX:%04X\n",
+		total_memory_to_alloc, 0, 0,
+		((total_memory_to_alloc + 0xFL) >> 4), 0);
+	fprintf(stderr, "Program segment prefix at: %04X:%04X\n", 0, 0);
+	fprintf(stderr, "Program start at: %04X:%04X\n", 0x10, 0);
+#else
 	fprintf(stderr, "Allocated %ld bytes at %04X:%04X - %04lX:%04X\n",
 		total_memory_to_alloc, FP_SEG(psp), FP_OFF(psp),
 		FP_SEG(psp) + ((total_memory_to_alloc + 0xFL) >> 4), 0);
 	fprintf(stderr, "Program segment prefix at: %04X:%04X\n", FP_SEG(psp), FP_OFF(psp));
 	fprintf(stderr, "Program start at: %04X:%04X\n", FP_SEG(file), FP_OFF(file));
+#endif
 
 	/* Read the file */
 	rewind(f);
@@ -2672,7 +2712,11 @@ int main()
 			return 1;
 		}
 
+	#ifdef __GNUC__
+		memcpy(ptr, buf, bytes_to_read);
+	#else
 		movedata(FP_SEG(buf), FP_OFF(buf), FP_SEG(ptr), FP_OFF(ptr), bytes_to_read);
+	#endif
 		ADVANCE_PTR(ptr, bytes_to_read);
 		bytes_left -= bytes_to_read;
 	}
@@ -2686,8 +2730,13 @@ int main()
 	}
 
 	/* Fixup the header */
+#ifdef __GNUC__
+	file->relativeSS += 0x10 + file->headerSize;
+	file->relativeCS += 0x10 + file->headerSize;
+#else
 	file->relativeSS += p.addr.seg + file->headerSize;
 	file->relativeCS += p.addr.seg + file->headerSize;
+#endif
 
 	/* Dump header info */
 	printExeHeader();
