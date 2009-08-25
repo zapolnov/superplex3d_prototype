@@ -5,7 +5,7 @@
 
 static main()
 {
-	auto my_struc, my_enum;
+	auto my_struc, my_enum, i, tmp;
 
 	SetLongPrm(INF_STRTYPE, ASCSTR_TERMCHR);
 	SetCharPrm(INF_LPREFIX, "@@");
@@ -224,22 +224,22 @@ static main()
 	OpDecimal(0x36D46, 1);
 	OpOff(0x36D49, 1, 0x3F600);
 	OpOff(0x36D52, 1, 0x3F600);
-	MakeName(0x36D0F, "VIDEO_func2");
-	HideArea(0x36D0F, 0x36DC2, "Hidden: VIDEO_func2", "", "", -1);
+	MakeName(0x36D0F, "VID_func2");
+	HideArea(0x36D0F, 0x36DC2, "Hidden: VID_func2", "", "", -1);
 	SetHiddenArea(0x36D0F, 0);
 
 	MakeFunction(0x36DC2, BADADDR);
-	MakeName(0x36DC2, "VIDEO_func3");
+	MakeName(0x36DC2, "VID_func3");
 
 	MakeFunction(0x36E2C, BADADDR);
-	MakeName(0x36E2C, "VIDEO_func4");
+	MakeName(0x36E2C, "VID_func4");
 
 	MakeFunction(0x36E82, BADADDR);
-	MakeName(0x36E82, "VIDEO_func5");
+	MakeName(0x36E82, "VID_func5");
 
 	MakeFunction(0x36E92, BADADDR);
-	MakeName(0x36E92, "VIDEO_func1");
-	HideArea(0x36E92, 0x36EA2, "Hidden: VIDEO_func1", "", "", -1);
+	MakeName(0x36E92, "VID_func1");
+	HideArea(0x36E92, 0x36EA2, "Hidden: VID_func1", "", "", -1);
 	SetHiddenArea(0x36E92, 0);
 
 	MakeFunction(0x36EA2, BADADDR);
@@ -394,97 +394,251 @@ static main()
 	MakeName(0x371A4, "StopFloppyMotor");
 
 	MakeFunction(0x371AB, BADADDR);
-	MakeName(0x371AB, "LoadDemoFile");
+	MakeName(0x371AB, "LoadAllDemoFiles");
+	MakeName(0x371BB, "@@LoadNextDemoFile");
 	OpOff(0x371B1, 1, 0x27200);
 	OpOff(0x371BF, 1, 0x3F600);
+	OpDecimal(0x371D5, 1);
+	MakeName(0x371EC, "@@DemoFileReadOk");
 	OpChr(0x371C2, 1);
+	MakeName(0x371FC, "@@DemoFileCloseOk");
+	MakeName(0x37217, "@@DemoFileOpenFailed");
 
 	MakeFunction(0x3721A, BADADDR);
-	MakeName(0x3721A, "LoadPalettes");
+	MakeName(0x3721A, "VID_LoadPalettes");
 	OpOff(0x3721D, 1, 0x3F600);
+	MakeComm(0x37224, "DOS ERROR: File not found");
+	MakeName(0x3722E, "@@PaletteFileOpenError");
+	MakeName(0x37231, "@@PaletteFileOpenOk");
 	OpDecimal(0x3723B, 1);
 	OpOff(0x3723E, 1, 0x3F600);
+	MakeName(0x37248, "@@PaletteFileReadOk");
+	MakeName(0x37256, "@@PaletteFileCloseOk");
+
+	MakeFunction(0x37257, BADADDR);
+	MakeName(0x37257, "VID_ScrollScreenHorizontal");
+	MakeLocal(0x37257, BADADDR, "[bp-06]", "savedDS");
+	OpDecimal(0x3725A, 1);
+	if (substr(GetOpnd(0x3725A, 1), 0, 1) != "-")
+		OpSign(0x3725A, 1);
+	MakeComm(0x3726C, "Select the Graphics Mode register");
+	MakeComm(0x37270, "Set mode:\n 16 colors,\n interleave mode disabled,\n normal addressing\n write mode 01: In this mode, data is transferred directly from the\n   32 bit latch register to display memory, affected only by the\n   Memory Plane Write Enable field. The host data is not used in\n   this mode.");
+	MakeComm(0x37276, "Select the Map Mask register");
+	MakeComm(0x3727A, "Enable writing to all color planes");
+	MakeComm(0x37280, "Select the Bit Mask register");
+	MakeComm(0x37284, "Write the bit mask");
+	OpOff(0x3733B, 1, 0x3F600);
+	// FIXME: Needs completion
 
 	MakeFunction(0x37345, BADADDR);
-	MakeName(0x37345, "DisplayTitleScreen");
+	MakeName(0x37345, "VID_DisplayTitleScreen");
 	OpOff(0x37348, 1, 0x3F600);
+	MakeName(0x37352, "@@Title1FileOpenOk");
+	MakeComm(0x3735A, "Select the Graphics Mode register");
+	MakeComm(0x3735E, "Set mode:\n 16 colors,\n interleave mode disabled,\n normal addressing\n write mode 00: In this mode, the host data is first rotated as per\n   the Rotate Count field, then the Enable Set/Reset mechanism\n   selects data from this or the Set/Reset field. Then the selected\n   Logical Operation is performed on the resulting data and the\n   data in the latch register. Then the Bit Mask field is used to\n   select which bits come from the resulting data and which come\n   from the latch register. Finally, only the bit planes enabled by\n   the Memory Plane Write Enable field are written to memory.");
+	MakeComm(0x37364, "Select the Enable Set/Reset register");
+	MakeComm(0x37368, "Use the CPU-specified value for all color planes");
+	MakeComm(0x3736E, "Select the Bit Mask register");
+	MakeComm(0x37372, "Write the bit mask");
+	MakeComm(0x37373, "Height of the image");
+	OpDecimal(0x37373, 1);
+	MakeComm(0x37376, "Address in the video memory");
+	MakeName(0x37379, "@@Title1ReadNextRow");
 	OpDecimal(0x37381, 1);
 	OpOff(0x37384, 1, 0x3F600);
+	MakeName(0x3738E, "@@Title1FileReadOk");
 	OpOff(0x3738E, 1, 0x3F600);
+	MakeComm(0x37391, "First color plane");
+	MakeName(0x37393, "@@Title1WritePlane");
+	MakeComm(0x37398, "Select the Map Mask register");
+	MakeComm(0x3739C, "Set the bit plane mask");
 	OpDecimal(0x3739D, 1);
 	OpDecimal(0x373A2, 1);
+	MakeComm(0x373A5, "Next color plane");
 	OpDecimal(0x373AC, 1);
+	MakeName(0x373C0, "@@Title1FileCloseOk");
+	MakeComm(0x373C5, "Select the Map Mask register");
+	MakeComm(0x373C9, "Enable writing to all color planes");
+	MakeComm(0x373CF, "Select the Enable Set/Reset register");
+	MakeComm(0x373D3, "Enable use of bit expansion from the Set/Reset Register into all color planes");
+	MakeComm(0x373D4, "Address in the video memory");
+	MakeComm(0x373E0, "Select the Start Address Low register");
+	MakeComm(0x373E4, "Write low byte of the memory address");
+	MakeComm(0x373EA, "Select the Start Address High register");
+	MakeComm(0x373EE, "Write high byte of the memory address");
+	OpOff(0x373F7, 1, 0x3F600);
 	OpOff(0x37400, 1, 0x3F600);
+	MakeName(0x3740A, "@@Title2FileOpenOk");
+	MakeComm(0x37412, "Select the Enable Set/Reset register");
+	MakeComm(0x37416, "Use the CPU-specified value for all color planes");
+	MakeComm(0x3741C, "Select the Bit Mask register");
+	MakeComm(0x37420, "Write the bit mask");
+	OpDecimal(0x37421, 1);
+	MakeComm(0x37424, "Address in the video memory");
+	MakeName(0x37427, "@@Title2ReadNextRow");
 	OpDecimal(0x3742F, 1);
 	OpOff(0x37432, 1, 0x3F600);
+	MakeName(0x3743C, "@@Title2FileReadOk");
 	OpOff(0x3743C, 1, 0x3F600);
+	MakeComm(0x3743F, "First color plane");
+	MakeName(0x37441, "@@Title2WritePlane");
+	MakeComm(0x37446, "Select the Map Mask register");
+	MakeComm(0x3744A, "Set the bit plane mask");
 	OpDecimal(0x3744B, 1);
 	OpDecimal(0x37450, 1);
+	MakeComm(0x37453, "Next color plane");
+	OpDecimal(0x3745A, 1);
+	MakeName(0x3746E, "@@Title2FileCloseOk");
+	MakeComm(0x37473, "Select the Map Mask register");
+	MakeComm(0x37477, "Enable writing to all color planes");
 
 	MakeFunction(0x37479, BADADDR);
-	MakeName(0x37479, "LoadFixedAndMoving");
+	MakeName(0x37479, "VID_LoadSprites");
+	if (substr(GetOpnd(0x3747C, 1), 0, 1) != "-")
+		OpSign(0x3747C, 1);
+	MakeName(0x3747F, "@@MovingRetryFileOpen");
 	OpOff(0x37482, 1, 0x3F600);
+	MakeComm(0x37489, "DOS ERROR: File not found");
+	MakeName(0x37495, "@@MovingFileOpenFailed");
+	MakeName(0x37498, "@@MovingFileOpenOk");
 	OpDecimal(0x374D1, 1);
 	OpOff(0x374D4, 1, 0x3F600);
+	MakeName(0x374DE, "@@MovingFileReadOk");
 	OpOff(0x374DE, 1, 0x3F600);
 	OpDecimal(0x3750B, 1);
+	MakeName(0x3753D, "@@MovingFileCloseOk");
 	OpOff(0x37540, 1, 0x3F600);
+	MakeName(0x3754A, "@@FixedFileOpenOk");
 	OpDecimal(0x37554, 1);
 	OpOff(0x37557, 1, 0x3F600);
+	MakeName(0x37561, "@@FixedFileReadOk");
+	MakeName(0x3756F, "@@FixedFileCloseOk");
 
 	MakeFunction(0x3757D, BADADDR);
-	MakeName(0x3757D, "LoadPanelImage");
+	MakeName(0x3757D, "VID_LoadPanelImage");
 	OpOff(0x37580, 1, 0x3F600);
+	MakeComm(0x37587, "DOS ERROR: File not found");
+	MakeName(0x37593, "@@PanelFileOpenFailed");
+	MakeName(0x37596, "@@PanelFileOpenOk");
 	OpDecimal(0x375A0, 1);
 	OpOff(0x375A3, 1, 0x3F600);
+	MakeName(0x375AD, "@@PanelFileReadOk");
+	MakeName(0x375BB, "@@PanelFileCloseOk");
 
 	MakeFunction(0x375BC, BADADDR);
-	MakeName(0x375BC, "LoadBackDat");
+	MakeName(0x375BC, "VID_LoadGradientBackground");
 	OpOff(0x375BF, 1, 0x3F600);
+	MakeComm(0x375C6, "DOS ERROR: File not found");
+	MakeName(0x375D2, "@@BackFileOpenFailed");
+	MakeName(0x375D5, "@@BackFileOpenOk");
 	OpDecimal(0x375E5, 1);
 	OpOff(0x375E8, 1, 0x1F500);
+	MakeName(0x375F3, "@@BackFileReadOk");
+	MakeName(0x37602, "@@BackFileCloseOk");
 
 	MakeFunction(0x37603, BADADDR);
-	MakeName(0x37603, "LoadFonts");
+	MakeName(0x37603, "VID_LoadFonts");
 	OpOff(0x37606, 1, 0x3F600);
+	MakeComm(0x3760D, "DOS ERROR: File not found");
+	MakeName(0x37619, "@@Chars6FileOpenFailed");
+	MakeName(0x3761C, "@@Chars6FileOpenOk");
 	OpDecimal(0x37626, 1);
 	OpOff(0x37629, 1, 0x3F600);
+	MakeName(0x37633, "@@Chars6FileReadOk");
+	MakeName(0x37641, "@@Chars6FileCloseOk");
 	OpOff(0x37644, 1, 0x3F600);
+	MakeName(0x3764E, "@@Chars8FileOpenOk");
 	OpDecimal(0x37658, 1);
 	OpOff(0x3765B, 1, 0x3F600);
+	MakeName(0x37665, "@@Chars8FileReadOk");
+	MakeName(0x37673, "@@Chars8FileCloseOk");
+
+	MakeFunction(0x37674, BADADDR);
+	MakeName(0x37674, "VID_DisplayTitle");
+	OpOff(0x3769A, 1, 0x3F600);
+	// FIXME
 
 	MakeFunction(0x37727, BADADDR);
 	MakeName(0x37727, "LoadLevelsList");
 	OpOff(0x3772A, 1, 0x3F600);
+	MakeComm(0x37731, "DOS ERROR: File not found");
+	MakeName(0x3773D, "@@LevelsLstFileOpenFailed");
+	MakeName(0x37740, "@@LevelsLstFileOpenOk");
 	OpDecimal(0x3774A, 1);
 	OpOff(0x3774D, 1, 0x3F600);
+	MakeName(0x37757, "@@LevelsLstFileReadOk");
+	MakeName(0x37765, "@@LevelsLstFileCloseOk");
 
 	MakeFunction(0x37766, BADADDR);
-	MakeName(0x37766, "LoadGfxDat");
+	MakeName(0x37766, "VID_LoadGfxDat");
 	OpOff(0x37769, 1, 0x3F600);
+	MakeComm(0x37770, "DOS ERROR: File not found");
+	MakeName(0x3777C, "@@GfxFileOpenFailed");
+	MakeName(0x3777F, "@@GfxFileOpenOk");
 	OpDecimal(0x3778F, 1);
 	OpOff(0x37792, 1, 0xFB00);
+	MakeName(0x3779D, "@@GfxFileReadOk");
+	MakeName(0x377AC, "@@GfxFileCloseOk");
 
 	MakeFunction(0x377AD, BADADDR);
-	MakeName(0x377AD, "LoadControlsDat");
+	MakeName(0x377AD, "VID_LoadControlsDat");
 	OpOff(0x377B0, 1, 0x3F600);
+	MakeComm(0x377B7, "DOS ERROR: File not found");
+	MakeName(0x377C3, "@@ControlsFileOpenFailed");
+	MakeName(0x377C6, "@@ControlsFileOpenOk");
 	OpDecimal(0x377D6, 1);
 	OpOff(0x377D9, 1, 0x17800);
+	MakeName(0x377E4, "@@ControlsFileReadOk");
+	MakeName(0x377F3, "@@ControlsFileCloseOk");
 
 	MakeFunction(0x377F4, BADADDR);
 	MakeName(0x377F4, "LoadPlayerLst");
 	OpOff(0x377F7, 1, 0x3F600);
 	OpDecimal(0x37803, 1);
 	OpOff(0x37806, 1, 0x3F600);
+	MakeName(0x37812, "@@PlayerLstFileReadFailed");
 
 	MakeFunction(0x37813, BADADDR);
 	MakeName(0x37813, "LoadHallfameLst");
 	OpOff(0x37816, 1, 0x3F600);
 	OpDecimal(0x37822, 1);
 	OpOff(0x37825, 1, 0x3F600);
+	MakeName(0x37831, "@@HallfameLstFileReadFailed");
 
 	MakeFunction(0x37832, BADADDR);
-	MakeName(0x37832, "LoadDataFiles");
+	MakeName(0x37832, "LoadAllDataFiles");
+
+	MakeFunction(0x37854, BADADDR);
+	MakeName(0x37854, "");
+	MakeName(0x378AE, "@@WaitForKeyRelease");
+	// FIXME
+
+	MakeName(0x378C3, "AskUserToInsertAnotherDisk");
+	OpOff(0x378C6, 1, 0x3F600);
+	OpOff(0x378D6, 1, 0x3F600);
+	MakeName(0x378E0, "@@CurrentDiskIs2");
+	OpOff(0x378E0, 1, 0x3F600);
+	MakeName(0x378E8, "@@DoAskUser");
+	OpOff(0x378F0, 1, 0x3F600);
+	OpOff(0x37910, 1, 0x3F600);
+
+	// UNUSED
+	MakeFunction(0x37920, BADADDR);
+	//MakeName(0x37920, "");
+
+	// UNUSED
+	MakeFunction(0x37D99, BADADDR);
+	//MakeName(0x37D99, "");
+
+	// UNUSED
+	MakeFunction(0x37D9A, BADADDR);
+	//MakeName(0x37D9A, "");
+
+	MakeFunction(0x38191, BADADDR);
+	//MakeName(0x38191, "");
+
+	MakeFunction(0x3826F, BADADDR);
+	//MakeName(0x3826F, "");
 
 	MakeFunction(0x382EA, BADADDR);
 	//MakeName(0x382EA, "");
@@ -503,8 +657,10 @@ static main()
 	MakeFunction(0x38370, BADADDR);
 	MakeName(0x38370, "DisplayDosErrorMessage");
 	OpOff(0x38378, 1, 0x4D460);
-	//MakeNameEx(0x3837D, "@@1", SN_LOCAL);
+	MakeName(0x3837D, "@@FindErrorDescr");
 	OpDecimal(0x3837D, 1);
+	MakeName(0x38385, "@@DisplayNextChar");
+	MakeName(0x38395, "@@DisplayCRLF");
 	OpDecimal(0x38397, 1);
 	OpDecimal(0x3839F, 1);
 
@@ -523,8 +679,51 @@ static main()
 	OpChr(0x38A82, 1);
 	OpOff(0x38AA6, 1, 0x3F600);
 
+	MakeFunction(0x38AC1, BADADDR);
+	MakeName(0x38AC1, "HandleUserInput");
+
 	MakeFunction(0x38FBA, BADADDR);
 	MakeName(0x38FBA, "JoystickRawRead");
+
+	MakeFunction(0x3900A, BADADDR);
+	MakeName(0x3900A, "xxx_HandleBug");
+	OpOff(0x3900A, 0, 0x3F600);
+	OpEnumEx(0x3900A, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3901E, 1, 0x3F600);
+	OpEnumEx(0x39024, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39034, 0, 0x3F600);
+	OpEnumEx(0x39038, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3903E, 0, 0x3F600);
+	OpEnumEx(0x3903E, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39045, 0, 0x3F600);
+	OpEnumEx(0x39045, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3904C, 0, 0x3F600);
+	OpEnumEx(0x3904C, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39053, 0, 0x3F600);
+	MakeComm(0x39053, "-1");
+	OpEnumEx(0x39053, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3905A, 0, 0x3F600);
+	OpEnumEx(0x3905A, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39061, 0, 0x3F600);
+	OpEnumEx(0x39061, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39068, 0, 0x3F600);
+	OpEnumEx(0x39068, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3906F, 0, 0x3F600);
+	OpEnumEx(0x3906F, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3907D, 1, 0x3F600);
+	OpOff(0x39085, 1, 0x3F600);
+	OpDecimal(0x39090, 1);
+	OpDecimal(0x39095, 1);
+	OpDecimal(0x39098, 1);
+
+	MakeFunction(0x3909F, BADADDR);
+	MakeName(0x3909F, "xxx_HandleTerminal");		// ?
+	OpOff(0x3909F, 0, 0x3F600);
+	OpEnumEx(0x3909F, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x390A7, 1, 0x3F600);
+	OpOff(0x390B2, 0, 0x3F600);
+	OpOff(0x390C2, 0, 0x3F600);
+	OpOff(0x390C6, 1, 0x3F600);
 
 	MakeFunction(0x3916F, BADADDR);
 	MakeName(0x3916F, "InitRandomNumberGenerator");
@@ -533,6 +732,49 @@ static main()
 	MakeName(0x3917B, "GenerateRandomNumber");
 	OpDecimal(0x3917E, 1);
 	OpDecimal(0x39183, 1);
+
+	MakeFunction(0x3918C, BADADDR);
+	MakeName(0x3918C, "ReadKeyboardArrowsInput");
+
+	MakeFunction(0x39209, BADADDR);
+	//MakeName(0x39209, "");
+	OpEnumEx(0x3920C, 1, GetEnum("MAP_DIMENSIONS"), 0);
+	OpOff(0x3920F, 1, 0x3F600);
+	OpEnumEx(0x39213, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39217, 0, 0x3F600);
+	OpEnumEx(0x39217, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x39225, BADADDR);
+	//MakeName(0x39225, "");
+	OpEnumEx(0x39228, 1, GetEnum("MAP_DIMENSIONS"), 0);
+	OpOff(0x3922B, 1, 0x3F600);
+	OpEnumEx(0x3922F, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39233, 0, 0x3F600);
+	OpEnumEx(0x39233, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x39241, BADADDR);
+	//MakeName(0x39241, "");
+	OpEnumEx(0x39244, 1, GetEnum("MAP_DIMENSIONS"), 0);
+	OpOff(0x39247, 1, 0x3F600);
+	OpEnumEx(0x3924B, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3924F, 0, 0x3F600);
+	OpEnumEx(0x3924F, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x3925D, BADADDR);
+	//MakeName(0x3925D, "");
+	OpEnumEx(0x39260, 1, GetEnum("MAP_DIMENSIONS"), 0);
+	OpOff(0x39263, 1, 0x3F600);
+	OpEnumEx(0x39267, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3926B, 0, 0x3F600);
+	OpEnumEx(0x3926B, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x39279, BADADDR);
+	//MakeName(0x39279, "");
+	OpEnumEx(0x3927C, 1, GetEnum("MAP_DIMENSIONS"), 0);
+	OpOff(0x3927F, 1, 0x3F600);
+	OpEnumEx(0x39283, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x39287, 0, 0x3F600);
+	OpEnumEx(0x39287, 1, GetEnum("MAP_ELEMENT"), 0);
 
 	MakeFunction(0x39295, BADADDR);
 	MakeName(0x39295, "FindPlayerPositionOnLevelMap");
@@ -564,11 +806,54 @@ static main()
 	MakeFunction(0x393B9, BADADDR);
 	MakeName(0x393B9, "StartLevel");
 
+	MakeFunction(0x393CF, BADADDR);
+	MakeName(0x393CF, "xxx_handleOrangeDisk");
+	OpOff(0x393CF, 0, 0x3F600);
+	OpEnumEx(0x393CF, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x3956F, BADADDR);
+//	MakeName(0x3956F, "");
+	OpOff(0x3956F, 0, 0x3F600);
+	OpEnumEx(0x3956F, 1, GetEnum("MAP_ELEMENT"), 0);
+
+	MakeFunction(0x398F9, BADADDR);
+//	MakeName(0x398F9, "");
+	OpOff(0x398F9, 0, 0x3F600);
+
 	MakeFunction(0x39A20, BADADDR);
-	MakeName(0x39A20, "LoadMenu");
+	MakeName(0x39A20, "VID_LoadMenu");
 	OpOff(0x39A23, 1, 0x3F600);
+	MakeName(0x39A2D, "@@MenuDatFileOpenOk");
 	OpDecimal(0x39A3D, 1);
 	OpOff(0x39A40, 1, 0x7E00);
+	MakeName(0x39A4B, "@@MenuDatFileReadOk");
+	MakeName(0x39A5A, "@@MenuDatFileCloseOk");
+
+	MakeFunction(0x39A5B, BADADDR);
+	MakeName(0x39A5B, "");
+
+	MakeFunction(0x3AA75, BADADDR);
+	MakeName(0x3AA75, "VID_DrawText6");
+	OpChr(0x3AAAC, 1);
+	OpOff(0x3AAB1, 1, 0x3F600);
+	OpDecimal(0x3AAE5, 1);
+	OpDecimal(0x3AAE8, 1);
+	OpDecimal(0x3AB06, 1);
+	OpDecimal(0x3AB09, 1);
+	OpDecimal(0x3AB27, 1);
+	OpDecimal(0x3AB2A, 1);
+	OpDecimal(0x3AB48, 1);
+	OpDecimal(0x3AB4B, 1);
+	OpDecimal(0x3AB69, 1);
+	OpDecimal(0x3AB6C, 1);
+	OpDecimal(0x3AB8A, 1);
+	OpDecimal(0x3AB8D, 1);
+	OpDecimal(0x3ABAB, 1);
+	OpDecimal(0x3ABAE, 1);
+	OpDecimal(0x3ABB1, 1);
+
+	MakeFunction(0x3B3A8, BADADDR);
+	MakeName(0x3B3A8, "VID_DrawGradientBackground");
 
 	MakeFunction(0x3BCAC, BADADDR);
 	MakeName(0x3BCAC, "WritePlayerLst");
@@ -599,6 +884,7 @@ static main()
 
 	MakeFunction(0x3BF60, BADADDR);
 	MakeName(0x3BF60, "InitVideoMode");
+	MakeComm(0x3BF67, "EGA 320x200 16-color");
 
 	MakeFunction(0x3BF9F, BADADDR);
 	MakeName(0x3BF9F, "xxx_SetPaletteRegister");	// ?
@@ -632,11 +918,22 @@ static main()
 	OpDecimal(0x3C0EB, 1);
 	OpDecimal(0x3C0F1, 1);
 
+	MakeFunction(0x3C0F9, BADADDR);
+	MakeName(0x3C0F9, "VID_SetHorizontalPanning");
+	MakeName(0x3C0FB, "@@WaitVerticalRetrace");
+	MakeComm(0x3C10A, "Read the Input Status #1 register");
+	MakeComm(0x3C10F, "Read the Input Status #1 register\nThis will switch the 0x3C0 port into the address mode");
+	OpHex(0x3C113, 1);
+	MakeComm(0x3C115, "Select the Horizontal Pixel Panning Register;\nEnable CPU access to the palette registers");
+	MakeComm(0x3C119, "Write the horizontal pixel panning value");
+
 	MakeFunction(0x3C11E, BADADDR);
-	MakeName(0x3C11E, "VGA_WaitForVSyncEnd");
+	MakeName(0x3C11E, "VID_WaitVerticalRetrace");
+	MakeName(0x3C120, "@@WaitForVSync");
+	MakeComm(0x3C123, "Read the Input Status #1 register");
 
 	MakeFunction(0x3C1D9, BADADDR);
-	MakeName(0x3C1D9, "VGA_BlankScreen");
+	MakeName(0x3C1D9, "VID_BlankScreen");
 	MakeComm(0x3C1DE, "Select the Graphics Mode register");
 	MakeComm(0x3C1E2, "Set mode:\n 16 colors,\n interleave mode disabled,\n normal addressing\n write mode 00: In this mode, the host data is first rotated as per\n   the Rotate Count field, then the Enable Set/Reset mechanism\n   selects data from this or the Set/Reset field. Then the selected\n   Logical Operation is performed on the resulting data and the\n   data in the latch register. Then the Bit Mask field is used to\n   select which bits come from the resulting data and which come\n   from the latch register. Finally, only the bit planes enabled by\n   the Memory Plane Write Enable field are written to memory.");
 	MakeComm(0x3C1E8, "Select the Set/Reset register");
@@ -647,7 +944,7 @@ static main()
 	MakeComm(0x3C200, "Write the bit mask");
 
 	MakeFunction(0x3C1A6, BADADDR);
-	MakeName(0x3C1A6, "VGA_InitHorizontalScrolling");
+	MakeName(0x3C1A6, "VID_InitHorizontalScrolling");
 	MakeComm(0x3C1AB, "Select the Enable Set/Reset register");
 	MakeComm(0x3C1AF, "Enable use of bit expansion from the Set/Reset Register into all color planes.");
 	MakeComm(0x3C1B5, "Select the Graphics Mode register.");
@@ -659,7 +956,6 @@ static main()
 	MakeComm(0x3C1D3, "Select the CRT Offset register");
 	OpDecimal(0x3C1D5, 1);
 	MakeComm(0x3C1D7, "Beginning with the second scan line, the starting scan line is\nincreased by twice the value of this register multiplied by the\ncurrent memory address size (byte = 1, word = 2, dword = 4)\neach line");
-
 
 	MakeFunction(0x3C20A, BADADDR);
 	MakeName(0x3C20A, "LoadLevelMap");
@@ -890,6 +1186,9 @@ static main()
 	OpOff(0x3F072, 1, 0x00000);
 	OpDecimal(0x3F079, 1);
 
+	MakeFunction(0x3F08B, BADADDR);
+	MakeName(0x3F08B, "VID_DrawBottomPanel");
+
 	
 	OpOff(0x3F098, 1, 0x00000);
 	OpOff(0x3F09B, 1, 0x3F600);
@@ -971,8 +1270,12 @@ static main()
 	MakeUnkn(0x1F500, 0);
 	MakeByte(0x1F500);
 	MakeArray(0x1F500, 32000);
-	MakeName(0x1F500, "BackDat");
+	MakeName(0x1F500, "GradientBackgroundImage");
 	OpDecimal(0x1F500, -1);
+
+	MakeByte(0x27216);
+	MakeName(0x27216, "DemoData");
+	MakeArray(0x27216, 64010);
 
 	MakeByte(0x3FC10);
 	MakeName(0x3FC10, "SavedVideoMode");
@@ -981,9 +1284,8 @@ static main()
 	MakeArray(0x3FC11, 17);
 	MakeName(0x3FC11, "TmpPalette");
 
-	MakeByte(0x3FC30);
 	MakeName(0x3FC30, "EnableJoystick");
-
+	MakeName(0x3FC31, "JoystickButtons");
 	MakeName(0x3FC36, "JoystickCalibrated");
 	MakeName(0x3FC37, "JoystickMinX");
 	MakeName(0x3FC39, "JoystickMinY");
@@ -1007,6 +1309,9 @@ static main()
 
 	MakeName(0x403B9, "PlayerPosition_Ofs");
 
+	MakeName(0x40396, "VID_HorizontalPanning");
+	MakeComm(0x40396, "Number of pixels that the video data is shifted to the left");
+
 	MakeUnkn(0x40397, 0);
 	MakeUnkn(0x40399, 0);
 	MakeDword(0x40397);
@@ -1015,11 +1320,16 @@ static main()
 	MakeName(0x403AC, "PlayerPosition2_MapX");
 	MakeName(0x403AE, "PlayerPosition2_MapY");
 
+	MakeName(0x403CF, "CurrentDemoOffset");
+
 	MakeWord(0x403D4);
 	MakeName(0x403D4, "FileHandle2");
 
 	MakeName(0x403D8, "PlayerPosition_PixelsX");
 	MakeName(0x403DA, "PlayerPosition_PixelsY");
+
+	MakeName(0x40C57, "VID_VgaMemStartAddress");
+	MakeComm(0x40C57, "Used to scroll the screen");
 
 	MakeUnkn(0x40C6D, 0);
 	MakeUnkn(0x40C6E, 0);
@@ -1157,7 +1467,7 @@ static main()
 	MakeDword(0x40CED);
 	MakeName(0x40CED, "SavedInt9");
 
-	MakeName(0x40CF9, "KeyboardScanCode");
+	MakeName(0x40CF9, "KeyPressed");
 
 	MakeName(0x40DAF, "LEVELS_DAT");
 
@@ -1209,6 +1519,28 @@ static main()
 	MakeName(0x419BA, "SomeLevelData");
 	OpDecimal(0x419BA, -1);
 
+	MakeUnkn(0x41FF2, 0);
+	MakeByte(0x41FF2);
+	MakeArray(0x41FF2, 3108);
+	MakeName(0x41FF2, "LevelLst");
+	OpDecimal(0x41FF2, -1);
+
+	MakeStr(0x42C16, 0x42C32);
+	MakeName(0x42C16, "");
+	MakeStr(0x42C32, 0x42C4E);
+	MakeName(0x42C32, "");
+
+	MakeByte(0x42C4E);
+	MakeArray(0x42C4E, 28);
+	OpDecimal(0x42C4E, 0);
+
+	MakeByte(0x42C6A);
+	MakeArray(0x42C6A, 28);
+	OpDecimal(0x42C6A, 0);
+
+	MakeName(0x42C86, "CurrentInsertedDisk");
+	MakeName(0x42C87, "msgInsertDisk1");
+	MakeName(0x42C95, "msgInsertDisk2");
 	MakeName(0x42CA3, "SUPAPLEX_CFG");
 	MakeName(0x42CB0, "MOVING_DAT");
 	MakeName(0x42CBB, "FIXED_DAT");
@@ -1260,11 +1592,40 @@ static main()
 	MakeName(0x4529B, "Chars8");
 	OpDecimal(0x4529B, -1);
 
+	MakeName(0x4549B, "VID_xxx_Palette");
+	for (i = 0; i < 16; i++)
+	{
+		MakeUnkn(0x4549B + i * 4, 0);
+		MakeDword(0x4549B + i * 4);
+	}
+
+	MakeName(0x454DB, "VID_MenuPalette");
+	for (i = 0; i < 16; i++)
+	{
+		MakeUnkn(0x454DB + i * 4, 0);
+		MakeDword(0x454DB + i * 4);
+	}
+
+	MakeName(0x4551B, "VID_TitlePalette");
+	for (i = 0; i < 16; i++)
+	{
+		MakeUnkn(0x4551B + i * 4, 0);
+		MakeDword(0x4551B + i * 4);
+	}
+
 	MakeUnkn(0x4555B, 0);
 	MakeByte(0x4555B);
 	MakeArray(0x4555B, 256);
 	MakeName(0x4555B, "Palettes");
 	OpDecimal(0x4555B, -1);
+
+	MakeName(0x4565B, "VID_yyy_Palette");
+	MakeDword(0x4565B);
+	MakeArray(0x4565B, 16);
+	OpDecimal(0x4565B, -1);
+
+	MakeWord(0x456CB);
+	MakeArray(0x456CB, 1440);
 
 	MakeWord(0x4622F);
 	MakeName(0x4622F, "RandomSeed");
@@ -1275,8 +1636,22 @@ static main()
 	MakeName(0x4B075, "HaveMouse");
 
 	MakeName(0x4B99A, "PlayerLst");
+	for (i = 0; i < 20; i++)
+	{
+		MakeUnkn(0x4B99A + i * 128, 0);
+		MakeStr(0x4B99A + i * 128, 0x4B99A + i * 128 + 8);
+		MakeByte(0x4B99A + i * 128 + 8);
+		MakeArray(0x4B99A + i * 128 + 8, 120);
+		OpDecimal(0x4B99A + i * 128 + 8, -1);
+	}
 
 	MakeName(0x4C412, "HallfameLst");
+	for (i = 0; i < 8; i++)
+	{
+		MakeUnkn(0x4C412 + i * 12, 0);
+		MakeStr(0x4C412 + i * 12, 0x4C412 + i * 12 + 8);
+		MakeDword(0x4C412 + i * 12 + 8);
+	}
 
 	MakeName(0x4C472, "SoundInitialized");
 	MakeName(0x4C473, "SoundEffectsEnabled");
