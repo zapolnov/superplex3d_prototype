@@ -129,6 +129,14 @@ static main()
 	AddStrucMember(my_struc, "keyF12", 0x58, FF_BYTE | FF_DATA, -1, 1);
 	AddStrucMember(my_struc, "unused", 0x59, FF_BYTE | FF_DATA, -1, 0x26);
 
+	DelStruc(GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	my_struc = AddStrucEx(-1, "ON_SCREEN_CLICKABLE", 0);
+	AddStrucMember(my_struc, "x1", -1, FF_WORD | FF_DATA | FF_0NUMD, -1, 2);
+	AddStrucMember(my_struc, "y1", -1, FF_WORD | FF_DATA | FF_0NUMD, -1, 2);
+	AddStrucMember(my_struc, "x2", -1, FF_WORD | FF_DATA | FF_0NUMD, -1, 2);
+	AddStrucMember(my_struc, "y2", -1, FF_WORD | FF_DATA | FF_0NUMD, -1, 2);
+	AddStrucMember(my_struc, "handler", -1, FF_WORD | FF_DATA | FF_0OFF, 0x36C20, 2);
+
 	// --------------------------------------------
 	// Enums
 
@@ -179,6 +187,10 @@ static main()
 	AddConstEx(my_enum, "MAP_WIDTH", 60, -1);
 	AddConstEx(my_enum, "MAP_HEIGHT", 24, -1);
 	AddConstEx(my_enum, "MAP_NUM_CELLS", 60 * 24, -1);
+
+	DelEnum(GetEnum("VARIOUS_CONSTANTS"));
+	my_enum = AddEnum(GetEnumQty(), "VARIOUS_CONSTANTS", 0);
+	AddConstEx(my_enum, "TOTAL_LEVELS", 111, -1);
 
 	DelEnum(GetEnum("SOUND_DRIVER_TYPE"));
 	my_enum = AddEnum(GetEnumQty(), "SOUND_DRIVER_TYPE", 0);
@@ -570,7 +582,7 @@ static main()
 	MakeName(0x37765, "@@LevelsLstFileCloseOk");
 
 	MakeFunction(0x37766, BADADDR);
-	MakeName(0x37766, "VID_LoadGfxDat");
+	MakeName(0x37766, "VID_LoadTheCastScreen");
 	OpOff(0x37769, 1, 0x3F600);
 	MakeComm(0x37770, "DOS ERROR: File not found");
 	MakeName(0x3777C, "@@GfxFileOpenFailed");
@@ -609,7 +621,7 @@ static main()
 	MakeName(0x37832, "LoadAllDataFiles");
 
 	MakeFunction(0x37854, BADADDR);
-	MakeName(0x37854, "");
+	MakeName(0x37854, "WaitForAnyKey");
 	MakeName(0x378AE, "@@WaitForKeyRelease");
 	// FIXME
 
@@ -830,7 +842,193 @@ static main()
 	MakeName(0x39A5A, "@@MenuDatFileCloseOk");
 
 	MakeFunction(0x39A5B, BADADDR);
-	MakeName(0x39A5B, "");
+	MakeName(0x39A5B, "MainMenu_NewPlayer");
+	OpOff(0x39A5B, 1, 0x3F600);
+	OpDecimal(0x39A63, 1);
+	OpDecimal(0x39A7B, 1);
+	OpOff(0x39A83, 1, 0x3F600);
+	OpOff(0x39A96, 1, 0x3F600);
+	OpChr(0x39AA1, 1);
+	OpOff(0x39AA4, 1, 0x3F600);
+	OpOff(0x39AD8, 1, 0x3F600);
+	OpDecimal(0x39AE0, 1);
+	OpOff(0x39AE8, 1, 0x3F600);
+	OpOff(0x39B0F, 1, 0x3F600);
+	OpChr(0x39B12, 1);
+	OpChr(0x39B2C, 1);
+	OpOff(0x39B2F, 1, 0x3F600);
+	OpOff(0x39B45, 1, 0x3F600);
+	OpChr(0x39B57, 1);
+	OpOff(0x39B6D, 1, 0x3F600);
+	OpOff(0x39B84, 1, 0x3F600);
+	OpChr(0x39B87, 1);
+	OpOff(0x39B9A, 1, 0x3F600);
+	OpChr(0x39B9D, 1);
+	OpOff(0x39BA6, 1, 0x3F600);
+	OpDecimal(0x39BA9, 1);
+	OpOff(0x39BCA, 1, 0x3F600);
+	OpDecimal(0x39BDC, 1);
+	OpOff(0x39BF3, 1, 0x3F600);
+	OpOff(0x39C1E, 1, 0x3F600);
+
+	MakeFunction(0x39C47, BADADDR);
+	MakeName(0x39C47, "MainMenu_DeletePlayer");
+	OpOff(0x39C4F, 1, 0x3F600);
+	OpChr(0x39C58, 1);
+	OpOff(0x39C6E, 1, 0x3F600);
+	OpOff(0x39C93, 1, 0x3F600);
+	OpOff(0x39D03, 1, 0x3F600);
+
+	MakeFunction(0x39D31, BADADDR);
+	MakeName(0x39D31, "MainMenu_SkipLevel");
+	OpOff(0x39D39, 1, 0x3F600);
+	OpChr(0x39D3E, 1);
+	OpOff(0x39D54, 1, 0x3F600);
+	OpDecimal(0x39D60, 1);
+	OpEnumEx(0x39D63, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpOff(0x39D81, 1, 0x3F600);
+	OpOff(0x39D91, 1, 0x3F600);
+	OpOff(0x39D9B, 1, 0x3F600);
+	OpOff(0x39DA7, 1, 0x3F600);
+	OpChr(0x39DAD, 1);
+	OpOff(0x39DB2, 1, 0x3F600);
+	OpOff(0x39E20, 1, 0x3F600);
+
+	MakeFunction(0x39E40, BADADDR);
+	MakeName(0x39E40, "MainMenu_ShowStatistics");
+	OpOff(0x39E48, 1, 0x3F600);
+	OpChr(0x39E50, 1);
+	OpOff(0x39E66, 1, 0x3F600);
+	OpOff(0x39E72, 1, 0x3F600);
+	OpOff(0x39E80, 1, 0x3F600);
+	OpOff(0x39E8B, 1, 0x3F600);
+	OpOff(0x39E96, 1, 0x3F600);
+	OpOff(0x39EA1, 1, 0x3F600);
+	OpOff(0x39EAE, 1, 0x3F600);
+	OpOff(0x39EBC, 1, 0x3F600);
+	OpOff(0x39ED5, 1, 0x3F600);
+	OpChr(0x39ED8, 1);
+	OpOff(0x39EDD, 1, 0x3F600);
+	OpOff(0x39EED, 1, 0x3F600);
+	OpChr(0x39EF0, 1);
+	OpOff(0x39EF5, 1, 0x3F600);
+	OpChr(0x39EF8, 1);
+	OpDecimal(0x39EFC, 1);
+	OpChr(0x39EFF, 1);
+	OpOff(0x39F04, 1, 0x3F600);
+	OpChr(0x39F07, 1);
+	OpChr(0x39F0E, 1);
+	OpOff(0x39F13, 1, 0x3F600);
+	OpOff(0x39F47, 1, 0x3F600);
+	OpChr(0x39F4A, 1);
+	OpOff(0x39F59, 1, 0x3F600);
+	OpChr(0x39F5C, 1);
+	OpChr(0x39F60, 1);
+	OpOff(0x39F6C, 1, 0x3F600);
+	OpOff(0x39F80, 1, 0x3F600);
+	OpOff(0x39F8D, 1, 0x3F600);
+	OpChr(0x39F90, 1);
+	OpOff(0x39FB3, 1, 0x3F600);
+	OpOff(0x39FBC, 1, 0x3F600);
+	OpOff(0x39FD9, 1, 0x3F600);
+
+	MakeFunction(0x39FE0, BADADDR);
+	MakeName(0x39FE0, "MainMenu_ShowTheCastScreen");
+
+	MakeFunction(0x39FED, BADADDR);
+	MakeName(0x39FED, "MainMenu_ShowDemo");
+	OpOff(0x39FFE, 1, 0x27200);
+
+	MakeFunction(0x3A097, BADADDR);
+	MakeName(0x3A097, "MainMenu_xxx");
+
+	MakeFunction(0x3A0DD, BADADDR);
+	MakeName(0x3A0DD, "MainMenu_yyy");
+
+	MakeFunction(0x3A123, BADADDR);
+	MakeName(0x3A123, "VID_ShowCongratulationsAllLevelsCompleted");
+	OpOff(0x3A123, 1, 0x3F600);
+	OpOff(0x3A12C, 1, 0x3F600);
+	OpOff(0x3A137, 1, 0x3F600);
+	OpOff(0x3A142, 1, 0x3F600);
+	OpOff(0x3A14D, 1, 0x3F600);
+	OpOff(0x3A16F, 1, 0x3F600);
+	OpOff(0x3A178, 1, 0x3F600);
+	OpOff(0x3A195, 1, 0x3F600);
+
+	MakeFunction(0x3A19C, BADADDR);
+	MakeName(0x3A19C, "MainMenu_zzz");
+	OpOff(0x3A1A4, 1, 0x3F600);
+	OpChr(0x3A1A9, 1);
+	OpOff(0x3A1BF, 1, 0x3F600);
+	OpEnumEx(0x3A1CE, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpDecimal(0x3A1D3, 1);
+	OpDecimal(0x3A1DB, 1);
+	OpEnumEx(0x3A1DE, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpEnumEx(0x3A1ED, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpOff(0x3A1F6, 1, 0x3F600);
+	OpOff(0x3A204, 1, 0x3F600);
+	OpOff(0x3A22C, 1, 0x3F600);
+
+	MakeUnkn(0x3A238, 0);
+	MakeFunction(0x3A238, BADADDR);
+	MakeName(0x3A238, "MainMenu_SwapDiskettes");
+	OpOff(0x3A238, 1, 0x3F600);
+	OpOff(0x3A241, 1, 0x3F600);
+	OpOff(0x3A258, 1, 0x3F600);
+	OpOff(0x3A265, 1, 0x3F600);
+	OpOff(0x3A270, 1, 0x3F600);
+	OpOff(0x3A292, 1, 0x3F600);
+	OpOff(0x3A2CE, 1, 0x3F600);
+	OpOff(0x3A2D4, 1, 0x3F600);
+	OpOff(0x3A2DF, 1, 0x3F600);
+	OpOff(0x3A2EA, 1, 0x3F600);
+	OpOff(0x3A307, 1, 0x3F600);
+
+	MakeFunction(0x3A30E, BADADDR);
+	MakeName(0x3A30E, "MainMenu_ScrollPlayerListDown");
+
+	MakeFunction(0x3A35F, BADADDR);
+	MakeName(0x3A35F, "MainMenu_ScrollPlayerListUp");
+
+	MakeFunction(0x3A3B0, BADADDR);
+	MakeName(0x3A3B0, "MainMenu_sss");
+
+	MakeFunction(0x3A3BA, BADADDR);
+	MakeName(0x3A3BA, "MainMenu_ScrollLevelListDown");
+	OpDecimal(0x3A3E8, 1);
+
+	MakeUnkn(0x3A43D, 0);
+	MakeFunction(0x3A400, BADADDR);
+	MakeName(0x3A400, "MainMenu_ScrollLevelListUp");
+
+	MakeFunction(0x3A446, BADADDR);
+	MakeName(0x3A446, "MainMenu_ShowAuthorsInfoScreen");
+	OpOff(0x3A446, 1, 0x3F600);
+	OpOff(0x3A466, 1, 0x3F600);
+	OpOff(0x3A471, 1, 0x3F600);
+	OpOff(0x3A47C, 1, 0x3F600);
+	OpOff(0x3A487, 1, 0x3F600);
+	OpOff(0x3A492, 1, 0x3F600);
+	OpOff(0x3A49D, 1, 0x3F600);
+	OpOff(0x3A4A8, 1, 0x3F600);
+	OpOff(0x3A4B3, 1, 0x3F600);
+	OpOff(0x3A4BE, 1, 0x3F600);
+	OpOff(0x3A4C7, 1, 0x3F600);
+	OpOff(0x3A4E4, 1, 0x3F600);
+
+	MakeFunction(0x3A4EB, BADADDR);
+	MakeName(0x3A4EB, "VID_mmm");
+
+	MakeFunction(0x3A528, BADADDR);
+	MakeName(0x3A528, "VID_rrr");
+
+	MakeFunction(0x3A54D, BADADDR);
+	MakeName(0x3A54D, "VID_hhh");
+
+	MakeFunction(0x3A6EE, BADADDR);
+	MakeName(0x3A6EE, "VID_DrawText6_2");
+	OpOff(0x3A72A, 1, 0x3F600);
 
 	MakeFunction(0x3AA75, BADADDR);
 	MakeName(0x3AA75, "VID_DrawText6");
@@ -852,8 +1050,189 @@ static main()
 	OpDecimal(0x3ABAE, 1);
 	OpDecimal(0x3ABB1, 1);
 
+	MakeFunction(0x3AC03, BADADDR);
+	//MakeName(0x3AC03, "");
+	OpDecimal(0x3AC03, 1);
+	OpOff(0x3AC06, 1, 0x3F600);
+	OpOff(0x3AC09, 1, 0x3F600);
+	OpDecimal(0x3AC2A, 1);
+	OpDecimal(0x3AC36, 1);
+	OpOff(0x3AC39, 1, 0x3F600);
+	OpOff(0x3AC3C, 1, 0x3F600);
+	// FIXME
+
+	MakeFunction(0x3AE9C, BADADDR);
+	MakeName(0x3AE9C, "VID_DrawCurrentPlayerInfoInMainMenu");
+	OpOff(0x3AEA6, 1, 0x3F600);
+	OpOff(0x3AEBB, 1, 0x3F600);
+	OpChr(0x3AEBE, 1);
+	OpOff(0x3AEC3, 1, 0x3F600);
+	OpChr(0x3AEC6, 1);
+	OpChr(0x3AED3, 1);
+	OpOff(0x3AED8, 1, 0x3F600);
+	OpChr(0x3AEDB, 1);
+	OpChr(0x3AEE8, 1);
+	OpOff(0x3AEED, 1, 0x3F600);
+	OpOff(0x3AEFF, 1, 0x3F600);
+	OpChr(0x3AF02, 1);
+	OpOff(0x3AF07, 1, 0x3F600);
+
+	MakeFunction(0x3AF13, BADADDR);
+	MakeName(0x3AF13, "VID_DrawPlayerSelectionList");
+	OpOff(0x3AF1D, 1, 0x3F600);
+	OpOff(0x3AF4A, 1, 0x3F600);
+	OpDecimal(0x3AF56, 1);
+	OpOff(0x3AF63, 1, 0x3F600);
+
+	MakeFunction(0x3AF8A, BADADDR);
+	//MakeName(0x3AF8A, "");
+	OpOff(0x3AF97, 1, 0x3F600);
+	OpOff(0x3AF9D, 1, 0x3F600);
+	OpEnumEx(0x3AFA0, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpEnumEx(0x3AFAD, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpOff(0x3AFB0, 1, 0x3F600);
+	OpEnumEx(0x3AFE1, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpEnumEx(0x3AFF1, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpEnumEx(0x3AFF7, 1, GetEnum("VARIOUS_CONSTANTS"), 0);
+	OpChr(0x3B026, 1);
+	OpChr(0x3B02C, 1);
+	OpChr(0x3B033, 1);
+	OpChr(0x3B03A, 1);
+
+	MakeFunction(0x3ABC5, BADADDR);
+	MakeName(0x3ABC5, "ConvNumberToString");
+	OpChr(0x3ABC6, 1);
+	MakeName(0x3ABD0, "@@CountHundreds");
+	OpDecimal(0x3ABD0, 1);
+	MakeName(0x3ABD8, "@@DoneCountHundreds");
+	OpDecimal(0x3ABD9, 1);
+	MakeName(0x3ABDB, "@@CountTens");
+	OpDecimal(0x3ABDB, 1);
+	MakeName(0x3ABE3, "@@DoneCountTens");
+	OpDecimal(0x3ABE4, 1);
+	OpChr(0x3ABE9, 1);
+	OpChr(0x3ABF0, 1);
+	OpChr(0x3ABF5, 1);
+	OpChr(0x3ABF9, 1);
+	OpChr(0x3ABFE, 1);
+	MakeName(0x3AC01, "@@DonePaddingReplace");
+	MakeName(0x3AC02, "@@DoneNumToStrConv");
+
+	MakeFunction(0x3AD4F, BADADDR);
+	//MakeName(0x3AD4F, "");
+	OpOff(0x3AD52, 1, 0x3F600);
+	OpDecimal(0x3AD5A, 1);
+	OpDecimal(0x3AD6A, 1);
+	OpDecimal(0x3AD77, 1);
+	OpDecimal(0x3AD84, 1);
+	OpDecimal(0x3AD91, 1);
+	OpOff(0x3AD9C, 1, 0x3F600);
+	OpChr(0x3ADA4, 1);
+	OpOff(0x3ADA9, 1, 0x3F600);
+
+	MakeFunction(0x3ADB5, BADADDR);
+	MakeName(0x3ADB5, "VID_DrawLevelSelectionList");
+	OpOff(0x3ADDD, 1, 0x3F600);
+	OpDecimal(0x3ADF0, 1);
+	OpDecimal(0x3ADFE, 1);
+	OpOff(0x3AE03, 1, 0x3F600);
+	OpDecimal(0x3AE0F, 1);
+
+	MakeFunction(0x3AE1D, BADADDR);
+	MakeName(0x3AE1D, "VID_DrawHallOfFameView");
+	OpOff(0x3AE22, 1, 0x3F600);
+	OpOff(0x3AE7A, 1, 0x3F600);
+	OpOff(0x3AE85, 1, 0x3F600);
+	OpOff(0x3AE90, 1, 0x3F600);
+
+	MakeFunction(0x3AF72, BADADDR);
+	MakeName(0x3AF72, "VID_DrawMainMenuContents");
+	OpOff(0x3AF72, 1, 0x3F600);
+
+	MakeFunction(0x3B047, BADADDR);
+	MakeName(0x3B047, "VID_ScrollRightAndShowMainMenu");
+	OpOff(0x3B0B9, 1, 0x3F600);
+
+	MakeFunction(0x3B129, BADADDR);
+	MakeName(0x3B129, "VID_DrawLevelFailedScreen");
+	OpOff(0x3B132, 1, 0x3F600);
+	OpOff(0x3B144, 1, 0x3F600);
+	OpOff(0x3B14F, 1, 0x3F600);
+	OpOff(0x3B15C, 1, 0x3F600);
+	OpChr(0x3B166, 1);
+	OpOff(0x3B16B, 1, 0x3F600);
+	OpChr(0x3B171, 1);
+	OpOff(0x3B176, 1, 0x3F600);
+	OpOff(0x3B181, 1, 0x3F600);
+	OpOff(0x3B18C, 1, 0x3F600);
+	OpOff(0x3B1AE, 1, 0x3F600);
+	OpOff(0x3B1B7, 1, 0x3F600);
+
+	MakeFunction(0x3B1D5, BADADDR);
+	MakeName(0x3B1D5, "VID_ScrollLeftAndShowTheCastScreen");
+
+	MakeFunction(0x3B2CA, BADADDR);
+	MakeName(0x3B2CA, "VID_DrawMainMenuBackground");
+	OpOff(0x3B2D0, 1, 0x7E00);
+
+	MakeFunction(0x3B339, BADADDR);
+	MakeName(0x3B339, "VID_DrawTheCastScreen");
+	OpOff(0x3B33F, 1, 0xFB00);
+
 	MakeFunction(0x3B3A8, BADADDR);
 	MakeName(0x3B3A8, "VID_DrawGradientBackground");
+	OpOff(0x3B3AE, 1, 0x1F500);
+
+	MakeFunction(0x3B40D, BADADDR);
+	MakeName(0x3B40D, "VID_DrawSettingsScreen");
+	OpOff(0x3B413, 1, 0x17800);
+
+	MakeFunction(0x3B483, BADADDR);
+	MakeName(0x3B483, "ControlsScreen_SetUseBeepSound");
+
+	MakeFunction(0x3B48D, BADADDR);
+	MakeName(0x3B48D, "ControlsScreen_SetUseSamplesSound");
+
+	MakeFunction(0x3B497, BADADDR);
+	MakeName(0x3B497, "ControlsScreen_SetUseBlasterSound");
+
+	MakeFunction(0x3B4A1, BADADDR);
+	MakeName(0x3B4A1, "ControlsScreen_SetUseAdlibSound");
+
+	MakeFunction(0x3B4AB, BADADDR);
+	MakeName(0x3B4AB, "ControlsScreen_SetUseRolandSound");
+
+	MakeFunction(0x3B4B5, BADADDR);
+	MakeName(0x3B4B5, "ControlsScreen_SetUseCombinedSound");
+
+	MakeFunction(0x3B4BF, BADADDR);
+	MakeName(0x3B4BF, "ControlsScreen_ToggleMusic");
+
+	MakeFunction(0x3B4DC, BADADDR);
+	MakeName(0x3B4DC, "ControlsScreen_ToggleSoundEffects");
+
+	MakeFunction(0x3B4F6, BADADDR);
+	MakeName(0x3B4F6, "ControlsScreen_SetUseKeyboard");
+
+	MakeFunction(0x3B4FF, BADADDR);
+	MakeName(0x3B4FF, "ControlsScreen_SetUseJoystick");
+
+	MakeFunction(0x3B512, BADADDR);
+	//MakeName(0x3B512, "");
+	OpOff(0x3B54C, 1, 0x3F600);
+
+	MakeFunction(0x3B73B, BADADDR);
+	MakeName(0x3B73B, "MainMenu_ShowSettingsScreen");
+	OpOff(0x3B74C, 1, 0x27200);
+	OpOff(0x3B7EF, 1, 0x3F600);
+
+	MakeFunction(0x3B7F6, BADADDR);
+	MakeName(0x3B7F6, "VID_SelectAppropriateItemsOnTheSettingsScreen");
+	OpEnumEx(0x3B89A, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpEnumEx(0x3B8C0, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpEnumEx(0x3B8CF, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpEnumEx(0x3B90B, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpEnumEx(0x3B944, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
 
 	MakeFunction(0x3BCAC, BADADDR);
 	MakeName(0x3BCAC, "WritePlayerLst");
@@ -1258,7 +1637,7 @@ static main()
 	MakeUnkn(0xFB00, 0);
 	MakeByte(0xFB00);
 	MakeArray(0xFB00, 32000);
-	MakeName(0xFB00, "GfxDat");
+	MakeName(0xFB00, "TheCastScreenImage");
 	OpDecimal(0xFB00, -1);
 
 	MakeUnkn(0x17800, 0);
@@ -1276,6 +1655,20 @@ static main()
 	MakeByte(0x27216);
 	MakeName(0x27216, "DemoData");
 	MakeArray(0x27216, 64010);
+
+	for (i = 0x3F600; i < 0x3F6AC; i++)
+		MakeUnkn(i, 0);
+	MakeName(0x3F600, "MainMenuClickableAreas");
+	MakeStructEx(0x3F600, 10, "ON_SCREEN_CLICKABLE");
+	MakeArray(0x3F600, 17);
+	MakeWord(0x3F6AA);
+
+	for (i = 0x3F6AC; i < 0x3F130; i++)
+		MakeUnkn(i, 0);
+	MakeName(0x3F6AC, "ControlsClickableAreas");
+	MakeStructEx(0x3F6AC, 10, "ON_SCREEN_CLICKABLE");
+	MakeArray(0x3F6AC, 13);
+	MakeWord(0x3F72E);
 
 	MakeByte(0x3FC10);
 	MakeName(0x3FC10, "SavedVideoMode");
@@ -1327,6 +1720,13 @@ static main()
 
 	MakeName(0x403D8, "PlayerPosition_PixelsX");
 	MakeName(0x403DA, "PlayerPosition_PixelsY");
+
+	MakeName(0x40B20, "SomeVideoMemOffsets");
+	MakeWord(0x40B20);
+	MakeArray(0x40B20, 15);
+
+	MakeName(0x40C4A, "InfotronsLeftToCollect");
+	MakeName(0x40C4B, "TotalInfotronsInTheLevel");
 
 	MakeName(0x40C57, "VID_VgaMemStartAddress");
 	MakeComm(0x40C57, "Used to scroll the screen");
@@ -1468,6 +1868,15 @@ static main()
 	MakeName(0x40CED, "SavedInt9");
 
 	MakeName(0x40CF9, "KeyPressed");
+
+	MakeName(0x40CFA, "ScanCodeToKeyCode");
+	for (i = 0; i < 64; i++)
+		MakeUnkn(0x40CFA + i, 0);
+	MakeByte(0x40CFA);
+	MakeArray(0x40CFA, 64);
+	OpChr(0x40CFA, -1);
+
+	MakeName(0x40DAC, "LevelsLstViewOffsetY");
 
 	MakeName(0x40DAF, "LEVELS_DAT");
 
@@ -1635,6 +2044,70 @@ static main()
 	MakeName(0x4B073, "MousePosY");
 	MakeName(0x4B075, "HaveMouse");
 
+	MakeName(0x4B079, "msgWelcomeToSupaplex");
+	MakeName(0x4B091, "msgYourName");
+	MakeName(0x4B0A9, "msgInvalidName");
+	MakeName(0x4B0C1, "msgPlayerExists");
+	MakeName(0x4B0D9, "msgPlayerListFull");
+	MakeName(0x4B0F1, "msgMax3SkipsPossible");
+
+	MakeName(0x4B11B, "msgSpaces");
+	MakeName(0x4B16C, "msgSkipNotPossible");
+	MakeName(0x4B184, "msgDeletePlayerQuestion");
+	MakeName(0x4B19C, "msgSkipLevelQuestion");
+	MakeStr(0x4B19C, 0x4B1B4);
+	MakeName(0x4B1B4, "msgNoPlayerSelected");
+	MakeName(0x4B1CC, "msgColorblindIGuess");
+
+	MakeName(0x4B269, "msgNotYouSorry");
+
+	MakeName(0x4B2A2, "msgSupaplexByDreamFactory");
+	MakeName(0x4B2BD, "msgCopyrightDigitalIntegration");
+	MakeName(0x4B2DE, "msgHorizontalLine");
+	MakeName(0x4B30F, "msgSupaplexPlayerStatistics");
+
+	MakeName(0x4B32A, "msgCurrentPlayer");
+	for (i = 0x4B32A; i < 0x4B345; i++)
+		MakeUnkn(i, 0);
+	MakeStr(0x4B32A, 0x4B345);
+
+	MakeName(0x4B345, "msgCurrentLevel");
+
+	MakeName(0x4B360, "msgUsedTime");
+	for (i = 0x4B360; i < 0x4B37B; i++)
+		MakeUnkn(i, 0);
+	MakeStr(0x4B360, 0x4B37B);
+
+	MakeName(0x4B37B, "msgAverageTimeUsedPerLevel");
+	MakeName(0x4B3A6, "msgStillUnderOneMinute");
+	MakeName(0x4B3CD, "msgYouHaveCompletedAllLevels");
+	MakeName(0x4B3FD, "msgInsertDataDiskIntoDrive");
+	MakeName(0x4B419, "msgPressTheDriveLetter");
+	MakeName(0x4B438, "msgPressEnter");
+	MakeName(0x4B444, "msgInsertGameDiskIntoDrive");
+	MakeName(0x4B460, "msgPressEscapeToQuit");
+	MakeName(0x4B475, "msgHardLuck");
+	MakeName(0x4B480, "msgYouCollectedAllInfotrons");
+	MakeName(0x4B4AA, "msgButFailedToReachTheExit");
+	MakeName(0x4B4C7, "msgYouHaveCollected");
+	MakeName(0x4B4DA, "msgNumOutOfTheNum");
+	MakeName(0x4B4ED, "msgInfotronsNeeded");
+	MakeName(0x4B4FE, "msgWhyNotGiveItAnotherTry");
+	MakeName(0x4B51B, "msgSupaplexByDreamFactory_2");
+	MakeName(0x4B536, "msgOriginalDesignByPhilippJespersen");
+	MakeName(0x4B55A, "msgAndMichaelStopp");
+	MakeName(0x4B56C, "msgNearlyAllLevelsByMichaelStopp");
+	MakeName(0x4B58F, "msgAFewLevelsPhilippJeffersen");
+	MakeName(0x4B5B0, "msgHardlyAnyLevelsByBarbaraStopp");
+	MakeName(0x4B5D3, "msgPressEnterToRemovePanel");
+	MakeName(0x4B5F5, "msgCopyrightDigitalIntegration_2");
+	MakeName(0x4B616, "msgCongratulations");
+	MakeName(0x4B626, "msgYouHaveCompletedAllLevels_2");
+	MakeName(0x4B654, "msgYourBrainIsInFantasticShape");
+	MakeName(0x4B675, "msgNotManyPeopleAreAbleToManageThis");
+	MakeName(0x4B69D, "msgWibble");
+	MakeName(0x4B6A6, "Buffer28ByteLong");
+
 	MakeName(0x4B99A, "PlayerLst");
 	for (i = 0; i < 20; i++)
 	{
@@ -1644,6 +2117,10 @@ static main()
 		MakeArray(0x4B99A + i * 128 + 8, 120);
 		OpDecimal(0x4B99A + i * 128 + 8, -1);
 	}
+
+	MakeName(0x4C39C, "CompletionStateOfEachLevel");
+
+	MakeName(0x4C40D, "PlayerLstViewOffsetY");
 
 	MakeName(0x4C412, "HallfameLst");
 	for (i = 0; i < 8; i++)
