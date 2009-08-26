@@ -32,6 +32,11 @@ main	proc near
 		mov ds, ax
 		mov es, ax
 
+		mov al, 0CDh
+		mov di, offset SavedIntCD
+		mov si, offset intCD
+		call replace_int_vector
+
 		mov	ax, 3C00h
 		mov	cx, 0
 		mov	dx, offset LOG_FILE_NAME
@@ -62,6 +67,10 @@ main	proc near
 		mov ax, seg SUPAPLEX_SEG
 		add word ptr es:[EXE_HEADER.relativeSS], ax
 		add word ptr es:[EXE_HEADER.relativeCS], ax
+
+mov ax, word ptr es:[EXE_HEADER.relativeCS]
+mov fs, ax
+mov byte ptr fs:[26BFh], 0C3h ;2238h
 
 		mov si, offset msgHorizontalLine
 		call my_fprint
@@ -173,6 +182,10 @@ exit_application proc
 		mov bx, logFileHandle
 		int 21h
 
+		mov al, 0CDh
+		mov si, offset SavedIntCD
+		call restore_int_vector
+
 		mov ax, 4C00h
 		int 21h
 
@@ -260,6 +273,14 @@ restore_int_vector proc
 		ret
 
 restore_int_vector endp
+
+; -------------------------------------------------------------------------
+
+intCD proc
+
+		iret
+
+intCD endp
 
 ; -------------------------------------------------------------------------
 
@@ -540,9 +561,12 @@ my_fprint proc
 		inc cx
 		jmp short @@str_1
 @@done:	mov ax, 4000h
-		mov bx, logFileHandle
 		mov dx, offset LOG_BUFFER
-		int 21h
+		mov bx, seg SUPAPLEX_SEG
+		mov es, bx
+		add bx, word ptr es:[EXE_HEADER.headerSize]
+;		mov bx, logFileHandle
+		int 0CDh
 		jc dos_error
 
 		pop ds
@@ -556,7 +580,7 @@ my_fprint endp
 ; -------------------------------------------------------------------------
 
 LOG_FILE_NAME db "supaplex.log",0
-SUPAPLEX_EXE_NAME db "supaplex.exe",0
+SUPAPLEX_EXE_NAME db "my.exe",0
 
 msgDosError db "DOS error",13,10,'$',0
 msgNotAnExe db "Not an MZ file",13,10,'$',0
@@ -583,24 +607,24 @@ hexchars db '01234567890ABCDEF'
 ;	db SAVED_BYTE
 
 breakpoints dw 0, offset funcMain, 0
-			dw 03477h, offset func3477, 0
-			dw 05ABEh, offset func5ABE, 0
-			dw 05AFEh, offset func5AFE, 0
-			dw 05B27h, offset func5B27, 0
-			dw 05B90h, offset func5B90, 0
-			dw 05BF9h, offset func5BF9, 0
-			dw 05C62h, offset func5C62, 0
-			dw 05CCBh, offset func5CCB, 0
-			dw 05D35h, offset func5D35, 0
-			dw 05D9Eh, offset func5D9E, 0
+;			dw 03477h, offset func3477, 0
+;			dw 05ABEh, offset func5ABE, 0
+;			dw 05AFEh, offset func5AFE, 0
+;			dw 05B27h, offset func5B27, 0
+;			dw 05B90h, offset func5B90, 0
+;			dw 05BF9h, offset func5BF9, 0
+;			dw 05C62h, offset func5C62, 0
+;			dw 05CCBh, offset func5CCB, 0
+;			dw 05D35h, offset func5D35, 0
+;			dw 05D9Eh, offset func5D9E, 0
 ;			dw 05E10h, offset func5E10, 0
-			dw 05E40h, offset func5E40, 0
-			dw 06F5Eh, offset func6F5E, 0
-			dw 07495h, offset func7495, 0
-			dw 074B7h, offset func74B7, 0
-			dw 07570h, offset func7570, 0
-			dw 075B0h, offset func75B0, 0
-			dw 075D2h, offset func75D2, 0
+;			dw 05E40h, offset func5E40, 0
+;			dw 06F5Eh, offset func6F5E, 0
+;			dw 07495h, offset func7495, 0
+;			dw 074B7h, offset func74B7, 0
+;			dw 07570h, offset func7570, 0
+;			dw 075B0h, offset func75B0, 0
+;			dw 075D2h, offset func75D2, 0
 			dw 0FFFFh
 
 funcMain db 'main',0
@@ -632,6 +656,7 @@ SavedInt1 dd ?
 SavedInt3 dd ?
 SavedInt10 dd ?
 SavedInt21 dd ?
+SavedIntCD dd ?
 
 INT_BUFFER db 32 dup(?)
 LOG_BUFFER db 8192 dup(?)
