@@ -10,6 +10,8 @@ static main()
 	SetLongPrm(INF_STRTYPE, ASCSTR_TERMCHR);
 	SetCharPrm(INF_LPREFIX, "@@");
 
+	ExtLinA(0, 0, ".386");
+
 	// --------------------------------------------
 	// Segments
 
@@ -634,9 +636,67 @@ static main()
 	OpOff(0x378F0, 1, 0x3F600);
 	OpOff(0x37910, 1, 0x3F600);
 
-	// UNUSED
 	MakeFunction(0x37920, BADADDR);
 	//MakeName(0x37920, "");
+	OpOff(0x37920, 0, 0x3F600);
+	OpEnumEx(0x37920, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x37928, 1, 0x3F600);
+	OpOff(0x3793C, 1, 0x3F600);
+	OpOff(0x37955, 0, 0x3F600);
+	OpOff(0x3795C, 0, 0x3F600);
+	OpOff(0x37964, 0, 0x3F600);
+	OpOff(0x3796C, 0, 0x3F600);
+	OpOff(0x37973, 0, 0x3F600);
+	OpOff(0x3797B, 0, 0x3F600);
+	OpOff(0x37984, 0, 0x3F600);
+	OpOff(0x3798B, 0, 0x3F600);
+	OpOff(0x37994, 0, 0x3F600);
+	OpOff(0x37999, 0, 0x3F600);
+	OpOff(0x379A1, 0, 0x3F600);
+	OpOff(0x379A8, 0, 0x3F600);
+	OpOff(0x379B0, 0, 0x3F600);
+	OpOff(0x379B8, 0, 0x3F600);
+	OpOff(0x379BD, 0, 0x3F600);
+	OpOff(0x379C5, 1, 0x3F600);
+	OpOff(0x37A50, 0, 0x3F600);
+	OpOff(0x37A55, 0, 0x3F600);
+	OpOff(0x37A62, 0, 0x3F600);
+	OpOff(0x37A6C, 0, 0x3F600);
+	OpOff(0x37A77, 0, 0x3F600);
+	OpOff(0x37A81, 0, 0x3F600);
+	OpOff(0x37A8B, 0, 0x3F600);
+	OpOff(0x37A96, 0, 0x3F600);
+	OpOff(0x37AA1, 0, 0x3F600);
+	OpOff(0x37AAB, 0, 0x3F600);
+	OpOff(0x37AB8, 0, 0x3F600);
+	OpOff(0x37ABF, 0, 0x3F600);
+	OpOff(0x37AC6, 0, 0x3F600);
+	OpOff(0x37ACE, 0, 0x3F600);
+	OpOff(0x37AD5, 0, 0x3F600);
+	OpOff(0x37ADD, 0, 0x3F600);
+	OpOff(0x37AE5, 0, 0x3F600);
+	OpOff(0x37AEC, 0, 0x3F600);
+	OpOff(0x37AF4, 0, 0x3F600);
+	OpOff(0x37AFD, 0, 0x3F600);
+	OpOff(0x37B03, 0, 0x3F600);
+	OpOff(0x37B0A, 0, 0x3F600);
+	OpOff(0x37B14, 0, 0x3F600);
+	OpOff(0x37B19, 0, 0x3F600);
+	OpOff(0x37B20, 0, 0x3F600);
+	OpOff(0x37B28, 0, 0x3F600);
+	OpOff(0x37B2D, 0, 0x3F600);
+	OpOff(0x37B34, 1, 0x3F600);
+	OpOff(0x37B56, 0, 0x3F600);
+	OpOff(0x37B5D, 0, 0x3F600);
+	OpOff(0x37B63, 0, 0x3F600);
+	OpOff(0x37B6A, 0, 0x3F600);
+	OpOff(0x37B72, 0, 0x3F600);
+	OpOff(0x37B79, 0, 0x3F600);
+	OpOff(0x37B7F, 0, 0x3F600);
+	OpOff(0x37B86, 0, 0x3F600);
+	OpOff(0x37BF3, 0, 0x3F600);
+	OpOff(0x37BF8, 0, 0x3F600);
+	OpOff(0x37C01, 0, 0x3F600);
 
 	// UNUSED
 	MakeFunction(0x37D99, BADADDR);
@@ -1553,6 +1613,13 @@ static main()
 	OpEnumEx(0x3CCE6, 1, GetEnum("MAP_ELEMENT"), 0);
 
 	
+	MakeName(0x3DB16, "@@InfotronCollected");
+
+	MakeFunction(0x3E1D0, BADADDR);
+
+	MakeFunction(0x3E1F2, BADADDR);
+
+	
 	OpOff(0x3EFD7, 1, 0x00000);
 	OpOff(0x3EFDA, 1, 0x00000);
 
@@ -1721,9 +1788,89 @@ static main()
 	MakeName(0x403D8, "PlayerPosition_PixelsX");
 	MakeName(0x403DA, "PlayerPosition_PixelsY");
 
+	MakeUnkn(0x40A6E, 0);
+	MakeName(0x40A6E, "var_40A6E");
+	MakeWord(0x40A6E);
+	MakeArray(0x40A6E, 9);
+
+	MakeUnkn(0x40A80, 0);
+	MakeName(0x40A80, "var_40A80");
+	MakeWord(0x40A80);
+	MakeArray(0x40A80, 2);
+
+	MakeUnkn(0x40A84, 0);
+	MakeName(0x40A84, "var_40A84");
+	MakeWord(0x40A84);
+	MakeArray(0x40A84, 2);
+
+	MakeUnkn(0x40A88, 0);
+	MakeName(0x40A88, "var_40A88");
+	MakeWord(0x40A88);
+	MakeArray(0x40A88, 9);
+
+	MakeUnkn(0x40A9A, 0);
+	MakeName(0x40A9A, "var_40A9A");
+	MakeWord(0x40A9A);
+	MakeArray(0x40A9A, 9);
+
+	MakeUnkn(0x40AAC, 0);
+	MakeName(0x40AAC, "var_40AAC");
+	MakeWord(0x40AAC);
+	MakeArray(0x40AAC, 9);
+
+	MakeUnkn(0x40ABE, 0);
+	MakeName(0x40ABE, "var_40ABE");
+	MakeWord(0x40ABE);
+	MakeArray(0x40ABE, 9);
+
+	MakeUnkn(0x40AD0, 0);
+	MakeName(0x40AD0, "var_40AD0");
+	MakeWord(0x40AD0);
+	MakeArray(0x40AD0, 9);
+
+	MakeUnkn(0x40AE2, 0);
+	MakeName(0x40AE2, "var_40AE2");
+	MakeWord(0x40AE2);
+	MakeArray(0x40AE2, 9);
+
+	MakeUnkn(0x40AF4, 0);
+	MakeName(0x40AF4, "var_40AF4");
+	MakeWord(0x40AF4);
+	MakeArray(0x40AF4, 13);
+
+	MakeUnkn(0x40B0E, 0);
+	MakeName(0x40B0E, "var_40B0E");
+	MakeWord(0x40B0E);
+	MakeArray(0x40B0E, 4);
+
+	MakeUnkn(0x40B16, 0);
+	MakeName(0x40B16, "var_40B16");
+	MakeWord(0x40B16);
+	MakeArray(0x40B16, 4);
+
 	MakeName(0x40B20, "SomeVideoMemOffsets");
 	MakeWord(0x40B20);
 	MakeArray(0x40B20, 15);
+
+	MakeName(0x40B4A, "MapHandlers_1");
+	MakeName(0x40B8A, "MapHandlers_2");
+	MakeName(0x40BCA, "MapHandlers_3");
+	MakeName(0x40C0A, "MapHandlers_4");
+	for (i = 0; i < 32; i++)
+	{
+		auto addr, j;
+
+		for (j = 0; j < 4; j++)
+		{
+			addr = 0x40B4A + j * 32 + i * 2;
+			MakeUnkn(addr, 0);
+			MakeWord(addr);
+			if (Word(addr) == 0)
+				OpDecimal(addr, 0);
+			else
+				OpOff(addr, 0, 0x36C20);
+		}
+	}
 
 	MakeName(0x40C4A, "InfotronsLeftToCollect");
 	MakeName(0x40C4B, "TotalInfotronsInTheLevel");
@@ -1870,10 +2017,10 @@ static main()
 	MakeName(0x40CF9, "KeyPressed");
 
 	MakeName(0x40CFA, "ScanCodeToKeyCode");
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < 128; i++)
 		MakeUnkn(0x40CFA + i, 0);
 	MakeByte(0x40CFA);
-	MakeArray(0x40CFA, 64);
+	MakeArray(0x40CFA, 128);
 	OpChr(0x40CFA, -1);
 
 	MakeName(0x40DAC, "LevelsLstViewOffsetY");
@@ -1919,6 +2066,11 @@ static main()
 	MakeArray(0x4137A, 10);
 	MakeName(0x4137A, "LevelMap_SpecialPorts");
 
+	MakeUnkn(0x413BA, 0);
+	MakeByte(0x413BA);
+	MakeArray(0x413BA, 1536);
+	OpDecimal(0x413BA, -1);
+
 	MakeDword(0x413B6);
 	MakeName(0x413B6, "LevelMap_Unused2");
 
@@ -1927,6 +2079,9 @@ static main()
 	MakeArray(0x419BA, 1536);
 	MakeName(0x419BA, "SomeLevelData");
 	OpDecimal(0x419BA, -1);
+
+	MakeStr(0x41FBA, 0x41FD6);
+	MakeStr(0x41FD6, 0x41FF2);
 
 	MakeUnkn(0x41FF2, 0);
 	MakeByte(0x41FF2);
@@ -2154,7 +2309,7 @@ static main()
 	MakeStr(0x4D460, BADADDR);
 	MakeName(0x4D460, "DosErrorMessages");
 
-	MakeStr(0x4D161, BADADDR);
+	MakeStr(0x4D461, BADADDR);
 	MakeName(0x4D461, "MSG_DosError1");
 	MakeStr(0x4D484, BADADDR);
 	MakeName(0x4D484, "MSG_DosError2");
