@@ -2530,8 +2530,8 @@ void dumpFile()
 	file->totalPages = (file_size + 511) / 512;
 	file->numRelocEntries = 0;
 	file->headerSize = 256 / 16;
-	file->minMemory = (file_size + 15) / 16;
-	file->maxMemory = 0xFFFE;
+	file->minMemory = 0;//(file_size + 15) / 16;
+	file->maxMemory = 0xFFFF;
 	file->relativeSS = regSS - FP_SEG(file) - file->headerSize;
 	file->initialSP = regSP;
 	file->checksum = 0;
