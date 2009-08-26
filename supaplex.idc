@@ -28,8 +28,9 @@ static main()
 	SegRename(0x4D570, "INT80_SEG");
 	SegRename(0x4EB60, "INT81_SEG");
 	SegRename(0x587B0, "STACK_SEG");
-
 	SegBounds(0x587B0, 0x587B0, 0x58BB0, 1);
+	SegCreate(0xA0000, 0xB0000, 0xA000, 0, saRelPara, scPub);
+	SegRename(0xA0000, "VIDEO_MEMORY");
 
 	// --------------------------------------------
 	// Structures
@@ -221,6 +222,7 @@ static main()
 	OpOff(0x36C50, 1, 0x3F600);
 	OpOff(0x36C59, 1, 0x3F600);
 	OpOff(0x36C87, 1, 0x3F600);
+	MakeName(0x36C95, "@@GameNextIteration");
 	OpOff(0x36C98, 1, 0x3F600);
 	OpOff(0x36CAD, 1, 0x3F600);
 	OpOff(0x36CE0, 1, 0x3F600);
@@ -241,6 +243,12 @@ static main()
 	MakeName(0x36D0F, "VID_func2");
 	HideArea(0x36D0F, 0x36DC2, "Hidden: VID_func2", "", "", -1);
 	SetHiddenArea(0x36D0F, 0);
+
+	OpDecimal(0x36D61, 1);
+	OpDecimal(0x36D66, 1);
+	OpDecimal(0x36D70, 1);
+
+	OpOff(0x36DBB, 1, 0x3F600);
 
 	MakeFunction(0x36DC2, BADADDR);
 	MakeName(0x36DC2, "VID_func3");
@@ -637,7 +645,7 @@ static main()
 	OpOff(0x37910, 1, 0x3F600);
 
 	MakeFunction(0x37920, BADADDR);
-	//MakeName(0x37920, "");
+	MakeName(0x37920, "handleZonk");
 	OpOff(0x37920, 0, 0x3F600);
 	OpEnumEx(0x37920, 1, GetEnum("MAP_ELEMENT"), 0);
 	OpOff(0x37928, 1, 0x3F600);
@@ -702,9 +710,8 @@ static main()
 	MakeFunction(0x37D99, BADADDR);
 	//MakeName(0x37D99, "");
 
-	// UNUSED
 	MakeFunction(0x37D9A, BADADDR);
-	//MakeName(0x37D9A, "");
+	MakeName(0x37D9A, "handleInfotron");
 
 	MakeFunction(0x38191, BADADDR);
 	//MakeName(0x38191, "");
@@ -739,8 +746,15 @@ static main()
 	MakeFunction(0x383B0, BADADDR);
 	MakeName(0x383B0, "InitPlayerState");
 
+	MakeFunction(0x38448, BADADDR);
+	MakeName(0x38448, "RunTheLevel");
+	MakeName(0x38461, "@@NextIteration");
+
 	MakeFunction(0x385DD, BADADDR);
 	MakeName(0x385DD, "PollJoystick");
+
+	MakeFunction(0x386E7, BADADDR);
+	MakeName(0x386E7, "VID_PaintGameMap");
 
 	MakeFunction(0x3890E, BADADDR);
 	MakeName(0x3890E, "CalibrateJoystick");
@@ -753,6 +767,25 @@ static main()
 
 	MakeFunction(0x38AC1, BADADDR);
 	MakeName(0x38AC1, "HandleUserInput");
+
+	OpDecimal(0x38E96, 1);
+	OpOff(0x38E99, 1, 0x3F600);
+	OpDecimal(0x38E9C, 1);
+	OpOff(0x38EA2, 1, 0x3F600);
+	OpDecimal(0x38EA6, 1);
+	OpOff(0x38EAF, 0, 0x3F600);
+	OpOff(0x38EB6, 1, 0x3F600);
+	OpDecimal(0x38EBB, 1);
+	OpOff(0x38ED5, 1, 0x3F600);
+
+    
+	//MakeFunction(0x38EAF, BADADDR);
+	//MakeName(0x38EAF, "");
+	OpOff(0x38EAF, 0, 0x3F600);
+	OpOff(0x38EB6, 1, 0x3F600);
+
+	MakeFunction(0x38E43, BADADDR);
+	MakeName(0x38E43, "MoveObjectsInTheLevel");
 
 	MakeFunction(0x38FBA, BADADDR);
 	MakeName(0x38FBA, "JoystickRawRead");
@@ -856,6 +889,8 @@ static main()
 	OpDecimal(0x392AF, 1);
 	OpEnumEx(0x392BC, 1, GetEnum("MAP_DIMENSIONS"), 0);
 
+	MakeFunction(0x392DF, BADADDR);
+	MakeName(0x392DF, "CollectMapInfo");
 	OpDecimal(0x392E3, 1);
 	OpOff(0x392E6, 1, 0x3F600);
 	OpEnumEx(0x392EB, 1, GetEnum("MAP_ELEMENT"), 0);
@@ -884,7 +919,7 @@ static main()
 	OpEnumEx(0x393CF, 1, GetEnum("MAP_ELEMENT"), 0);
 
 	MakeFunction(0x3956F, BADADDR);
-//	MakeName(0x3956F, "");
+	MakeName(0x3956F, "DoExplosion");
 	OpOff(0x3956F, 0, 0x3F600);
 	OpEnumEx(0x3956F, 1, GetEnum("MAP_ELEMENT"), 0);
 
@@ -999,11 +1034,15 @@ static main()
 	MakeName(0x39FED, "MainMenu_ShowDemo");
 	OpOff(0x39FFE, 1, 0x27200);
 
+	MakeFunction(0x3A04E, BADADDR);
+	MakeName(0x3A04E, "PlaySpecifiedDemo");
+	MakeComm(0x3A04E, "AX = Demo number");
+
 	MakeFunction(0x3A097, BADADDR);
-	MakeName(0x3A097, "MainMenu_xxx");
+	MakeName(0x3A097, "MainMenu_ScrollRankingsUp");
 
 	MakeFunction(0x3A0DD, BADADDR);
-	MakeName(0x3A0DD, "MainMenu_yyy");
+	MakeName(0x3A0DD, "MainMenu_ScrollRankingsDown");
 
 	MakeFunction(0x3A123, BADADDR);
 	MakeName(0x3A123, "VID_ShowCongratulationsAllLevelsCompleted");
@@ -1017,7 +1056,7 @@ static main()
 	OpOff(0x3A195, 1, 0x3F600);
 
 	MakeFunction(0x3A19C, BADADDR);
-	MakeName(0x3A19C, "MainMenu_zzz");
+	MakeName(0x3A19C, "MainMenu_OkButtonClicked");
 	OpOff(0x3A1A4, 1, 0x3F600);
 	OpChr(0x3A1A9, 1);
 	OpOff(0x3A1BF, 1, 0x3F600);
@@ -1078,13 +1117,13 @@ static main()
 	OpOff(0x3A4E4, 1, 0x3F600);
 
 	MakeFunction(0x3A4EB, BADADDR);
-	MakeName(0x3A4EB, "VID_mmm");
+	MakeName(0x3A4EB, "VID_SavePictureUnderMouseCursor");
 
 	MakeFunction(0x3A528, BADADDR);
-	MakeName(0x3A528, "VID_rrr");
+	MakeName(0x3A528, "VID_EraseMouseCursor");
 
 	MakeFunction(0x3A54D, BADADDR);
-	MakeName(0x3A54D, "VID_hhh");
+	MakeName(0x3A54D, "VID_PaintMouseCursor");
 
 	MakeFunction(0x3A6EE, BADADDR);
 	MakeName(0x3A6EE, "VID_DrawText6_2");
@@ -1209,6 +1248,9 @@ static main()
 	MakeName(0x3AF72, "VID_DrawMainMenuContents");
 	OpOff(0x3AF72, 1, 0x3F600);
 
+	MakeFunction(0x3AF8A, BADADDR);
+	MakeName(0x3AF8A, "MarkNonCompletedLevelsAndSelectLatestCompleted");
+
 	MakeFunction(0x3B047, BADADDR);
 	MakeName(0x3B047, "VID_ScrollRightAndShowMainMenu");
 	OpOff(0x3B0B9, 1, 0x3F600);
@@ -1277,22 +1319,119 @@ static main()
 	MakeFunction(0x3B4FF, BADADDR);
 	MakeName(0x3B4FF, "ControlsScreen_SetUseJoystick");
 
+	MakeFunction(0x3B50B, BADADDR);
+	MakeName(0x3B50B, "ControlsScreen_ExitClicked");
+
 	MakeFunction(0x3B512, BADADDR);
-	//MakeName(0x3B512, "");
+	MakeName(0x3B512, "RunTheMainMenu");
 	OpOff(0x3B54C, 1, 0x3F600);
+	MakeName(0x3B55A, "@@MainMenuAlreadyPainted");
+	MakeName(0x3B55D, "@@DonePaintMainMenu");
+	MakeName(0x3B566, "@@MainMenuNextFrame");
+	MakeName(0x3B56F, "@@DontShowDemo");
+	MakeName(0x3B59D, "@@UserMovedTheMouse");
+	MakeName(0x3B5A3, "@@DoPaintMouseCursor");
+	OpDecimal(0x3B6D2, 1);
+	OpDecimal(0x3B6DE, 1);
+	OpDecimal(0x3B6EA, 1);
+	MakeName(0x3B6F9, "@@UserClickedLeftMouseButton");
+	OpOff(0x3B707, 1, 0x3F600);
+	MakeName(0x3B70A, "@@TryNextMenuClickableArea");
+	OpStroff(0x3B70A, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B70E, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B713, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B718, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	MakeName(0x3B723, "@@NotThisMenuClickableArea");
+	OpDecimal(0x3B723, 1);
+	MakeComm(0x3B723, "Size of the ON_SCREEN_CLICKABLE structure in bytes");
+	OpHex(0x3B726, 1);
+	MakeName(0x3B72E, "@@ExitTheProgram");
 
 	MakeFunction(0x3B73B, BADADDR);
 	MakeName(0x3B73B, "MainMenu_ShowSettingsScreen");
-	OpOff(0x3B74C, 1, 0x27200);
+	OpOff(0x3B74C, 1, 0x3F600);
+	MakeName(0x3B761, "@@NextSettingsScreenIteration");
+	OpDecimal(0x3B772, 1);
+	OpDecimal(0x3B7A9, 1);
+	OpOff(0x3B7B1, 1, 0x3F600);
+	MakeName(0x3B7B4, "@@TryNextControlsClickableArea");
+	OpStroff(0x3B7B4, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B7B8, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B7BD, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	OpStroff(0x3B7C2, 0, GetStrucIdByName("ON_SCREEN_CLICKABLE"));
+	MakeName(0x3B7CA, "@@WaitUntilUserReleasesMouseButton");
+	MakeName(0x3B7DB, "@@NotThisControlsClickableArea");
+	OpDecimal(0x3B7DB, 1);
+	MakeName(0x3B7E6, "@@ExitSettingsMenu");
+
 	OpOff(0x3B7EF, 1, 0x3F600);
 
 	MakeFunction(0x3B7F6, BADADDR);
-	MakeName(0x3B7F6, "VID_SelectAppropriateItemsOnTheSettingsScreen");
+	MakeName(0x3B7F6, "VID_HighlightSoundDriverChipsOnTheSettingsScreen");
+	OpOff(0x3B804, 1, 0x3F600);
+	OpOff(0x3B80C, 1, 0x3F600);
+	OpOff(0x3B820, 1, 0x3F600);
+	OpOff(0x3B828, 1, 0x3F600);
+	OpOff(0x3B83C, 1, 0x3F600);
+	OpOff(0x3B844, 1, 0x3F600);
+	OpOff(0x3B864, 1, 0x3F600);
+	OpOff(0x3B878, 1, 0x3F600);
+	OpOff(0x3B88C, 1, 0x3F600);
+	OpOff(0x3B894, 1, 0x3F600);
 	OpEnumEx(0x3B89A, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpOff(0x3B8AF, 1, 0x3F600);
+	OpOff(0x3B8B7, 1, 0x3F600);
+	MakeName(0x3B8C0, "@@DontHighlightAdlibChip");
 	OpEnumEx(0x3B8C0, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpOff(0x3B8C9, 1, 0x3F600);
 	OpEnumEx(0x3B8CF, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpOff(0x3B8E4, 1, 0x3F600);
+	OpOff(0x3B8FB, 1, 0x3F600);
+	OpOff(0x3B903, 1, 0x3F600);
+	MakeName(0x3B90B, "@@DontHighlightBlasterChip");
 	OpEnumEx(0x3B90B, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpOff(0x3B920, 1, 0x3F600);
+	OpOff(0x3B928, 1, 0x3F600);
+	MakeName(0x3B930, "@@DontHighlightRolandChip");
+	OpOff(0x3B93E, 1, 0x3F600);
 	OpEnumEx(0x3B944, 1, GetEnum("SOUND_DRIVER_TYPE"), 0);
+	OpOff(0x3B959, 1, 0x3F600);
+	MakeName(0x3B961, "@@DontHighlightBeepChip");
+	OpOff(0x3B96F, 1, 0x3F600);
+
+	MakeFunction(0x3B976, BADADDR);
+	MakeName(0x3B976, "VID_HighlightMusicAndSfxChipsOnTheSettingsScreen");
+	OpOff(0x3B98B, 1, 0x3F600);
+	OpOff(0x3B9A1, 1, 0x3F600);
+	OpOff(0x3B9BC, 1, 0x3F600);
+	OpOff(0x3B9D2, 1, 0x3F600);
+
+	MakeFunction(0x3B9D9, BADADDR);
+	MakeName(0x3B9D9, "VID_HighlightJoystickAndKbdChipsOnTheSettingsScreen");
+	OpOff(0x3B9FA, 1, 0x3F600);
+	OpOff(0x3BA02, 1, 0x3F600);
+	MakeName(0x3BA0A, "@@HighlightJoystickChip");
+	OpOff(0x3BA24, 1, 0x3F600);
+	OpOff(0x3BA2C, 1, 0x3F600);
+
+	MakeFunction(0x3BA36, BADADDR);
+	MakeName(0x3BA36, "VID_HighlightLinesAccordingToPressedJoystickButtons");
+	MakeName(0x3BA47, "@@ButtonPushedOrReleased");
+	OpOff(0x3BA54, 1, 0x3F600);
+	OpOff(0x3BA5C, 1, 0x3F600);
+	OpOff(0x3BA6D, 1, 0x3F600);
+	OpOff(0x3BA81, 1, 0x3F600);
+	OpOff(0x3BA90, 1, 0x3F600);
+	OpOff(0x3BA9A, 1, 0x3F600);
+	OpOff(0x3BAA2, 1, 0x3F600);
+	OpOff(0x3BAAA, 1, 0x3F600);
+	OpOff(0x3BAB2, 1, 0x3F600);
+	OpOff(0x3BABA, 1, 0x3F600);
+	OpOff(0x3BAC2, 1, 0x3F600);
+	OpOff(0x3BAD1, 1, 0x3F600);
+	OpOff(0x3BAE2, 1, 0x3F600);
+	OpOff(0x3BAF3, 1, 0x3F600);
+	OpOff(0x3BB04, 1, 0x3F600);
 
 	MakeFunction(0x3BCAC, BADADDR);
 	MakeName(0x3BCAC, "WritePlayerLst");
@@ -1306,8 +1445,11 @@ static main()
 	OpDecimal(0x3BCE0, 1);
 	OpOff(0x3BCE3, 1, 0x3F600);
 
+	MakeFunction(0x3BCF0, BADADDR);
+	MakeName(0x3BCF0, "VID_PaintMainMenuClickedButton");
+
 	MakeFunction(0x3BD99, BADADDR);
-	//MakeName(0x3BD99, "");
+	MakeName(0x3BD99, "VID_PaintClickedButtonsInMainMenu");
 	OpOff(0x3BDAD, 1, 0x3F600);
 	OpOff(0x3BDC0, 1, 0x3F600);
 	OpOff(0x3BDD3, 1, 0x3F600);
@@ -1371,16 +1513,11 @@ static main()
 	MakeName(0x3C120, "@@WaitForVSync");
 	MakeComm(0x3C123, "Read the Input Status #1 register");
 
-	MakeFunction(0x3C1D9, BADADDR);
-	MakeName(0x3C1D9, "VID_BlankScreen");
-	MakeComm(0x3C1DE, "Select the Graphics Mode register");
-	MakeComm(0x3C1E2, "Set mode:\n 16 colors,\n interleave mode disabled,\n normal addressing\n write mode 00: In this mode, the host data is first rotated as per\n   the Rotate Count field, then the Enable Set/Reset mechanism\n   selects data from this or the Set/Reset field. Then the selected\n   Logical Operation is performed on the resulting data and the\n   data in the latch register. Then the Bit Mask field is used to\n   select which bits come from the resulting data and which come\n   from the latch register. Finally, only the bit planes enabled by\n   the Memory Plane Write Enable field are written to memory.");
-	MakeComm(0x3C1E8, "Select the Set/Reset register");
-	MakeComm(0x3C1EC, "Zero for all color planes");
-	MakeComm(0x3C1F2, "Select the Enable Set/Reset register");
-	MakeComm(0x3C1F6, "Enable use of bit expansion from the Set/Reset Register into all color planes.");
-	MakeComm(0x3C1FC, "Select the Bit Mask register");
-	MakeComm(0x3C200, "Write the bit mask");
+	MakeFunction(0x3C12B, BADADDR);
+	MakeName(0x3C12B, "VID_ShiftBottomPanelOntoItsPlace");
+
+	MakeFunction(0x3C28C, BADADDR);
+	MakeName(0x3C28C, "VID_zzz_SetPalette");
 
 	MakeFunction(0x3C1A6, BADADDR);
 	MakeName(0x3C1A6, "VID_InitHorizontalScrolling");
@@ -1395,6 +1532,17 @@ static main()
 	MakeComm(0x3C1D3, "Select the CRT Offset register");
 	OpDecimal(0x3C1D5, 1);
 	MakeComm(0x3C1D7, "Beginning with the second scan line, the starting scan line is\nincreased by twice the value of this register multiplied by the\ncurrent memory address size (byte = 1, word = 2, dword = 4)\neach line");
+
+	MakeFunction(0x3C1D9, BADADDR);
+	MakeName(0x3C1D9, "VID_BlankScreen");
+	MakeComm(0x3C1DE, "Select the Graphics Mode register");
+	MakeComm(0x3C1E2, "Set mode:\n 16 colors,\n interleave mode disabled,\n normal addressing\n write mode 00: In this mode, the host data is first rotated as per\n   the Rotate Count field, then the Enable Set/Reset mechanism\n   selects data from this or the Set/Reset field. Then the selected\n   Logical Operation is performed on the resulting data and the\n   data in the latch register. Then the Bit Mask field is used to\n   select which bits come from the resulting data and which come\n   from the latch register. Finally, only the bit planes enabled by\n   the Memory Plane Write Enable field are written to memory.");
+	MakeComm(0x3C1E8, "Select the Set/Reset register");
+	MakeComm(0x3C1EC, "Zero for all color planes");
+	MakeComm(0x3C1F2, "Select the Enable Set/Reset register");
+	MakeComm(0x3C1F6, "Enable use of bit expansion from the Set/Reset Register into all color planes.");
+	MakeComm(0x3C1FC, "Select the Bit Mask register");
+	MakeComm(0x3C200, "Write the bit mask");
 
 	MakeFunction(0x3C20A, BADADDR);
 	MakeName(0x3C20A, "LoadLevelMap");
@@ -1594,13 +1742,26 @@ static main()
 	MakeName(0x3CA30, "SND_ddd");
 
 	MakeFunction(0x3CA60, BADADDR);
-	//MakeName(0x3CA60, "");
+	MakeName(0x3CA60, "xxx_HandleMurphy");
 	OpEnumEx(0x3CA66, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3CA66, 0, 0x3F600);
+	OpOff(0x3CA72, 1, 0x3F600);
 	OpEnumEx(0x3CA76, 1, GetEnum("MAP_ELEMENT"), 0);
 	OpEnumEx(0x3CA8A, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOffEx(0x3CA8A, 0, REF_OFF16, -1, 0x3F600, -120);
 	OpEnumEx(0x3CA91, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOffEx(0x3CA91, 0, REF_OFF16, -1, 0x3F600, -120);
 	OpEnumEx(0x3CA98, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOffEx(0x3CA98, 0, REF_OFF16, -1, 0x3F600, -120);
 	OpEnumEx(0x3CA9F, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3CA9F, 0, 0x3F600);
+	OpOffEx(0x3CB8C, 0, REF_OFF16, -1, 0x3F600, -2);
+	OpOff(0x3CB93, 0, 0x3F600);
+	OpOff(0x3CBF6, 0, 0x3F600);
+	OpOffEx(0x3CC02, 0, REF_OFF16, -1, 0x3F600, -120);
+	OpOffEx(0x3CC0E, 0, REF_OFF16, -1, 0x3F600, -2);
+	OpOff(0x3CC1A, 0, 0x3F600);
+	OpOffEx(0x3CC98, 1, REF_OFF16, -1, 0x3F600, -120);
 
 	OpEnumEx(0x3CCAC, 1, GetEnum("MAP_ELEMENT"), 0);
 	OpEnumEx(0x3CCB3, 1, GetEnum("MAP_ELEMENT"), 0);
@@ -1615,9 +1776,62 @@ static main()
 	
 	MakeName(0x3DB16, "@@InfotronCollected");
 
+	OpEnumEx(0x3E0E1, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0E6, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0EA, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0EE, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0F2, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0F6, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0FA, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpEnumEx(0x3E0FE, 1, GetEnum("MAP_ELEMENT"), 0);
+	MakeName(0x3E107, "@@IsZonk");
+
 	MakeFunction(0x3E1D0, BADADDR);
+	MakeName(0x3E1D0, "handleSnikSnak");
+	OpOff(0x3E1D7, 0, 0x3F600);
+	OpEnumEx(0x3E1D7, 1, GetEnum("MAP_ELEMENT"), 0);
+	OpOff(0x3E1DE, 1, 0x3F600);
+	OpOff(0x3E1E6, 1, 0x3F600);
 
 	MakeFunction(0x3E1F2, BADADDR);
+
+	MakeFunction(0x3E68F, BADADDR);
+	MakeName(0x3E68F, "handleElectron");
+
+	MakeFunction(0x3EC01, BADADDR);
+	MakeName(0x3EC01, "DrawNumberOfInfotronsLeftToCollect");
+	OpChr(0x3EC11, 1);
+	OpOff(0x3EC13, 1, 0x3F600);
+	OpOff(0x3EC28, 1, 0x3F600);
+
+	MakeUnkn(0x3EC6D, 0);
+	MakeCode(0x3EC6D);
+	OpDecimal(0x3EC6D, 1);
+
+	MakeFunction(0x3ECC2, BADADDR);
+	MakeName(0x3ECC2, "PrepareStatsInfoForBottomPanel");
+	OpOff(0x3ECD9, 1, 0x3F600);
+	OpOff(0x3ECE1, 1, 0x3F600);
+	OpOff(0x3ED09, 1, 0x3F600);
+	OpOff(0x3ED11, 1, 0x3F600);
+	OpOff(0x3ED34, 1, 0x3F600);
+	OpOff(0x3ED3C, 1, 0x3F600);
+
+
+	MakeFunction(0x3ED67, BADADDR);
+	MakeName(0x3ED67, "VID_DrawTextChars8_1");
+	OpDecimal(0x3ED93, 1);
+	OpChr(0x3ED9C, 1);
+	OpOff(0x3EDA1, 1, 0x3F600);
+
+	MakeFunction(0x3EF42, BADADDR);
+	MakeName(0x3EF42, "VID_DrawTextChars8_2");
+	OpDecimal(0x3EF51, 1);
+	OpChr(0x3EF59, 1);
+	OpOff(0x3EF5E, 1, 0x3F600);
+
+	MakeFunction(0x3EFBE, BADADDR);
+	MakeName(0x3EFBE, "VID_DrawTextChars8");
 
 	
 	OpOff(0x3EFD7, 1, 0x00000);
@@ -1698,7 +1912,7 @@ static main()
 	MakeUnkn(0x7E00, 0);
 	MakeByte(0x7E00);
 	MakeArray(0x7E00, 32000);
-	MakeName(0x7E00, "MenuDat");
+	MakeName(0x7E00, "MenuBackgroundImage");
 	OpDecimal(0x7E00, -1);
 
 	MakeUnkn(0xFB00, 0);
@@ -1710,7 +1924,7 @@ static main()
 	MakeUnkn(0x17800, 0);
 	MakeByte(0x17800);
 	MakeArray(0x17800, 32000);
-	MakeName(0x17800, "ControlsDat");
+	MakeName(0x17800, "ControlsBackgroundImage");
 	OpDecimal(0x17800, -1);
 
 	MakeUnkn(0x1F500, 0);
@@ -1736,6 +1950,17 @@ static main()
 	MakeStructEx(0x3F6AC, 10, "ON_SCREEN_CLICKABLE");
 	MakeArray(0x3F6AC, 13);
 	MakeWord(0x3F72E);
+
+	MakeName(0x3FC00, "PlayerList_ScrollDownButtonClicked");
+	MakeName(0x3FC01, "PlayerList_ScrollUpButtonClicked");
+	MakeName(0x3FC02, "PlayerList_ScrollUpOrScrollDownButtonClicked");
+	MakeName(0x3FC03, "RankingsList_ScrollDownButtonClicked");
+	MakeName(0x3FC04, "RankingsList_ScrollUpButtonClicked");
+	MakeName(0x3FC05, "RankingsList_ScrollUpOrDownButtonClicked");
+	MakeName(0x3FC06, "LevelsList_ScrollDownButtonClicked");
+	MakeName(0x3FC07, "LevelsList_ScrollUpButtonClicked");
+	MakeName(0x3FC08, "LevelsList_ScrollUpOrDownButtonClicked");
+	MakeName(0x3FC09, "PrevJoystickButtons");
 
 	MakeByte(0x3FC10);
 	MakeName(0x3FC10, "SavedVideoMode");
@@ -1768,6 +1993,8 @@ static main()
 	MakeName(0x403B5, "PlayerPosition_MapY");
 
 	MakeName(0x403B9, "PlayerPosition_Ofs");
+
+	MakeName(0x403CE, "IsDemoRunning");
 
 	MakeName(0x40396, "VID_HorizontalPanning");
 	MakeComm(0x40396, "Number of pixels that the video data is shifted to the left");
@@ -1862,7 +2089,7 @@ static main()
 
 		for (j = 0; j < 4; j++)
 		{
-			addr = 0x40B4A + j * 32 + i * 2;
+			addr = 0x40B4A + j * 64 + i * 2;
 			MakeUnkn(addr, 0);
 			MakeWord(addr);
 			if (Word(addr) == 0)
@@ -1877,6 +2104,8 @@ static main()
 
 	MakeName(0x40C57, "VID_VgaMemStartAddress");
 	MakeComm(0x40C57, "Used to scroll the screen");
+
+	MakeName(0x40C6A, "ExitTheProgram");
 
 	MakeUnkn(0x40C6D, 0);
 	MakeUnkn(0x40C6E, 0);
@@ -2194,6 +2423,24 @@ static main()
 	MakeWord(0x4622F);
 	MakeName(0x4622F, "RandomSeed");
 
+	MakeUnkn(0x46231, 0);
+	MakeDword(0x46231);
+	MakeArray(0x46231, 5000);
+	OpDecimal(0x46231, -1);
+
+	MakeName(0x4B051, "ExitSettingsScreen");
+
+	MakeName(0x4B053, "DemoShowTimer");
+	MakeComm(0x4B053, "While in main menu if this reaches zero, demo is shown");
+
+	MakeName(0x4B055, "NeedPaintMainMenu");
+
+	MakeName(0x4B05F, "");
+
+	MakeName(0x4B06B, "MouseButtonState");
+	MakeName(0x4B06D, "MenuMousePosX");
+	MakeName(0x4B071, "MenuMousePosY");
+
 	MakeName(0x4B06F, "MousePosX");
 
 	MakeName(0x4B073, "MousePosY");
@@ -2262,6 +2509,8 @@ static main()
 	MakeName(0x4B675, "msgNotManyPeopleAreAbleToManageThis");
 	MakeName(0x4B69D, "msgWibble");
 	MakeName(0x4B6A6, "Buffer28ByteLong");
+
+	MakeName(0x4B934, "RankingsViewOffsetY");
 
 	MakeName(0x4B99A, "PlayerLst");
 	for (i = 0; i < 20; i++)
