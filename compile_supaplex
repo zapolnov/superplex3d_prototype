@@ -1,0 +1,11 @@
+#!/bin/sh
+
+sed -e 's/KeyboardState.key/KeyboardState + KEYBOARD_STATE.key/g' -i supaplex.asm
+sed -e 's/KeyboardState.unused/KeyboardState + KEYBOARD_STATE.unused/g' -i supaplex.asm
+sed -e 's/CODE_SEG	segment	byte/CODE_SEG	segment	para/g' -i supaplex.asm
+sed -e 's/ClickableAreas.handler/ClickableAreas + ON_SCREEN_CLICKABLE.handler/g' -i supaplex.asm
+
+#wine ml.exe supaplex.asm
+#rm -f supaplex.obj
+
+wine ml.exe supaplex_debugger.asm
