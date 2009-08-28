@@ -56,104 +56,28 @@ static const int MAP_WIDTH = 60;
 static const int MAP_HEIGHT = 24;
 static const int MAP_NUM_CELLS = MAP_WIDTH * MAP_HEIGHT;
 
-static char LevelMap[MAP_NUM_CELLS];
-
-
-void handleSnikSnak(int ofs)
-{
-//	if (byte_403C7 == 1)
-//		return;
-
-	if (LevelMap[ofs] != MAP_SNIK_SNAK)
-		return;
-
-	// MapHandlers_1
-	//char value = LevelMap[ofs + 1];
-	//if (value >= 0 && value <= 7)
-	//	sub_3E1F2();
+extern "C" {
+extern short LevelMap[MAP_NUM_CELLS];
+extern char JoystickButtons;
+extern void LoadLevelMap();
+extern void FindPlayerPositionOnLevelMap();
+extern void InitRandomNumberGenerator();
+extern void sub_392DF();
+extern void InitPlayerState();
+extern void BeginLevel();
+extern bool RunTheLevel();
 }
 
-void moveObjectsInTheLevel()
+void startLevel()
 {
-//	mov	si, PlayerPosition_Ofs
-//	call xxx_HandleMurphy
-//	mov	PlayerPosition_Ofs, si
-
-	for (int start = 2 * MAP_WIDTH + 2; start < MAP_NUM_CELLS; start++)
-	{
-		char value = LevelMap[start];
-		switch (value)
-		{
-		case MAP_ZONK:
-			//handleZonk(start);
-			break;
-		case MAP_INFOTRON:
-			//handleInfotron(start);
-			break;
-		case MAP_DISK_ORANGE:
-			//xxx_handleOrangeDisk(start);
-			break;
-		case MAP_SNIK_SNAK:
-			handleSnikSnak(start);
-			break;
-		case MAP_TERMINAL:
-			//xxx_HandleTerminal(start);
-			break;
-		case MAP_ELECTRON:
-			//handleElectron(start);
-			break;
-		case MAP_BUG:
-			//xxx_HandleBug(start);
-			break;
-		case MAP_RED_LAMP:
-			//loc_39493(start);
-			break;
-		}
-	}
+	LoadLevelMap();
+	//sub_3C12B();
+	FindPlayerPositionOnLevelMap();
+	//sub_386E7();
+	//VID_DrawBottomPanel();
+	sub_392DF();
+	InitPlayerState();
 }
-
-#if 0			
-			cmp	word_403C1, 1
-		jz	short loc_38F01
-		cmp	word_403BF, 0
-		jz	short loc_38F01
-		retn
-; 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
-
-loc_38F01:				; CODE XREF: MoveObjectsInTheLevel+B4j
-					; MoveObjectsInTheLevel+BBj
-		cmp	word_40C68, 0
-		jnz	short loc_38F1B
-		mov	word_403C1, 0
-		mov	si, word_403B7
-		call	sub_3956F
-		mov	word_40C68, 40h	; '@'
-
-loc_38F1B:				; CODE XREF: MoveObjectsInTheLevel+C3j
-		mov	dx, 3CEh
-		mov	al, 5
-		out	dx, al		; EGA: graph 1 and 2 addr reg:
-					; mode register.Data bits:
-					; 0-1: Write mode 0-2
-					; 2: test condition
-					; 3: read mode:	1=color	compare, 0=direct
-					; 4: 1=use odd/even RAM	addressing
-					; 5: 1=use CGA mid-res map (2-bits/pixel)
-		inc	dx
-		mov	al, 1
-		out	dx, al		; EGA port: graphics controller	data register
-		retn
-MoveObjectsInTheLevel endp
-
-
-PlayerPosition_Ofs dw 0			; DATA XREF: MoveObjectsInTheLevel+Ar
-LevelMap db 1440 dup(0)
-
-CODE_SEG ENDS
-
-		end
-
-#endif
 
 void paintGameField(HDC hDC)
 {
@@ -164,9 +88,17 @@ void paintGameField(HDC hDC)
 	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
-			char ch = LevelMap[y * MAP_WIDTH + x];
+			short ch = LevelMap[y * MAP_WIDTH + x];
 			if (ch >= 0 && ch < 40)
 				StretchBlt(hDC, x * 20, y * 20, 20, 20, hMemDC, ch * 16, 0, 16, 16, SRCCOPY);
+			else
+			{
+				char buf[10];
+
+				sprintf(buf, "%d", ch);
+				BitBlt(hDC, x * 20, y * 20, 20, 20, NULL, 0, 0, WHITENESS);
+				TextOut(hDC, x * 20, y * 20, buf, strlen(buf));
+			}
 		}
 	}
 
@@ -176,6 +108,8 @@ void paintGameField(HDC hDC)
 
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	static bool spacePressed = false;
+	bool pressed = false;
 	PAINTSTRUCT ps;
 	HDC hDC;
 
@@ -185,6 +119,53 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		hDC = BeginPaint(hWnd, &ps);
 		paintGameField(hDC);
 		EndPaint(hWnd, &ps);
+		return 0;
+
+	case WM_KEYDOWN:
+		if (wParam == VK_UP)
+		{
+			pressed = true;
+			JoystickButtons = 1;
+		}	
+		if (wParam == VK_LEFT)
+		{
+			pressed = true;
+			JoystickButtons = 2;
+		}
+		if (wParam == VK_DOWN)
+		{
+			pressed = true;
+			JoystickButtons = 3;
+		}
+		if (wParam == VK_RIGHT)
+		{
+			pressed = true;
+			JoystickButtons = 4;
+		}
+		if (wParam == VK_SPACE)
+		{
+			spacePressed = true;
+		}
+
+		if (spacePressed)
+		{
+			if (pressed)
+				JoystickButtons += 4;
+			else
+				JoystickButtons = 9;
+		}
+		break;
+
+	case WM_KEYUP:
+		if (wParam == VK_SPACE)
+			spacePressed = false;
+		break;
+
+	case WM_TIMER:
+		if (!RunTheLevel())
+			PostQuitMessage(0);
+		JoystickButtons = 0;
+		InvalidateRect(hWnd, NULL, FALSE);
 		return 0;
 
 	case WM_CLOSE:
@@ -204,14 +185,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	FILE * f = fopen("C:/SUPAPLEX/1/levels.dat", "rb");
 	if (!f)
 		return 1;
-//	fseek(f, 2 * 1538, SEEK_SET);
-	fread(LevelMap, MAP_NUM_CELLS, 1, f);
+	int levelNumber = 11;//27;	
+	fseek(f, levelNumber * 1536, SEEK_SET);
+	char buf[1536];
+	fread(buf, 1536, 1, f);
+	for (int i = 0; i < 1536; i++)
+		*(unsigned short *)(&LevelMap[i]) = *(unsigned char *)(&buf[i]);
 	fclose(f);
+
+	InitPlayerState();
+	startLevel();
+	BeginLevel();
 
 	hFixedBmp = (HBITMAP)LoadImage(hInstance, "BMP_FIXED", IMAGE_BITMAP, 0, 0,
 		LR_CREATEDIBSECTION);
-//	hMovingBmp = (HBITMAP)LoadImage(hInstance, "BMP_MOVING", IMAGE_BITMAP, 0, 0,
-//		LR_CREATEDIBSECTION);
+	hMovingBmp = (HBITMAP)LoadImage(hInstance, "BMP_MOVING", IMAGE_BITMAP, 0, 0,
+		LR_CREATEDIBSECTION);
 
 	WNDCLASS wc;
 
@@ -240,11 +229,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ShowWindow(hWnd, SW_SHOWNORMAL);
 	UpdateWindow(hWnd);
 
+	SetTimer(hWnd, 1, 10, NULL);
+
 	for (;;)
 	{
-		moveObjectsInTheLevel();
-//		Sleep(10);
-
 		MSG msg;
 		while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
