@@ -923,6 +923,9 @@ static main()
 	OpOff(0x3956F, 0, 0x3F600);
 	OpEnumEx(0x3956F, 1, GetEnum("MAP_ELEMENT"), 0);
 
+	MakeFunction(0x39860, BADADDR);
+	MakeName(0x39860, "PlaceRedDisk");
+
 	MakeFunction(0x398F9, BADADDR);
 //	MakeName(0x398F9, "");
 	OpOff(0x398F9, 0, 0x3F600);
@@ -1994,6 +1997,7 @@ static main()
 
 	MakeName(0x403B9, "PlayerPosition_Ofs");
 
+	MakeName(0x403CB, "NumRedDisks");
 	MakeName(0x403CE, "IsDemoRunning");
 
 	MakeName(0x40396, "VID_HorizontalPanning");

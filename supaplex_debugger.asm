@@ -70,7 +70,7 @@ main	proc near
 
 mov ax, word ptr es:[EXE_HEADER.relativeCS]
 mov fs, ax
-mov byte ptr fs:[26BFh], 0C3h ;2238h
+;mov byte ptr fs:[26BFh], 0C3h ;2238h
 
 		mov si, offset msgHorizontalLine
 		call my_fprint
