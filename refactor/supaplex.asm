@@ -1,6 +1,4 @@
 
-ifdef TASM
-
 public levelmap
 public loadlevelmap
 public findplayerpositiononlevelmap
@@ -10,8 +8,6 @@ public sub_392df
 public beginlevel
 public runthelevel
 public joystickbuttons
-
-endif
 
 public _levelmap
 public _loadlevelmap
@@ -102,20 +98,20 @@ handleZonk	proc near
 			je		short @@1
 			ret
 @@1:		mov		ax,	word ptr _levelmap[esi]
-			cmp		ax, 1
+			cmp		ax, MAP_ZONK
 			je		short @@2
 			jmp		@@12
 @@2:		cmp		byte ptr [byte_40325], 2
 			jne		short @@3
 			ret
 @@3:		mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
-			cmp		ax, 0
+			cmp		ax, MAP_SPACE
 			je		short @@6
-			cmp		ax, 1
+			cmp		ax, MAP_ZONK
 			je		short @@4
-			cmp		ax, 4
+			cmp		ax, MAP_INFOTRON
 			je		short @@4
-			cmp		ax, 5
+			cmp		ax, MAP_RAM_CHIP_SQUARE
 			je		short @@4
 			ret
 @@4:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
@@ -124,7 +120,7 @@ handleZonk	proc near
 			je		short @@7
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
 			je		short @@7
-@@5:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+@@5:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
 			je		short @@9
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
 			je		short @@9
@@ -133,13 +129,13 @@ handleZonk	proc near
 			ret
 @@6:		mov		byte ptr _levelmap[esi + 1], 40h
 			jmp		short @@12
-@@7:		cmp		word ptr _levelmap[esi], 0
+@@7:		cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			je		short @@8
 			jmp		short @@5
 @@8:		mov		byte ptr _levelmap[esi + 1], 50h
 			mov		word ptr _levelmap[esi - 2], 8888h
 			jmp		short @@12
-@@9:		cmp		word ptr _levelmap[esi + 2], 0
+@@9:		cmp		word ptr _levelmap[esi + 2], MAP_SPACE
 			je		short @@11
 			cmp		word ptr _levelmap[esi + 2], 9999h
 			jne		short @@10
@@ -199,13 +195,13 @@ loc_37A55:	mov		byte ptr _levelmap[esi + 1], 0
 			cmp		byte ptr [byte_40325], 2
 			jne		short loc_37A62
 			ret
-loc_37A62:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+loc_37A62:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			jne		short loc_37A6C
 			jmp		loc_37AFD
 loc_37A6C:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			jne		short loc_37A77
 			jmp		loc_37AFD
-loc_37A77:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
+loc_37A77:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
 			jne		short loc_37A81
 			jmp		loc_37B34
 loc_37A81:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SNIK_SNAK
@@ -287,9 +283,9 @@ loc_37B7F:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_RED_LAMP
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
 loc_37B8C:	jmp		short loc_37B8E
 loc_37B8E:	add		esi, 2 * MAP_WIDTH
-			call	sub_3956F
+			call	CreateExplosion
 			ret
-loc_37B95:	add		esi, MAP_WIDTH * 2
+loc_37B95:	add		esi, 2 * MAP_WIDTH
 			mov		ebx, esi
 			shr		ebx, 1
 			mov		byte ptr SomeLevelData[ebx], 6
@@ -584,7 +580,7 @@ loc_37F84:	mov		bl, byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1]
 			cmp		bl, 26h
 			jz		short locret_37FAC
 loc_37FA6:	add		esi, MAP_WIDTH * 2
-			call	sub_3956F
+			call	CreateExplosion
 locret_37FAC:
 			ret
 loc_37FAD:	and		bl, 7
@@ -739,7 +735,7 @@ loc_381E5:	cmp		word ptr _levelmap[esi - 2], 1
 			cmp		word ptr _levelmap[esi - 2], 5
 			je		short loc_381FC
 			jmp		short loc_381D6
-loc_381FC:	mov		byte ptr _levelmap[esi + (2 * MAP_WIDTH + 1)], 60h
+loc_381FC:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH + 1)], 60h
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
 loc_38208:	cmp		word ptr _levelmap[esi + 2], 1
@@ -758,7 +754,7 @@ loc_3822A:	cmp		word ptr _levelmap[esi - 2], 1
 			cmp		word ptr _levelmap[esi - 2], 5
 			je		short loc_38241
 			jmp		loc_381D6
-loc_38241:	mov		byte ptr _levelmap[esi + (2 * MAP_WIDTH + 1)], 60h ; '`'
+loc_38241:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH + 1)], 60h ; '`'
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
 loc_3824D:	cmp		word ptr _levelmap[esi + 2], 1
@@ -1063,7 +1059,7 @@ loc_38F01:	cmp		word ptr [TimeoutAfterWhichLeaveTheLevel], 0
 			jne		short loc_38F1B
 			mov		word ptr [word_403C1], 0
 			mov		esi, dword ptr [dword_403B7]
-			call	sub_3956F
+			call	CreateExplosion
 			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], 40h
 loc_38F1B:	ret
 
@@ -1459,16 +1455,16 @@ loc_3932D:
 
 
 loc_39333:
-		cmp	word ptr [esi-2], MAP_SPACE
+		cmp	word ptr [esi - 2], MAP_SPACE
 		jnz	short loc_3933F
-		mov	byte ptr [esi+1], MAP_ZONK
+		mov	byte ptr [esi + 1], 1
 		jmp	short loc_39398
 
 
 loc_3933F:
-		cmp	word ptr [esi-78h], 0
+		cmp	word ptr [esi - 2 * MAP_WIDTH], 0
 		jnz	short loc_39350
-		mov	word ptr [esi-78h], 1000h + MAP_SNIK_SNAK
+		mov	word ptr [esi - 2 * MAP_WIDTH], 1000h + MAP_SNIK_SNAK
 		mov	word ptr [esi], 0FFFFh
 		jmp	short loc_39398
 
@@ -1602,7 +1598,7 @@ loc_39487:
 
 
 loc_3948F:
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 xxx_handleOrangeDisk endp
 
@@ -1664,7 +1660,7 @@ loc_39539:
 		push	esi
 		push	ecx
 		push	ebx
-		call	sub_3956F
+		call	CreateExplosion
 		pop	ebx
 		pop	ecx
 		pop	esi
@@ -1683,7 +1679,7 @@ loc_39558:
 		push	ecx
 		push	ebx
 		mov	word ptr _levelmap[esi], 0FF00h + MAP_ELECTRON
-		call	sub_3956F
+		call	CreateExplosion
 		pop	ebx
 		pop	ecx
 		pop	esi
@@ -1694,7 +1690,7 @@ sub_39530	endp
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
 
-sub_3956F	proc near
+CreateExplosion	proc near
 		cmp	byte ptr _levelmap[esi], MAP_GRAY_DENTED_PYRAMID
 		jnz	short loc_39577
 		ret
@@ -2015,7 +2011,7 @@ loc_3977D:
 loc_39787:
 		cmp	al, 6
 		jz	short loc_3978F
-		mov	[ebx + 2 * MAP_WIDTH - 1], dh
+		mov	byte ptr SomeLevelData[ebx + 2 * MAP_WIDTH - 1], dh
 
 loc_3978F:
 		cmp	al, 6
@@ -2151,7 +2147,7 @@ loc_3985B:
 		pop	ecx
 		;call	SND_ttt
 		ret
-sub_3956F	endp
+CreateExplosion	endp
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
@@ -2168,7 +2164,7 @@ loc_39882:
 		cmp	byte ptr [NumRedDisks], 40
 		jl	short loc_398AA
 		mov	esi, dword ptr [dword_403CC]
-		call	sub_3956F
+		call	CreateExplosion
 		mov	byte ptr [NumRedDisks], 0
 
 loc_398AA:
@@ -3054,7 +3050,7 @@ loc_3CFB9:
 loc_3CFE2:				; CODE XREF: xxx_HandleMurphy+250j
 		cmp	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
 		jl	short loc_3CFED
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 
@@ -3086,7 +3082,7 @@ loc_3D005:				; CODE XREF: xxx_HandleMurphy+5A0j
 loc_3D02B:				; CODE XREF: xxx_HandleMurphy+2B8j
 		cmp	byte ptr _levelmap[esi - 1], 0
 		jl	short loc_3D036
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 
@@ -3108,7 +3104,7 @@ loc_3D03C:				; CODE XREF: xxx_HandleMurphy+2B1j
 loc_3D068:
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
 		jl	short loc_3D073
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D073:
@@ -3137,7 +3133,7 @@ loc_3D08B:
 loc_3D0B1:
 		cmp	byte ptr _levelmap[esi + 3], 0
 		jl	short loc_3D0BC
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D0BC:
@@ -3158,7 +3154,7 @@ loc_3D0C2:
 loc_3D0EE:
 		cmp	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
 		jl	short loc_3D0F9
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D0F9:
@@ -3175,7 +3171,7 @@ loc_3D0FF:
 loc_3D12C:
 		cmp	byte ptr _levelmap[esi - 1], 0
 		jl	short loc_3D137
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D137:
@@ -3192,7 +3188,7 @@ loc_3D13D:
 loc_3D16A:
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
 		jl	short loc_3D175
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D175:
@@ -3210,7 +3206,7 @@ loc_3D17B:
 loc_3D1A8:				; CODE XREF: xxx_HandleMurphy+488j
 		cmp	byte ptr _levelmap[esi + 3], 0
 		jl	short loc_3D1B3
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3D1B3:
@@ -3426,14 +3422,14 @@ loc_3D510:
 		mov	byte ptr [byte_40C5B], 1
 		push	esi
 		mov	esi, 0
-		mov	cx, MAP_WIDTH * MAP_HEIGHT
+		mov	ecx, MAP_WIDTH * MAP_HEIGHT
 
 loc_3D521:
 		cmp	word ptr _levelmap[esi], MAP_DISK_YELLOW
 		jnz	short loc_3D52F
-		push	cx
+		push	ecx
 		push	esi
-		call	sub_3956F
+		call	CreateExplosion
 		pop	esi
 		pop	ecx
 
@@ -4145,7 +4141,7 @@ sub_3DB7E	proc near
 
 loc_3DB8D:
 		add	esi, 78h
-		call	sub_3956F
+		call	CreateExplosion
 		sub	esi, 78h
 		ret
 
@@ -4674,7 +4670,7 @@ sub_3E0D7	proc near
 		jz	short loc_3E14E
 		cmp	al, 0Ch
 		jz	short loc_3E14E
-		call	sub_3956F
+		call	CreateExplosion
 		stc
 		ret
 
@@ -4684,7 +4680,7 @@ loc_3E107:				; CODE XREF: sub_3E0D7+11j
 		jz	short loc_3E116
 		cmp	bl, 4
 		jz	short loc_3E132
-		call	sub_3956F
+		call	CreateExplosion
 		stc
 		ret
 
@@ -4699,7 +4695,7 @@ loc_3E116:				; CODE XREF: sub_3E0D7+33j
 		jz	short loc_3E130
 		cmp	ah, 70h	; 'p'
 		jz	short loc_3E130
-		call	sub_3956F
+		call	CreateExplosion
 
 loc_3E130:				; CODE XREF: sub_3E0D7+45j
 					; sub_3E0D7+4Aj ...
@@ -4717,7 +4713,7 @@ loc_3E132:				; CODE XREF: sub_3E0D7+38j
 		jz	short loc_3E14C
 		cmp	ah, 70h	; 'p'
 		jz	short loc_3E14C
-		call	sub_3956F
+		call	CreateExplosion
 
 loc_3E14C:				; CODE XREF: sub_3E0D7+61j
 					; sub_3E0D7+66j ...
@@ -4737,7 +4733,7 @@ loc_3E150:				; CODE XREF: sub_3E0D7+15j
 		jge	short loc_3E15F
 
 loc_3E15A:				; CODE XREF: sub_3E0D7+7Cj
-		call	sub_3956F
+		call	CreateExplosion
 		stc
 		ret
 
@@ -4753,7 +4749,7 @@ sub_3E0D7	endp
 		jz	short loc_3E176
 		cmp	bl, 4
 		jz	short loc_3E183
-		call	sub_3956F
+		call	CreateExplosion
 		stc
 		ret
 
@@ -4762,7 +4758,7 @@ loc_3E176:				; CODE XREF: CODE_SEG:754Aj
 		and	ah, 0F0h
 		cmp	ah, 20h	; ' '
 		jz	short loc_3E181
-		call	sub_3956F
+		call	CreateExplosion
 
 loc_3E181:				; CODE XREF: CODE_SEG:755Cj
 		stc
@@ -4773,7 +4769,7 @@ loc_3E183:				; CODE XREF: CODE_SEG:754Fj
 		and	ah, 0F0h
 		cmp	ah, 20h	; ' '
 		jz	short loc_3E18E
-		call	sub_3956F
+		call	CreateExplosion
 
 loc_3E18E:				; CODE XREF: CODE_SEG:7569j
 		stc
@@ -4847,9 +4843,9 @@ SnikSnakHandler_1	proc near
 		ret
 
 loc_3E200:
-		shr	bx, 1
-		inc	bx
-		and	bx, 7
+		shr	ebx, 2
+		inc	ebx
+		and	bl, 7
 		mov	byte ptr _levelmap[esi + 1], bl
 		ret
 
@@ -4862,7 +4858,7 @@ loc_3E22A:
 		jz	short locret_3E241
 		cmp	ah, 1Ah
 		jz	short locret_3E241
-		call	sub_3956F
+		call	CreateExplosion
 
 locret_3E241:
 		ret
@@ -4883,13 +4879,13 @@ loc_3E25B:
 		cmp	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 		jz	short loc_3E26E
 		mov	ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], 3
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
 		jz	short loc_3E22A
 		ret
 
 loc_3E26E:
-		mov	word ptr _levelmap[esi], 10BBh
-		sub	esi, 78h
+		mov	word ptr _levelmap[esi], 1000h + 0BBh
+		sub	esi, 2 * MAP_WIDTH
 		mov	word ptr _levelmap[esi], 1000h + MAP_SNIK_SNAK
 		ret
 
@@ -4902,9 +4898,9 @@ loc_3E27E:
 		ret
 
 loc_3E291:
-		mov	word ptr _levelmap[esi], 20BBh
+		mov	word ptr _levelmap[esi], 2000h + 0BBh
 		sub	esi, 2
-		mov	word ptr _levelmap[esi], 1800 + MAP_SNIK_SNAK
+		mov	word ptr _levelmap[esi], 1800h + MAP_SNIK_SNAK
 		ret
 
 loc_3E2A1:
@@ -4936,7 +4932,7 @@ locret_3E2DC:
 		ret
 
 loc_3E2DD:
-		mov	word ptr _levelmap[esi], 40BBh
+		mov	word ptr _levelmap[esi], 4000h + 0BBh
 		add	esi, 2
 		mov	word ptr _levelmap[esi], 2800h + MAP_SNIK_SNAK
 		ret
@@ -4953,7 +4949,7 @@ SnikSnakHandler_2 proc near
 		ret
 
 loc_3E2FB:
-		shr	bx, 1
+		shr	ebx, 2
 		inc	bl
 		and	bl, 7
 		or	bl, 8
@@ -4969,7 +4965,7 @@ loc_3E327:
 		jz	short locret_3E33E
 		cmp	ah, 1Ah
 		jz	short locret_3E33E
-		call	sub_3956F
+		call	CreateExplosion
 
 locret_3E33E:
 		ret
@@ -4995,7 +4991,7 @@ loc_3E358:
 		ret
 
 loc_3E36B:
-		mov	word ptr _levelmap[esi], 10BBh
+		mov	word ptr _levelmap[esi], 1000h + 0BBh
 		sub	esi, 78h
 		mov	word ptr _levelmap[esi], 1000h + MAP_SNIK_SNAK
 		ret
@@ -5009,7 +5005,7 @@ loc_3E37B:
 		ret
 
 loc_3E38E:
-		mov	word ptr _levelmap[esi], 20BBh
+		mov	word ptr _levelmap[esi], 2000h + 0BBh
 		sub	esi, 2
 		mov	word ptr _levelmap[esi], 1800h + MAP_SNIK_SNAK
 		ret
@@ -5052,7 +5048,9 @@ loc_3E3DA:
 SnikSnakHandler_2 endp
 
 SnikSnakHandler_3:
-		shr	bx, 1
+		shr ebx, 1
+		sub ebx, 1Eh
+		shr	ebx, 1
 		cmp	bl, 7
 		jnz	short loc_3E426
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
@@ -5074,24 +5072,23 @@ loc_3E433:
 		ret
 
 loc_3E446:
-		cmp	byte ptr _levelmap[esi - 2], 3
+		cmp	byte ptr _levelmap[esi - 2], MAP_MURPHY
 		jnz	short loc_3E453
 		mov	byte ptr _levelmap[esi + 1], 1
 		ret
 
-
 loc_3E453:
 		cmp	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 		jnz	short loc_3E46A
-		mov	word ptr _levelmap[esi], 10BBh
-		sub	esi, 78h	; 'x'
+		mov	word ptr _levelmap[esi], 1000h + 0BBh
+		sub	esi, 120
 		mov	word ptr _levelmap[esi], 1000h + MAP_SNIK_SNAK
 		ret
 
 loc_3E46A:
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], 3
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
 		jnz	short loc_3E475
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E475:
@@ -5101,7 +5098,7 @@ loc_3E475:
 		ret
 
 loc_3E482:
-		cmp	byte ptr _levelmap[esi + 2], 3
+		cmp	byte ptr _levelmap[esi + 2], MAP_MURPHY
 		jnz	short loc_3E48F
 		mov	byte ptr _levelmap[esi + 1], 9
 		ret
@@ -5112,9 +5109,11 @@ loc_3E48F:
 
 SnikSnakHandler_4 proc near
 
-		shr	bx, 1
-		and	bx, 7
-		inc	bx
+		shr	ebx, 1
+		sub ebx, 40h
+		shr ebx, 1
+		and	bl, 7
+		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E4CC
 		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
@@ -5152,7 +5151,7 @@ loc_3E4F9:
 loc_3E510:
 		cmp	byte ptr _levelmap[esi - 2], 3
 		jnz	short loc_3E51B
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E51B:
@@ -5173,8 +5172,10 @@ loc_3E535:
 
 SnikSnakHandler_4 endp
 
-loc_3E53B:
-		shr	bx, 1
+SnikSnakHandler_5 proc near
+		shr	ebx, 1
+		sub ebx, 40h
+		shr ebx, 1
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E579
@@ -5213,7 +5214,7 @@ loc_3E5A6:
 loc_3E5BD:
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
 		jnz	short loc_3E5C8
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E5C8:
@@ -5233,8 +5234,11 @@ loc_3E5E2:
 		mov	byte ptr _levelmap[esi + 1], 5
 		ret
 
-loc_3E5E8:
-		shr	bx, 1
+SnikSnakHandler_5 endp
+
+SnikSnakHandler_6 proc near
+
+		shr	ebx, 2
 		and	bl, 7
 		inc	bl
 		cmp	bl, 7
@@ -5274,7 +5278,7 @@ loc_3E64D:
 loc_3E664:
 		cmp	byte ptr _levelmap[esi + 2], 3
 		jnz	short loc_3E66F
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E66F:
@@ -5293,6 +5297,8 @@ loc_3E689:
 		mov	byte ptr _levelmap[esi + 1], 7
 		ret
 
+SnikSnakHandler_6 endp
+
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
 handleElectron	proc near
@@ -5303,7 +5309,7 @@ handleElectron	proc near
 		mov	bl, byte ptr _levelmap[esi + 1]
 		movzx ebx, bl
 		shl	ebx, 2
-		mov	eax, dword ptr MapHandlers_5[ebx]
+		mov	eax, dword ptr ElectronHandlers[ebx]
 		cmp	eax, 0FFFFh
 		jz	short locret_3E6B0
 		call	eax
@@ -5312,8 +5318,7 @@ locret_3E6B0:
 		ret
 handleElectron	endp
 
-
-loc_3E6B1:
+ElectronHandler_1 proc near
 		mov	ax, word ptr [word_40C4D]
 		and	ax, 3
 		jz	short loc_3E6BF
@@ -5322,14 +5327,14 @@ loc_3E6B1:
 		ret
 
 loc_3E6BF:
-		shr	bx, 1
-		inc	bx
-		and	bx, 7
+		shr	ebx, 2
+		inc	ebx
+		and	bl, 7
 		mov	byte ptr _levelmap[esi + 1], bl
 		ret
 
 loc_3E6E9:
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E6ED:
@@ -5399,7 +5404,10 @@ loc_3E775:
 		mov	word ptr _levelmap[esi], 2800h + MAP_ELECTRON
 		ret
 
-loc_3E785:
+ElectronHandler_1 endp
+
+ElectronHandler_2 proc near
+
 		mov	ax, word ptr [word_40C4D]
 		and	ax, 3
 		jz	short loc_3E793
@@ -5408,7 +5416,7 @@ loc_3E785:
 		ret
 
 loc_3E793:
-		shr	bx, 1
+		shr	ebx, 2
 		inc	bl
 		and	bl, 7
 		or	bl, 8
@@ -5416,7 +5424,7 @@ loc_3E793:
 		ret
 
 loc_3E7BF:
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E7C3:
@@ -5486,8 +5494,13 @@ loc_3E84B:
 		mov	word ptr _levelmap[esi], 2800h + MAP_ELECTRON
 		ret
 
-loc_3E85B:			
-		shr	bx, 1
+ElectronHandler_2 endp
+
+ElectronHandler_3 proc near
+
+		shr ebx, 1
+		sub ebx, 01Eh
+		shr	ebx, 1
 		cmp	bl, 7
 		jnz	short loc_3E897
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
@@ -5525,7 +5538,7 @@ loc_3E8C4:
 loc_3E8DB:
 		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], 3
 		jnz	short loc_3E8E6
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3E8E6:
@@ -5545,10 +5558,13 @@ loc_3E900:
 		mov	byte ptr _levelmap[esi + 1], 1
 		ret
 
-loc_3E906:
-		shr	bx, 1
-		and	bx, 7
-		inc	bx
+ElectronHandler_3 endp
+
+ElectronHandler_4 proc near
+
+		shr	ebx, 2
+		and	bl, 7
+		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E93D
 		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
@@ -5590,7 +5606,7 @@ loc_3E96A:
 loc_3E981:
 		cmp	byte ptr _levelmap[esi - 2], 3
 		jnz	short loc_3E98C
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 
@@ -5612,9 +5628,15 @@ loc_3E9A6:
 		mov	byte ptr _levelmap[esi + 1], 3
 		ret
 
+ElectronHandler_4 endp
 
-loc_3E9AC:
-		shr	bx, 1
+; ===========================================================
+
+ElectronHandler_5 proc near
+
+		shr ebx, 1
+		sub ebx, 40h
+		shr	ebx, 1
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E9EA
@@ -5653,7 +5675,7 @@ loc_3EA17:
 loc_3EA2E:
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
 		jnz	short loc_3EA39
-		call	sub_3956F
+		call	CreateExplosion
 		ret
 
 loc_3EA39:
@@ -5672,65 +5694,63 @@ loc_3EA53:
 		mov	byte ptr _levelmap[esi + 1], 5
 		ret
 
-loc_3EA59:
-		shr	bx, 1
-		and	bl, 7
-		inc	bl
-		cmp	bl, 7
-		jnz	short loc_3EA91
-		cmp	byte ptr _levelmap[esi - 2], MAP_RED_LAMP
-		jz	short loc_3EA91
-		mov	word ptr _levelmap[esi - 2], MAP_SPACE
+ElectronHandler_5 endp
 
-loc_3EA91:
-		cmp	bl, 8
-		jge	short loc_3EA9E
-		add	bl, 28h
-		mov	byte ptr _levelmap[esi + 1], bl
-		ret
+; ===========================================================
 
-loc_3EA9E:
-		mov	word ptr _levelmap[esi], MAP_ELECTRON
-		cmp	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
-		jnz	short loc_3EAB1
-		mov	byte ptr _levelmap[esi + 1], 7
-		ret
+ElectronHandler_6 proc near
 
-loc_3EAB1:
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
-		jnz	short loc_3EABE
-		mov	byte ptr _levelmap[esi + 1], 7
-		ret
+			shr		ebx, 2
+			and		bl, 7
+			inc		bl
+			cmp		bl, 7
+			jne		short @@1
+			cmp		byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+			je		short @@1
+			mov		word ptr _levelmap[esi - 2], MAP_SPACE
+@@1:		cmp		bl, 8
+			jge		short @@2
+			add		bl, 28h
+			mov		byte ptr _levelmap[esi + 1], bl
+			ret
 
-loc_3EABE:
-		cmp	word ptr _levelmap[esi + 2], 0
-		jnz	short loc_3EAD5
-		mov	word ptr _levelmap[esi], 400h + 0BBh
-		add	esi, 2
-		mov	word ptr _levelmap[esi], 2800h + MAP_ELECTRON
-		ret
+@@2:		mov		word ptr _levelmap[esi], MAP_ELECTRON
+			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
+			jne		short @@3
+			mov		byte ptr _levelmap[esi + 1], 7
+			ret
 
-loc_3EAD5:
-		cmp	byte ptr _levelmap[esi + 2], 3
-		jnz	short loc_3EAE0
-		call	sub_3956F
-		ret
+@@3:		cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
+			jne		short @@4
+			mov		byte ptr _levelmap[esi + 1], 7
+			ret
 
-loc_3EAE0:
-		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
-		jnz	short loc_3EAED
-		mov	byte ptr _levelmap[esi + 1], MAP_PORT_RIGHT_TO_LEFT
-		ret
+@@4:		cmp		word ptr _levelmap[esi + 2], 0
+			jne		short @@5
+			mov		word ptr _levelmap[esi], 0400h + 0BBh
+			add		esi, 2
+			mov		word ptr _levelmap[esi], 2800h + MAP_ELECTRON
+			ret
 
-loc_3EAED:
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
-		jnz	short loc_3EAFA
-		mov	byte ptr _levelmap[esi + 1], MAP_PORT_RIGHT_TO_LEFT
-		ret
+@@5:		cmp		byte ptr _levelmap[esi + 2], MAP_MURPHY
+			jne		short @@6
+			call	CreateExplosion
+			ret
 
-loc_3EAFA:
-		mov	byte ptr _levelmap[esi + 1], 7
-		ret
+@@6:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+			jne		short @@7
+			mov		byte ptr _levelmap[esi + 1], 0Bh
+			ret
+
+@@7:		cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			jne		short @@8
+			mov		byte ptr _levelmap[esi + 1], 0Bh
+			ret
+
+@@8:		mov		byte ptr _levelmap[esi + 1], 7
+			ret
+
+ElectronHandler_6 endp
 
 .data
 
@@ -5787,102 +5807,22 @@ word_403E6	dw 0
 word_403EA	dw 0
 word_403EC	dw 0
 
-SnikSnakHandlers dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_1
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_2
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_3
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-		dd SnikSnakHandler_4
-MapHandlers_2	dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E53B
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-		dd loc_3E5E8
-MapHandlers_5		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E6B1
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-		dd loc_3E785
-MapHandlers_3		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E85B
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E906
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3E9AC
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
-		dd loc_3EA59
+SnikSnakHandlers label dword
+		dd 8 dup (SnikSnakHandler_1)
+		dd 8 dup (SnikSnakHandler_2)
+		dd 8 dup (SnikSnakHandler_3)
+		dd 8 dup (SnikSnakHandler_4)
+		dd 8 dup (SnikSnakHandler_5)
+		dd 8 dup (SnikSnakHandler_6)
+
+ElectronHandlers label dword
+		dd 8 dup (ElectronHandler_1)
+		dd 8 dup (ElectronHandler_2)
+		dd 8 dup (ElectronHandler_3)
+		dd 8 dup (ElectronHandler_4)
+		dd 8 dup (ElectronHandler_5)
+		dd 8 dup (ElectronHandler_6)
+
 MapHandlers_4		dd 0
 		dd handleZonk
 		dd 0

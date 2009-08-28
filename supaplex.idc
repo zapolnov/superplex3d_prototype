@@ -643,6 +643,11 @@ static main()
 	MakeName(0x378E8, "@@DoAskUser");
 	OpOff(0x378F0, 1, 0x3F600);
 	OpOff(0x37910, 1, 0x3F600);
+	OpDecimal(0x37984, 1);
+	OpOffEx(0x3798B, 0, REF_OFF16, -1, 0x3F600, -2);	// Does not work
+	OpDecimal(0x37994, 1);
+	OpOffEx(0x37999, 0, REF_OFF16, -1, 0x3F600, -2);	// Does not work
+
 
 	MakeFunction(0x37920, BADADDR);
 	MakeName(0x37920, "handleZonk");
@@ -1800,6 +1805,7 @@ static main()
 
 	MakeFunction(0x3E68F, BADADDR);
 	MakeName(0x3E68F, "handleElectron");
+	OpOff(0x3E6A5, 1, 0x3F600);
 
 	MakeFunction(0x3EC01, BADADDR);
 	MakeName(0x3EC01, "DrawNumberOfInfotronsLeftToCollect");
@@ -2085,6 +2091,7 @@ static main()
 
 	MakeName(0x40B4A, "MapHandlers_1");
 	MakeName(0x40B8A, "MapHandlers_2");
+	MakeName(0x40BAA, "MapHandlers_5");
 	MakeName(0x40BCA, "MapHandlers_3");
 	MakeName(0x40C0A, "MapHandlers_4");
 	for (i = 0; i < 32; i++)
@@ -2108,6 +2115,8 @@ static main()
 
 	MakeName(0x40C57, "VID_VgaMemStartAddress");
 	MakeComm(0x40C57, "Used to scroll the screen");
+
+	MakeName(0x40C68, "TimeoutAfterWhichLeaveTheLevel");
 
 	MakeName(0x40C6A, "ExitTheProgram");
 

@@ -4,16 +4,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef USE_GLUT
- #include <GL/gl.h>
- #include <GL/glut.h>
- #include <time.h>
- #include "BMPLoader.h"
-#endif
-
 #ifdef WIN32
  #include <windows.h>
  #include <mmsystem.h>
+#endif
+
+#ifdef USE_GLUT
+ #include <GL/glut.h>
+ #include <GL/gl.h>
+ #include <time.h>
+ #include "BMPLoader.h"
 #endif
 
 enum MapElements
@@ -62,6 +62,8 @@ enum MapElements
 };
 
 #ifdef USE_GLUT
+
+static unsigned speed = 50;
 
 static GLuint texFixed;
 static float texFixedStepX;
@@ -158,10 +160,14 @@ void paintHex(int xx, int yy, unsigned char value)
 
 void paintGameField()
 {
+	bool dont_overpaint[MAP_WIDTH * MAP_HEIGHT];
+
+	memset(dont_overpaint, 0, sizeof(dont_overpaint));
 	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
+			bool dont_paint = false;
 			unsigned short ch = levelmap[y * MAP_WIDTH + x];
 			unsigned char object = ch & 0xFF;
 			unsigned char high = (ch >> 8) & 0xFF;
@@ -171,74 +177,201 @@ void paintGameField()
 			int y1 = y * 16;
 			int x2 = x * 16 + 16;
 			int y2 = y * 16 + 16;
-			if (object == MAP_SNIK_SNAK)
+			if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0x10)
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0xF) + 1;
+
+				tx1 = (float)(ofs * 16) * texMovingStepX;
+				ty1 = (float)(462 - 424) * texMovingStepY;
+				tx2 = (float)(ofs * 16 + 16) * texMovingStepX;
+				ty2 = (float)(462 - 424 - 16) * texMovingStepY;
+
+				unsigned char h = (high & 0xF) * 2;
+
+				y1 = y1 + 16 - h;
+				y2 = y2 + 16 - h;
+
+				dont_overpaint[(y + 1) * MAP_WIDTH + x] = true;
+			}
+			else if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0x18)
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0xF) - 8;
+				int texX = ((high & 0xF) < 0xC ? 192 : -128);
+				int texY = ((high & 0xF) < 0xC ? 228 : 244);
+
+				tx1 = (float)(ofs * 32 + texX) * texMovingStepX;
+				ty1 = (float)(462 - texY) * texMovingStepY;
+				tx2 = (float)(ofs * 32 + texX + 32) * texMovingStepX;
+				ty2 = (float)(462 - texY - 16) * texMovingStepY;
+
+				x2 += 16;
+				dont_overpaint[y * MAP_WIDTH + x + 1] = true;
+			}
+			else if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0x20)
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0xF) + 1;
+
+				tx1 = (float)(ofs * 16 + 144) * texMovingStepX;
+				ty1 = (float)(462 - 424) * texMovingStepY;
+				tx2 = (float)(ofs * 16 + 16 + 144) * texMovingStepX;
+				ty2 = (float)(462 - 424 - 16) * texMovingStepY;
+
+				unsigned char h = (high & 0xF) * 2;
+
+				y1 = y1 - 16 + h;
+				y2 = y2 - 16 + h;
+
+				//dont_overpaint[(y + 1) * MAP_WIDTH + x] = true;
+			}
+			else if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0x28)
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0xF) - 8;
+				int texX = ((high & 0xF) < 0xE ? 4 * 32 : -192);
+				int texY = ((high & 0xF) < 0xE ? 244 : 260);
+
+				tx1 = (float)(ofs * 32 + texX) * texMovingStepX;
+				ty1 = (float)(462 - texY) * texMovingStepY;
+				tx2 = (float)(ofs * 32 + texX + 32) * texMovingStepX;
+				ty2 = (float)(462 - texY - 16) * texMovingStepY;
+
+				x1 -= 16;
+			}
+			else if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0)
+			{
+				static int ssx[] = { 112, 192,  64, 206, 80,  208, 96,   48, };
+				static int ssy[] = { 260, 388, 260, 228, 260, 388, 260, 260, };
+
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned idx = high & 0x7;
+
+				tx1 = (float)(ssx[idx]) * texMovingStepX;
+				ty1 = (float)(462 - ssy[idx]) * texMovingStepY;
+				tx2 = (float)(ssx[idx] + 16) * texMovingStepX;
+				ty2 = (float)(462 - ssy[idx] - 16) * texMovingStepY;
+			}
+			else if ((object == MAP_ZONK || object == MAP_INFOTRON) && ((high & 0xF0) == 0x10 || high == 0x70))	// Fall down
+			{
+				glBindTexture(GL_TEXTURE_2D, texFixed);
+				glEnable(GL_TEXTURE_2D);
+
+				tx1 = (float)(object * 16) * texFixedStepX;
+				ty1 = (float)(16) * texFixedStepY;
+				tx2 = (float)(object * 16 + 16) * texFixedStepX;
+				ty2 = (float)(0) * texFixedStepY;
+
+				unsigned char h = (high == 0x70 ? 17 : (high & 0xF) * 2);
+
+				y1 = y1 - 15 + h;
+				y2 = y2 - 15 + h;
+			}
+			else if ((object == MAP_ZONK || object == MAP_INFOTRON) && (high & 0xF0) == 0x30)		// Scroll right
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0x7);
+				int texY = (object == MAP_ZONK ? 100 : 180);
+
+				tx1 = (float)(ofs * 32) * texMovingStepX;
+				ty1 = (float)(462 - texY) * texMovingStepY;
+				tx2 = (float)(ofs * 32 + 32) * texMovingStepX;
+				ty2 = (float)(462 - texY - 16) * texMovingStepY;
+
+				x1 -= 16;
+				x2 = x1 + 32;
+			}
+			else if ((object == MAP_ZONK || object == MAP_INFOTRON) && (high & 0xF0) == 0x20)		// Scroll left
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = (high & 0x7);
+				int texY = (object == MAP_ZONK ? 84 : 164);
+
+				tx1 = (float)(ofs * 32) * texMovingStepX;
+				ty1 = (float)(462 - texY) * texMovingStepY;
+				tx2 = (float)(ofs * 32 + 32) * texMovingStepX;
+				ty2 = (float)(462 - texY - 16) * texMovingStepY;
+
+				x2 = x1 + 32;
+				dont_overpaint[y * MAP_WIDTH + x + 1] = true;
+			}
+			else if (object == MAP_DISK_ORANGE && (high & 0xF0) == 0x30)	// Fall down
+			{
+				glBindTexture(GL_TEXTURE_2D, texFixed);
+				glEnable(GL_TEXTURE_2D);
+				tx1 = (float)(MAP_DISK_ORANGE * 16) * texFixedStepX;
+				ty1 = (float)(16) * texFixedStepY;
+				tx2 = (float)(MAP_DISK_ORANGE * 16 + 16) * texFixedStepX;
+				ty2 = (float)(0) * texFixedStepY;
+
+				y1 = y1 + (high & 0xF) * 2;
+				y2 = y2 + (high & 0xF) * 2;
+				dont_overpaint[(y + 1) * MAP_WIDTH + x] = true;
+			}
+			else if (object == MAP_RED_LAMP && (high >= 0 && high < 8))
 			{
 				glBindTexture(GL_TEXTURE_2D, texMoving);
 				glEnable(GL_TEXTURE_2D);
 
 				int ttx, tty;
-				unsigned char sprite_index = high;
-				if (sprite_index < 4)
-				{
-					ttx = 12 * 16 + sprite_index * 32 + 8;
-					tty = 14 * 16;
-				}
-				else if (sprite_index < 14)
-				{
-					ttx = (sprite_index - 4) * 32 + 8;
-					tty = 15 * 16;
-				}
-				else if (sprite_index < 16)
-				{
-					ttx = (sprite_index - 14) * 32 + 8;
-					tty = 16 * 16;
-				}
-				else
-				{
-					ttx = 64 + (sprite_index - 16) * 16;
-					tty = 16 * 16;
-				}
+				ttx = high * 16;
+				tty = 196;
 
 				tx1 = (float)(ttx) * texMovingStepX;
-				ty1 = (float)(459 - tty - 16) * texMovingStepY;
+				ty1 = (float)(462 - tty - 16) * texMovingStepY;
 				tx2 = (float)(ttx + 16) * texMovingStepX;
-				ty2 = (float)(459 - tty) * texMovingStepY;
+				ty2 = (float)(462 - tty) * texMovingStepY;
 			}
-			else if (object == MAP_ZONK && (high & 0x10) == 0x10)
+			else if (ch == 0xFFFF || ch == 0x8888 || ch == 0x9999 || ch == 0xAAAA || object == 0xBB)
+				dont_paint = true;
+			else if (object < 40)
 			{
-				glBindTexture(GL_TEXTURE_2D, texFixed);
-				glEnable(GL_TEXTURE_2D);
-				tx1 = (float)(MAP_ZONK * 16) * texFixedStepX;
-				ty1 = (float)(16) * texFixedStepY;
-				tx2 = (float)(MAP_ZONK * 16 + 16) * texFixedStepX;
-				ty2 = (float)(0) * texFixedStepY;
-
-				y1 = y1 - 15 + (high & 0xF) * 2;
-				y2 = y2 - 15 + (high & 0xF) * 2;
+				if (object == MAP_SPACE && dont_overpaint[y * MAP_WIDTH + x])
+					dont_paint = true;
+				else
+				{
+					glBindTexture(GL_TEXTURE_2D, texFixed);
+					glEnable(GL_TEXTURE_2D);
+					tx1 = (float)(object * 16) * texFixedStepX;
+					ty1 = (float)(16) * texFixedStepY;
+					tx2 = (float)(object * 16 + 16) * texFixedStepX;
+					ty2 = (float)(0) * texFixedStepY;
+				}
 			}
-			else if (high == 0 && object < 40)
-			{
-				glBindTexture(GL_TEXTURE_2D, texFixed);
-				glEnable(GL_TEXTURE_2D);
-				tx1 = (float)(object * 16) * texFixedStepX;
-				ty1 = (float)(16) * texFixedStepY;
-				tx2 = (float)(object * 16 + 16) * texFixedStepX;
-				ty2 = (float)(0) * texFixedStepY;
-			}
-			else if (ch == 0x9999)
-				;
 			else
-				glDisable(GL_TEXTURE_2D);
+			{
+				if (!dont_overpaint[y * MAP_WIDTH + x])
+					paintHex(x * 16, y * 16, object);
+				dont_paint = true;
+			}
 
-			glColor4f(1.0f,1.0f,1.0f,1.0f);
-			glBegin(GL_QUADS);
-				glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
-				glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
-				glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
-				glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
-			glEnd();
+			if (!dont_paint)
+			{
+				glColor4f(1.0f,1.0f,1.0f,1.0f);
+				glBegin(GL_QUADS);
+					glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+					glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+					glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+					glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+				glEnd();
+			}
 
-			paintHex(x1, y1 + MAP_HEIGHT * 16, high);
+			paintHex(x * 16, y * 16 + MAP_HEIGHT * 16, high);
 
 		#else
 			if (ch >= 0 && ch < 40)
@@ -361,6 +494,22 @@ void key(int c, int x, int y)
 		joystickbuttons = spacePressed ? 8 : 4;
 		break;
 
+	case GLUT_KEY_F1:
+		speed = 50;
+		break;
+
+	case GLUT_KEY_F2:
+		speed = 100;
+		break;
+
+	case GLUT_KEY_F3:
+		speed = 1000;
+		break;
+
+	case GLUT_KEY_F4:
+		speed = 5000;
+		break;
+
 	case ' ':
 		if (joystickbuttons == 0)
 			joystickbuttons = 9;
@@ -384,7 +533,7 @@ static
 void idle()
 {
 	unsigned long long curTime = getTime();
-	if (prevTime == 0 || prevTime > curTime || curTime >= prevTime + 1000)
+	if (prevTime == 0 || prevTime > curTime || curTime >= prevTime + speed)
 	{
 		if (!runthelevel())
 			exit(0);
@@ -421,7 +570,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	FILE * f = fopen("levels.dat", "rb");
 	if (!f)
 		return 1;
-	int levelNumber = 11;//27;
+	int levelNumber = 4;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
 	char buf[1536];
 	fread(buf, 1536, 1, f);
@@ -453,6 +602,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		BMPLoad("fixed.bmp", bmp);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);
 		texFixedStepX = 1.0f / (float)bmp.width;
 		texFixedStepY = 1.0f / (float)bmp.height;
@@ -465,6 +616,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		BMPLoad("moving.bmp", bmp);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);
 		texMovingStepX = 1.0f / (float)bmp.width;
 		texMovingStepY = 1.0f / (float)bmp.height;
@@ -477,6 +630,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		BMPLoad("font.bmp", bmp);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);
 		texFontStepX = 1.0f / (float)bmp.width;
 		texFontStepY = 1.0f / (float)bmp.height;
