@@ -2057,10 +2057,11 @@ static main()
 	MakeName(0x403B5, "PlayerPosition_MapY");
 	MakeName(0x403B7, "CurrentMurphyOfs");
 	MakeName(0x403B9, "PlayerPosition_Ofs");
-
+	MakeName(0x403BB, "PlayerIsLookingLeft");
 	MakeName(0x403BD, "SupaplexYawnTimeout");
 
 	MakeName(0x403C1, "PlayerDied");
+	MakeName(0x403C9, "PlayerIsInsideTeleport");
 
 	MakeName(0x403CB, "RedDiskDetonateTimer");
 	MakeName(0x403CC, "RedDiskPosition");

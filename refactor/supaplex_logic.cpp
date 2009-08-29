@@ -104,11 +104,17 @@ static const int MAP_NUM_CELLS = MAP_WIDTH * MAP_HEIGHT;
 static unsigned long long prevTime = 0;
 
 extern "C" {
+extern unsigned short PlayerAnim_ID;
+extern short PlayerPosition_PixelsX;
+extern short PlayerPosition_PixelsY;
+extern unsigned short PlayerIsLookingLeft;
+extern unsigned short PlayerIsInsideTeleport;
 extern unsigned char NumRedDisks;
 extern unsigned short SupaplexYawnTimeout;
 extern unsigned char RedDiskDetonateTimer;
 extern unsigned short RedDiskPlacementTimer;
 extern unsigned int RedDiskPosition;
+extern unsigned short PlayerAnim_NumFrames;
 extern short levelmap[MAP_NUM_CELLS];
 extern char joystickbuttons;
 extern void loadlevelmap();
@@ -131,36 +137,43 @@ void startLevel()
 	initplayerstate();
 }
 
+void paintChar(int xx, int yy, unsigned char ch)
+{
+	if (ch == 0xFF)
+	{
+		glDisable(GL_TEXTURE_2D);
+
+		glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
+		glBegin(GL_QUADS);
+			glVertex2i(xx, yy);
+			glVertex2i(xx + 8, yy);
+			glVertex2i(xx + 8, yy + 16);
+			glVertex2i(xx, yy + 16);
+		glEnd();
+	}
+	else
+	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texFont);
+
+		unsigned short offset = (unsigned short)ch * 8;
+		float x1 = (float)offset * texFontStepX;
+		float x2 = (float)(offset + 8) * texFontStepX;
+
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glBegin(GL_QUADS);
+			glTexCoord2f(x1, 1.0f); glVertex2i(xx, yy);
+			glTexCoord2f(x2, 1.0f); glVertex2i(xx + 8, yy);
+			glTexCoord2f(x2, 0.0f); glVertex2i(xx + 8, yy + 16);
+			glTexCoord2f(x1, 0.0f); glVertex2i(xx, yy + 16);
+		glEnd();
+	}
+}
+
 void paintHex(int xx, int yy, unsigned char value)
 {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texFont);
-
-	unsigned char val = value >> 4;
-	val *= 8;
-	float x1 = (float)val * texFontStepX;
-	float x2 = (float)(val + 8) * texFontStepX;
-
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glBegin(GL_QUADS);
-		glTexCoord2f(x1, 1.0f); glVertex2i(xx, yy);
-		glTexCoord2f(x2, 1.0f); glVertex2i(xx + 8, yy);
-		glTexCoord2f(x2, 0.0f); glVertex2i(xx + 8, yy + 16);
-		glTexCoord2f(x1, 0.0f); glVertex2i(xx, yy + 16);
-	glEnd();
-
-	val = value & 0xF;
-	val *= 8;
-	x1 = (float)val * texFontStepX;
-	x2 = (float)(val + 8) * texFontStepX;
-
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glBegin(GL_QUADS);
-		glTexCoord2f(x1, 1.0f); glVertex2i(xx + 8, yy);
-		glTexCoord2f(x2, 1.0f); glVertex2i(xx + 16, yy);
-		glTexCoord2f(x2, 0.0f); glVertex2i(xx + 16, yy + 16);
-		glTexCoord2f(x1, 0.0f); glVertex2i(xx + 8, yy + 16);
-	glEnd();
+	paintChar(xx, yy, value >> 4);
+	paintChar(xx + 8, yy, value & 0xF);
 }
 
 void paintGameField()
@@ -180,7 +193,7 @@ void paintGameField()
 			unsigned short ch = levelmap[y * MAP_WIDTH + x];
 			unsigned char object = ch & 0xFF;
 			unsigned char high = (ch >> 8) & 0xFF;
-		#ifdef USE_GLUT
+
 			float tx1 = 0.0f, tx2 = 0.0f, ty1 = 0.0f, ty2 = 0.0f;
 			int x1 = x * 16;
 			int y1 = y * 16;
@@ -238,8 +251,6 @@ void paintGameField()
 
 				y1 = y1 - 16 + h;
 				y2 = y2 - 16 + h;
-
-				//dont_overpaint[(y + 1) * MAP_WIDTH + x] = true;
 			}
 			else if (object == MAP_SNIK_SNAK && (high & 0xF8) == 0x28)
 			{
@@ -354,6 +365,9 @@ void paintGameField()
 					dont_paint = true;
 				else
 				{
+					if (object == MAP_MURPHY)
+						object = MAP_SPACE;
+
 					glBindTexture(GL_TEXTURE_2D, texFixed);
 					glEnable(GL_TEXTURE_2D);
 					tx1 = (float)(object * 16) * texFixedStepX;
@@ -381,22 +395,53 @@ void paintGameField()
 			}
 
 			paintHex(x * 16, y * 16 + MAP_HEIGHT * 16, high);
-
-		#else
-			if (ch >= 0 && ch < 40)
-				StretchBlt(hDC, x * 16, y * 16, 16, 16, hMemDC, ch * 16, 0, 16, 16, SRCCOPY);
-			else
-			{
-				char buf[10];
-
-				sprintf(buf, "%d", ch);
-				BitBlt(hDC, x * 20, y * 20, 20, 20, NULL, 0, 0, WHITENESS);
-				TextOut(hDC, x * 20, y * 20, buf, strlen(buf));
-			}
-		#endif
 		}
 	}
 
+	// Paint the player
+	if (true)
+	{
+		glBindTexture(GL_TEXTURE_2D, texFixed);
+		glEnable(GL_TEXTURE_2D);
+
+		float tx1 = (float)(MAP_MURPHY * 16) * texFixedStepX;
+		float ty1 = (float)(16) * texFixedStepY;
+		float tx2 = (float)(MAP_MURPHY * 16 + 16) * texFixedStepX;
+		float ty2 = (float)(0) * texFixedStepY;
+
+		int x1 = PlayerPosition_PixelsX;
+		int y1 = PlayerPosition_PixelsY;
+		int x2 = x1 + 16;
+		int y2 = y1 + 16;
+
+		glColor4f(1.0f,1.0f,1.0f,1.0f);
+		glBegin(GL_QUADS);
+			glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+			glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+			glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+			glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+		glEnd();
+	}
+	else
+	{
+		/*glBindTexture(GL_TEXTURE_2D, texMoving);
+		glEnable(GL_TEXTURE_2D);
+
+		float tx1 = (float)(288) * texMovingStepX;
+		float ty1 = (float)(462 - 132) * texMovingStepY;
+		float tx2 = (float)(288 + 16) * texMovingStepX;
+		float ty2 = (float)(462 - 132 - 16) * texMovingStepY;
+
+		glColor4f(1.0f,1.0f,1.0f,1.0f);
+		glBegin(GL_QUADS);
+			glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+			glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+			glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+			glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+		glEnd();*/
+	}
+
+	// Paint the red diskette
 	if (RedDiskDetonateTimer)
 	{
 		int x = (RedDiskPosition / 2) % MAP_WIDTH;
@@ -445,135 +490,24 @@ void paintGameField()
 			glEnd();
 		}
 	}
-}
 
-#ifndef USE_GLUT
+	paintHex(0, 2 * MAP_HEIGHT * 16, NumRedDisks);
 
-LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	static bool spacePressed = false;
-	bool pressed = false;
-	PAINTSTRUCT ps;
-	HDC hDC;
-
-	switch (msg)
+	sprintf(buf, "%d %d %d %04X %04X", PlayerPosition_PixelsX, PlayerPosition_PixelsY,
+		PlayerAnim_NumFrames, PlayerIsLookingLeft, PlayerAnim_ID);
+	int x = 4*16;
+	for (int i = 0; buf[i]; i++, x += 8)
 	{
-	case WM_PAINT:
-		hPaintDC = BeginPaint(hWnd, &ps);
-		hMemPaintDC = CreateCompatibleDC(hDC);
-		hPaintOldBitmap = (HBITMAP)SelectObject(hMemDC, hFixedBmp);
-		paintGameField();
-		SelectObject(hMemPaintDC, hPaintOldBitmap);
-		DeleteDC(hMemPaintDC);
-		EndPaint(hWnd, &ps);
-		return 0;
-
-	case WM_KEYDOWN:
-		if (wParam == VK_UP)
-		{
-			pressed = true;
-			joystickbuttons = 1;
-		}	
-		if (wParam == VK_LEFT)
-		{
-			pressed = true;
-			joystickbuttons = 2;
-		}
-		if (wParam == VK_DOWN)
-		{
-			pressed = true;
-			joystickbuttons = 3;
-		}
-		if (wParam == VK_RIGHT)
-		{
-			pressed = true;
-			joystickbuttons = 4;
-		}
-		if (wParam == VK_SPACE)
-		{
-			spacePressed = true;
-		}
-
-		if (spacePressed)
-		{
-			if (pressed)
-				joystickbuttons += 4;
-			else
-				joystickbuttons = 9;
-		}
-		break;
-
-	case WM_KEYUP:
-		if (wParam == VK_SPACE)
-			spacePressed = false;
-		break;
-
-	case WM_TIMER:
-		if (!runthelevel())
-			PostQuitMessage(0);
-		joystickbuttons = 0;
-		InvalidateRect(hWnd, NULL, FALSE);
-		return 0;
-
-	case WM_CLOSE:
-		DestroyWindow(hWnd);
-		return 0;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+		if (buf[i] >= '0' && buf[i] <= '9')
+			paintChar(x, 2 * MAP_HEIGHT * 16, buf[i] - '0');
+		else if (buf[i] >= 'A' && buf[i] <= 'F')
+			paintChar(x, 2 * MAP_HEIGHT * 16, buf[i] - 'A' + 10);
+		else if (buf[i] >= 'a' && buf[i] <= 'f')
+			paintChar(x, 2 * MAP_HEIGHT * 16, buf[i] - 'a' + 10);
 	}
 
-	return DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
-#else
-
-//static bool spacePressed = false;
-
-static
-void key(int c, int x, int y)
-{
-/*	switch (c)
-	{
-	case GLUT_KEY_UP:
-		joystickbuttons = spacePressed ? 5 : 1;
-		break;
-
-	case GLUT_KEY_LEFT:
-		joystickbuttons = spacePressed ? 6 : 2;
-		break;
-
-	case GLUT_KEY_DOWN:
-		joystickbuttons = spacePressed ? 7 : 3;
-		break;
-
-	case GLUT_KEY_RIGHT:
-		joystickbuttons = spacePressed ? 8 : 4;
-		break;
-
-	case GLUT_KEY_F1:
-		speed = 50;
-		break;
-
-	case GLUT_KEY_F2:
-		speed = 100;
-		break;
-
-	case GLUT_KEY_F3:
-		speed = 1000;
-		break;
-
-	case GLUT_KEY_F4:
-		speed = 5000;
-		break;
-
-	case ' ':
-		if (joystickbuttons == 0)
-			joystickbuttons = 9;
-		spacePressed = true;
-		break;
-	}*/
+//	paintHex(4 * 16, 2 * MAP_HEIGHT * 16, word_403C9 >> 8);
+//	paintHex(4 * 16 + 2 * 8, 2 * MAP_HEIGHT * 16, word_403C9 & 0xFF);
 }
 
 static
@@ -640,18 +574,14 @@ void reshape(int w, int h)
 	glutPostRedisplay();
 }
 
-#endif
-
-#ifdef USE_GLUT
 int main(int argc, char ** argv)
-#else
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-#endif
 {
 	FILE * f = fopen("levels.dat", "rb");
 	if (!f)
 		return 1;
-	int levelNumber = 61;//30;//11;//27;
+		//64=gravity
+		//61=red diskettes
+	int levelNumber = 63;//15;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
 	char buf[1536];
 	fread(buf, 1536, 1, f);
@@ -665,13 +595,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	startLevel();
 	beginlevel();
 
-#ifdef USE_GLUT
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(16 * MAP_WIDTH, 16 * MAP_HEIGHT * 2);
+	glutInitWindowSize(16 * MAP_WIDTH, 16 * MAP_HEIGHT * 2 + 16);
 	glutCreateWindow("Supaplex");
-	glutSpecialFunc(key);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutIdleFunc(idle);
@@ -721,53 +648,4 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	glEnable(GL_TEXTURE_2D);
 
 	glutMainLoop();
-
-#else
-
-	hFixedBmp = (HBITMAP)LoadImage(hInstance, "BMP_FIXED", IMAGE_BITMAP, 0, 0,
-		LR_CREATEDIBSECTION);
-	hMovingBmp = (HBITMAP)LoadImage(hInstance, "BMP_MOVING", IMAGE_BITMAP, 0, 0,
-		LR_CREATEDIBSECTION);
-
-	WNDCLASS wc;
-
-	memset(&wc, 0, sizeof(wc));
-	wc.hInstance = hInstance;
-	wc.lpfnWndProc = MainWndProc;
-	wc.lpszClassName = "Supaplex";
-	if (!RegisterClass(&wc))
-		return 1;
-
-	DWORD dwExStyle = WS_EX_APPWINDOW;
-	DWORD dwStyle = WS_POPUP | WS_CAPTION | WS_BORDER | WS_SYSMENU;
-
-	RECT rc;
-	rc.left = 200;
-	rc.top = 200;
-	rc.right = rc.left + MAP_WIDTH * 16;
-	rc.bottom = rc.top + MAP_HEIGHT * 16;
-	AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
-
-	HWND hWnd = CreateWindowEx(dwExStyle, wc.lpszClassName, "Supaplex", dwStyle,
-		rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, hInstance, NULL);
-	if (!hWnd)
-		return 1;
-
-	ShowWindow(hWnd, SW_SHOWNORMAL);
-	UpdateWindow(hWnd);
-
-	SetTimer(hWnd, 1, 10, NULL);
-
-	for (;;)
-	{
-		MSG msg;
-		while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-			if (!GetMessage(&msg, NULL, 0, 0))
-				return 0;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-#endif
 }
