@@ -104,6 +104,11 @@ static const int MAP_NUM_CELLS = MAP_WIDTH * MAP_HEIGHT;
 static unsigned long long prevTime = 0;
 
 extern "C" {
+extern unsigned char NumRedDisks;
+extern unsigned short SupaplexYawnTimeout;
+extern unsigned char RedDiskDetonateTimer;
+extern unsigned short RedDiskPlacementTimer;
+extern unsigned int RedDiskPosition;
 extern short levelmap[MAP_NUM_CELLS];
 extern char joystickbuttons;
 extern void loadlevelmap();
@@ -161,6 +166,10 @@ void paintHex(int xx, int yy, unsigned char value)
 void paintGameField()
 {
 	bool dont_overpaint[MAP_WIDTH * MAP_HEIGHT];
+
+	char buf[64];
+	sprintf(buf, "%02X %04X\n", RedDiskDetonateTimer, RedDiskPlacementTimer);
+	OutputDebugString(buf);
 
 	memset(dont_overpaint, 0, sizeof(dont_overpaint));
 	for (int y = 0; y < MAP_HEIGHT; y++)
@@ -387,6 +396,55 @@ void paintGameField()
 		#endif
 		}
 	}
+
+	if (RedDiskDetonateTimer)
+	{
+		int x = (RedDiskPosition / 2) % MAP_WIDTH;
+		int y = (RedDiskPosition / 2) / MAP_WIDTH;
+
+		int x1 = x * 16;
+		int y1 = y * 16;
+		int x2 = x1 + 16;
+		int y2 = y1 + 16;
+
+		if (RedDiskPlacementTimer <= 32)
+		{
+			glBindTexture(GL_TEXTURE_2D, texMoving);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(288) * texMovingStepX;
+			float ty1 = (float)(462 - 132) * texMovingStepY;
+			float tx2 = (float)(288 + 16) * texMovingStepX;
+			float ty2 = (float)(462 - 132 - 16) * texMovingStepY;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+				glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+				glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+				glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+			glEnd();
+		}
+
+		if (RedDiskDetonateTimer > 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texFixed);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(MAP_DISK_RED * 16) * texFixedStepX;
+			float ty1 = (float)(16) * texFixedStepY;
+			float tx2 = (float)(MAP_DISK_RED * 16 + 16) * texFixedStepX;
+			float ty2 = (float)(0) * texFixedStepY;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+				glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+				glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+				glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+			glEnd();
+		}
+	}
 }
 
 #ifndef USE_GLUT
@@ -471,12 +529,12 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 #else
 
-static bool spacePressed = false;
+//static bool spacePressed = false;
 
 static
 void key(int c, int x, int y)
 {
-	switch (c)
+/*	switch (c)
 	{
 	case GLUT_KEY_UP:
 		joystickbuttons = spacePressed ? 5 : 1;
@@ -515,7 +573,7 @@ void key(int c, int x, int y)
 			joystickbuttons = 9;
 		spacePressed = true;
 		break;
-	}
+	}*/
 }
 
 static
@@ -535,8 +593,31 @@ void idle()
 	unsigned long long curTime = getTime();
 	if (prevTime == 0 || prevTime > curTime || curTime >= prevTime + speed)
 	{
+		bool spacePressed = GetAsyncKeyState(VK_SPACE) & 0x8000;
+
+		if (GetAsyncKeyState(VK_UP) & 0x8000)
+			joystickbuttons = spacePressed ? 5 : 1;
+		else if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+			joystickbuttons = spacePressed ? 6 : 2;
+		else if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+			joystickbuttons = spacePressed ? 7 : 3;
+		else if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+			joystickbuttons = spacePressed ? 8 : 4;
+		else if (spacePressed)
+			joystickbuttons = 9;
+
+		if (GetAsyncKeyState(VK_F1) & 0x8000)
+			speed = 50;
+		else if (GetAsyncKeyState(VK_F2) & 0x8000)
+			speed = 100;
+		else if (GetAsyncKeyState(VK_F3) & 0x8000)
+			speed = 1000;
+		else if (GetAsyncKeyState(VK_F4) & 0x8000)
+			speed = 5000;
+
 		if (!runthelevel())
 			exit(0);
+
 		joystickbuttons = 0;
 		spacePressed = false;
 		glutPostRedisplay();
@@ -570,7 +651,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	FILE * f = fopen("levels.dat", "rb");
 	if (!f)
 		return 1;
-	int levelNumber = 4;//30;//11;//27;
+	int levelNumber = 61;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
 	char buf[1536];
 	fread(buf, 1536, 1, f);

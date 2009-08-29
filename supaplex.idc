@@ -209,6 +209,18 @@ static main()
 	AddConstEx(my_enum, "SND_FN_INIT", 0, -1);
 	AddConstEx(my_enum, "SND_FN_UNINIT", 2, -1);
 
+	DelEnum(GetEnum("JOYSTICK_BUTTON_CODE"));
+	my_enum = AddEnum(GetEnumQty(), "JOYSTICK_BUTTON_CODE", 0);
+	AddConstEx(my_enum, "JB_UP", 1, -1);
+	AddConstEx(my_enum, "JB_LEFT", 2, -1);
+	AddConstEx(my_enum, "JB_DOWN", 3, -1);
+	AddConstEx(my_enum, "JB_RIGHT", 4, -1);
+	AddConstEx(my_enum, "JB_SPACE_UP", 5, -1);
+	AddConstEx(my_enum, "JB_SPACE_LEFT", 6, -1);
+	AddConstEx(my_enum, "JB_SPACE_DOWN", 7, -1);
+	AddConstEx(my_enum, "JB_SPACE_RIGHT", 8, -1);
+	AddConstEx(my_enum, "JB_SPACE", 9, -1);
+
 	// --------------------------------------------
 	// Functions
 
@@ -764,8 +776,10 @@ static main()
 	MakeFunction(0x3890E, BADADDR);
 	MakeName(0x3890E, "CalibrateJoystick");
 
+	MakeName(0x38A5C, "EndDemoRecording");
+
 	MakeFunction(0x38A7F, BADADDR);
-	MakeName(0x38A7F, "WriteDemoFile");
+	MakeName(0x38A7F, "BeginDemoRecording");
 	OpOff(0x38A7F, 1, 0x3F600);
 	OpChr(0x38A82, 1);
 	OpOff(0x38AA6, 1, 0x3F600);
@@ -923,8 +937,10 @@ static main()
 	OpOff(0x393CF, 0, 0x3F600);
 	OpEnumEx(0x393CF, 1, GetEnum("MAP_ELEMENT"), 0);
 
+	MakeName(0x39530, "CreateChainedExplosions");
+
 	MakeFunction(0x3956F, BADADDR);
-	MakeName(0x3956F, "DoExplosion");
+	MakeName(0x3956F, "CreateExplosion");
 	OpOff(0x3956F, 0, 0x3F600);
 	OpEnumEx(0x3956F, 1, GetEnum("MAP_ELEMENT"), 0);
 
@@ -1765,6 +1781,34 @@ static main()
 	OpOff(0x3CA9F, 0, 0x3F600);
 	OpOffEx(0x3CB8C, 0, REF_OFF16, -1, 0x3F600, -2);
 	OpOff(0x3CB93, 0, 0x3F600);
+	MakeName(0x3CBA1, "@@SleepOnWallAtTheLeftSide");
+	MakeName(0x3CBC8, "@@SleepOnWallAtTheRightSide");
+	MakeName(0x3CBEF, "@@HandleSupaplexMovement");
+	OpEnumEx(0x3CBFD, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC09, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC15, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC21, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC23, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC2F, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC3C, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC49, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC56, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC63, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC70, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC7D, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	OpEnumEx(0x3CC8A, 1, GetEnum("JOYSTICK_BUTTON_CODE"), 0);
+	MakeName(0x3CC98, "@@MoveSupaplexUp");
+	MakeName(0x3CCFA, "@@MoveSupaplexLeft");
+	MakeName(0x3CD74, "@@MoveSupaplexDown");
+	MakeName(0x3CDD6, "@@MoveSupaplexRight");
+	MakeName(0x3CE4E, "@@EatUp");
+	MakeName(0x3CE78, "@@EatLeft");
+	MakeName(0x3CEA8, "@@EatDown");
+	MakeName(0x3CED2, "@@EatRight");
+	MakeName(0x3CF02, "@@PutRedBomb");
+	OpOff(0x3CF17, 0, 0x3F600);
+	//OpEnumEx(0x3CF17, 1, GetEnum("MAP_ELEMENT"), 0);
+
 	OpOff(0x3CBF6, 0, 0x3F600);
 	OpOffEx(0x3CC02, 0, REF_OFF16, -1, 0x3F600, -120);
 	OpOffEx(0x3CC0E, 0, REF_OFF16, -1, 0x3F600, -2);
@@ -1998,14 +2042,6 @@ static main()
 	MakeDword(0x4038C);
 	MakeName(0x4038C, "SavedInt8");
 
-	MakeName(0x403B3, "PlayerPosition_MapX");
-	MakeName(0x403B5, "PlayerPosition_MapY");
-
-	MakeName(0x403B9, "PlayerPosition_Ofs");
-
-	MakeName(0x403CB, "NumRedDisks");
-	MakeName(0x403CE, "IsDemoRunning");
-
 	MakeName(0x40396, "VID_HorizontalPanning");
 	MakeComm(0x40396, "Number of pixels that the video data is shifted to the left");
 
@@ -2017,13 +2053,29 @@ static main()
 	MakeName(0x403AC, "PlayerPosition2_MapX");
 	MakeName(0x403AE, "PlayerPosition2_MapY");
 
+	MakeName(0x403B3, "PlayerPosition_MapX");
+	MakeName(0x403B5, "PlayerPosition_MapY");
+	MakeName(0x403B7, "CurrentMurphyOfs");
+	MakeName(0x403B9, "PlayerPosition_Ofs");
+
+	MakeName(0x403BD, "SupaplexYawnTimeout");
+
+	MakeName(0x403C1, "PlayerDied");
+
+	MakeName(0x403CB, "RedDiskDetonateTimer");
+	MakeName(0x403CC, "RedDiskPosition");
+	MakeName(0x403CE, "IsDemoRunning");
+
 	MakeName(0x403CF, "CurrentDemoOffset");
+
+	MakeName(0x403D3, "DemoIsBeingRecorded");
 
 	MakeWord(0x403D4);
 	MakeName(0x403D4, "FileHandle2");
 
 	MakeName(0x403D8, "PlayerPosition_PixelsX");
 	MakeName(0x403DA, "PlayerPosition_PixelsY");
+	MakeName(0x403DE, "RedDiskPlacementTimer");
 
 	MakeUnkn(0x40A6E, 0);
 	MakeName(0x40A6E, "var_40A6E");
@@ -2089,11 +2141,11 @@ static main()
 	MakeWord(0x40B20);
 	MakeArray(0x40B20, 15);
 
-	MakeName(0x40B4A, "MapHandlers_1");
+	MakeName(0x40B4A, "SnikSnakHandlers");
 	MakeName(0x40B8A, "MapHandlers_2");
-	MakeName(0x40BAA, "MapHandlers_5");
+	MakeName(0x40BAA, "ElectronHandlers");
 	MakeName(0x40BCA, "MapHandlers_3");
-	MakeName(0x40C0A, "MapHandlers_4");
+	MakeName(0x40C0A, "MapObjectHandlers");
 	for (i = 0; i < 32; i++)
 	{
 		auto addr, j;
@@ -2112,6 +2164,8 @@ static main()
 
 	MakeName(0x40C4A, "InfotronsLeftToCollect");
 	MakeName(0x40C4B, "TotalInfotronsInTheLevel");
+	MakeName(0x40C4C, "NumRedDisks");
+	MakeName(0x40C4D, "CurrentFrameIndex");
 
 	MakeName(0x40C57, "VID_VgaMemStartAddress");
 	MakeComm(0x40C57, "Used to scroll the screen");
