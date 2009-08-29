@@ -3,18 +3,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef WIN32
  #include <windows.h>
  #include <mmsystem.h>
+#else
+ inline static void OutputDebugString(const char * msg)
+ {
+ 	fprintf(stderr, "%s\n", msg);
+ }
 #endif
 
-#ifdef USE_GLUT
- #include <GL/glut.h>
- #include <GL/gl.h>
- #include <time.h>
- #include "BMPLoader.h"
-#endif
+#include <GL/glut.h>
+#include <GL/gl.h>
+#include <time.h>
+#include "BMPLoader.h"
 
 enum MapElements
 {
@@ -61,8 +65,6 @@ enum MapElements
 	MAP_INVISIBLE_WALL,				// 40
 };
 
-#ifdef USE_GLUT
-
 static unsigned speed = 50;
 
 static GLuint texFixed;
@@ -74,17 +76,6 @@ static float texMovingStepY;
 static GLuint texFont;
 static float texFontStepX;
 static float texFontStepY;
-
-#else
-
-static HBITMAP hFixedBmp;
-static HBITMAP hMovingBmp;
-
-static HDC hPaintDC;
-static HDC hMemPaintDC;
-static HBITMAP hPaintOldBitmap;
-
-#endif
 
 static unsigned long long getTime()
 {
