@@ -2,6 +2,7 @@
 public PlayerIsLookingLeft
 public PlayerAnim_NumFrames
 public PlayerAnim_ID
+public PlayerPosition_Ofs
 public PlayerPosition_PixelsX
 public PlayerPosition_PixelsY
 public PlayerIsInsideTeleport
@@ -23,6 +24,7 @@ public joystickbuttons
 public _PlayerIsLookingLeft
 public _PlayerAnim_NumFrames
 public _PlayerAnim_ID
+public _PlayerPosition_Ofs
 public _PlayerPosition_PixelsX
 public _PlayerPosition_PixelsY
 public _PlayerIsInsideTeleport
@@ -81,10 +83,10 @@ ANIM_EATINFOTRON_LEFT = 19
 ANIM_EATINFOTRON_DOWN_L = 20
 ANIM_EATINFOTRON_DOWN_R = 21
 ANIM_EATINFOTRON_RIGHT = 22
-ANIM_EATINFOTRON_TOP = 23
+ANIM_EATINFOTRON_ATTOP = 23
 ANIM_EATINFOTRON_ATLEFT = 24
 ANIM_EATINFOTRON_ATBOTTOM = 25
-ANIM_EATINFOTRON_RIGHT = 26
+ANIM_EATINFOTRON_ATRIGHT = 26
 ANIM_SHIFTZONK_LEFT = 27
 ANIM_SHIFTZONK_RIGHT = 28
 ANIM_TELEPORT_UP = 29
@@ -945,10 +947,6 @@ sub_382EA	endp
 initplayerstate label byte
 _initplayerstate	proc near
 
-			mov		ax, word ptr [PlayerPosition_MapX]
-			mov		word ptr [PlayerPosition2_MapX], ax
-			mov		ax, word ptr [PlayerPosition_MapY]
-			mov		word ptr [PlayerPosition2_MapY], ax
 			xor		ax, ax
 			mov		word ptr [PlayerIsLookingLeft], ax
 			mov		word ptr [PlayerDied], ax
@@ -1437,12 +1435,12 @@ _findplayerpositiononlevelmap proc near
 			push	edi
 			push 	ebx
 
-			xor		ax, ax
+			xor		eax, eax
 			mov		word ptr [word_40C4F], ax
 			mov		word ptr [word_40C51], ax
 			mov		edi, offset _levelmap
 			mov		ecx, MAP_NUM_CELLS
-			mov		ax, MAP_MURPHY
+			mov		al, MAP_MURPHY
 			repne 	scasw
 			dec		edi
 			dec		edi
@@ -1455,12 +1453,9 @@ _findplayerpositiononlevelmap proc near
 			div		bl
 			mov		bl, ah
 			xor		bh, bh
-			mov		word ptr [PlayerPosition_MapX], bx
 			xor		ah, ah
-			mov		word ptr [PlayerPosition_MapY], ax
-			mov		cl, 4
-			shl		ax, cl
-			shl		bx, cl
+			shl		eax, 4
+			shl		ebx, 4
 			mov		word ptr [PlayerPosition_PixelsX], bx
 			mov		word ptr [PlayerPosition_PixelsY], ax
 			call	sub_38F26
@@ -3787,12 +3782,6 @@ loc_3D948:
 		ret
 
 loc_3D955:
-		mov	ax, word ptr [PlayerAnim_StepX]
-		shr	ax, 1
-		mov	bx, word ptr [PlayerAnim_StepY]
-		shr	bx, 1
-		add	word ptr [PlayerPosition_MapX], ax
-		add	word ptr [PlayerPosition_MapY], bx
 		mov	bl, byte ptr _levelmap[esi + 1]
 		mov	byte ptr _levelmap[esi + 1], 0
 		cmp	bl, 1
@@ -5754,14 +5743,13 @@ byte_403A8	db 0
 byte_403A9	db 0
 byte_403AA	db 0
 byte_403AB	db 0
-PlayerPosition2_MapX dw	0
-PlayerPosition2_MapY dw	0
 byte_403B0	db 0
 byte_403B1	db 0
 byte_403B2	db 0
-PlayerPosition_MapX dw 0
-PlayerPosition_MapY dw 0
+
 CurrentMurphyOfs	dd 0
+
+_PlayerPosition_Ofs label dword
 PlayerPosition_Ofs dd 0
 
 _PlayerIsLookingLeft label word
@@ -5887,31 +5875,31 @@ word_4C47F	dw 2008 dup(0)
 joystickbuttons label byte
 _joystickbuttons db 0
 
-				; + Move up (looking left), eat nothing
+				; ! Move up (looking left), eat nothing
 stru_403FE      dw ANIM_MOVE_UP_L, 8, 0, -2
-                ; + Move up (looking right), eat nothing
+                ; ! Move up (looking right), eat nothing
 stru_4040E      dw ANIM_MOVE_UP_R, 8, 0, -2
-                ; + Move left, eat nothing
+                ; ! Move left, eat nothing
 stru_4041E      dw ANIM_MOVE_LEFT, 8, -2, 0
-                ; + Move down (looking left), eat nothing
+                ; ! Move down (looking left), eat nothing
 stru_4042E      dw ANIM_MOVE_DOWN_L, 8, 0, 2
-                ; + Move down (looking right), eat nothing
+                ; ! Move down (looking right), eat nothing
 stru_4043E      dw ANIM_MOVE_DOWN_R, 8, 0, 2
-                ; + Move right, eat nothing
+                ; ! Move right, eat nothing
 stru_4044E      dw ANIM_MOVE_RIGHT, 8, 2, 0
                 ; + Exit the level
 stru_4045E      dw ANIM_EXIT, 41, 0, 0
-                ; + Move up (looking left), eat base
+                ; ! Move up (looking left), eat base
 stru_4046E      dw ANIM_EATBASE_UP_L, 8, 0, -2
-                ; + Move up (looking right), eat base
+                ; ! Move up (looking right), eat base
 stru_4047E      dw ANIM_EATBASE_UP_R, 8, 0, -2
-                ; + Move left, eat base
+                ; ! Move left, eat base
 stru_4048E      dw ANIM_EATBASE_LEFT, 8, -2, 0
-                ; + Move down (looking left), eat base
+                ; ! Move down (looking left), eat base
 stru_4049E      dw ANIM_EATBASE_DOWN_L, 8, 0, 2
-                ; + Move down (looking right), eat base
+                ; ! Move down (looking right), eat base
 stru_404AE      dw ANIM_EATBASE_DOWN_R, 8, 0, 2
-				; + Move right, eat base
+				; ! Move right, eat base
 stru_404BE      dw ANIM_EATBASE_RIGHT, 8, 2, 0
                 ; + Eat base at top
 stru_404CE      dw ANIM_EATBASE_ATTOP, 8, 0, 0
@@ -5921,29 +5909,29 @@ stru_404DE      dw ANIM_EATBASE_ATLEFT, 8, 0, 0
 stru_404EE      dw ANIM_EATBASE_ATBOTTOM, 8, 0, 0
                 ; + Eat base at right
 stru_404FE      dw ANIM_EATBASE_ATRIGHT, 8, 0, 0
-                ; + Move up (looking left), eat infotron
+                ; ! Move up (looking left), eat infotron
 stru_4050E      dw ANIM_EATINFOTRON_UP_L, 8, 0, -2
-                ; + Move up (looking right), eat infotron
+                ; ! Move up (looking right), eat infotron
 stru_4051E      dw ANIM_EATINFOTRON_UP_R, 8, 0, -2
-                ; + Move left, eat infotron
+                ; ! Move left, eat infotron
 stru_4052E      dw ANIM_EATINFOTRON_LEFT, 8, -2, 0
-                ; + Move down (looking left), eat infotron
+                ; ! Move down (looking left), eat infotron
 stru_4053E      dw ANIM_EATINFOTRON_DOWN_L, 8, 0, 2
-                ; + Move down (looking right), eat infotron
+                ; ! Move down (looking right), eat infotron
 stru_4054E      dw ANIM_EATINFOTRON_DOWN_R, 8, 0, 2
-                ; + Move right, eat infotron
-stru_4055E      dw ANIM_EATINFOTRON_RIGHT, 8, -2, 0
+                ; ! Move right, eat infotron
+stru_4055E      dw ANIM_EATINFOTRON_RIGHT, 8, 2, 0
                 ; + Eat infotron at top
-stru_4056E      dw ANIM_EATINFOTRON_TOP, 8, 0, 0
+stru_4056E      dw ANIM_EATINFOTRON_ATTOP, 8, 0, 0
                 ; + Eat infotron at left
 stru_4057E      dw ANIM_EATINFOTRON_ATLEFT, 8, 0, 0
                 ; + Eat infotron at bottom
 stru_4058E      dw ANIM_EATINFOTRON_ATBOTTOM, 8, 0, 0
                 ; + Eat infotron at right
-stru_4059E      dw ANIM_EATINFOTRON_RIGHT, 8, 0, 0
-                ; + Shift zonk left
+stru_4059E      dw ANIM_EATINFOTRON_ATRIGHT, 8, 0, 0
+                ; ! Shift zonk left
 stru_405AE      dw ANIM_SHIFTZONK_LEFT, 8, -2, 0
-                ; + Shift zonk right
+                ; ! Shift zonk right
 stru_405BE      dw ANIM_SHIFTZONK_RIGHT, 8, 2, 0
                 ; + Move up through teleport
 stru_405CE      dw ANIM_TELEPORT_UP, 8, 0, -4
@@ -5953,15 +5941,15 @@ stru_405DE      dw ANIM_TELEPORT_LEFT, 8, -4, 0
 stru_405EE      dw ANIM_TELEPORT_DOWN, 8, 0, 4
 				; + Move right through teleport
 stru_405FE      dw ANIM_TELEPORT_RIGHT, 8, 4, 0
-                ; + Move up (looking left), eat red disk
+                ; ! Move up (looking left), eat red disk
 stru_4060E      dw ANIM_EATDISK_UP_L, 8, 0, -2
-                ; + Move up (looking right), eat red disk
+                ; ! Move up (looking right), eat red disk
 stru_4061E      dw ANIM_EATDISK_UP_R, 8, 0, -2
                 ; + Move left, eat red disk
 stru_4062E      dw ANIM_EATDISK_LEFT, 8, -2, 0
-                ; + Move down (looking left), eat red disk
+                ; ! Move down (looking left), eat red disk
 stru_4063E      dw ANIM_EATDISK_DOWN_L, 8, 0, 2
-                ; + Move down (looking right), eat red disk
+                ; ! Move down (looking right), eat red disk
 stru_4064E      dw ANIM_EATDISK_DOWN_R, 8, 0, 2
                 ; + Move right, eat red disk
 stru_4065E      dw ANIM_EATDISK_RIGHT, 8, 2, 0
@@ -5973,17 +5961,17 @@ stru_4067E      dw ANIM_EATDISK_ATLEFT, 8, 0, 0
 stru_4068E      dw ANIM_EATDISK_ATBOTTOM, 8, 0, 0
                 ; + Eat red disk at right
 stru_4069E      dw ANIM_EATDISK_ATRIGHT, 8, 0, 0
-                ; + Shift yellow disk up
+                ; ! Shift yellow disk up
 stru_406AE      dw ANIM_SHIFTYELLOWDISK_UP, 8, 0, -2
-                ; + Shift yellow disk left
+                ; ! Shift yellow disk left
 stru_406BE      dw ANIM_SHIFTYELLOWDISK_LEFT, 8, -2, 0
-                ; + Shift yellow disk down
+                ; ! Shift yellow disk down
 stru_406CE      dw ANIM_SHIFTYELLOWDISK_DOWN, 8, 0, 2
-                ; + Shift yellow disk right
+                ; ! Shift yellow disk right
 stru_406DE      dw ANIM_SHIFTYELLOWDISK_RIGHT, 8, 2, 0
-                ; + Shift orange disk left
+                ; ! Shift orange disk left
 stru_406EE      dw ANIM_SHIFTORANGEDISK_LEFT, 8, -2, 0
-                ; + Shift orange disk right
+                ; ! Shift orange disk right
 stru_406FE      dw ANIM_SHIFTORANGEDISK_RIGHT, 8, 2, 0
                 ; + Place red disk
 stru_4070E      dw ANIM_PLACEREDDISK, 2, 0, 0

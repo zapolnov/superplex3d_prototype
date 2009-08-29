@@ -20,6 +20,60 @@
 #include <time.h>
 #include "BMPLoader.h"
 
+enum PlayerAnim
+{
+	ANIM_MOVE_UP_L = 0,
+	ANIM_MOVE_UP_R = 1,
+	ANIM_MOVE_LEFT = 2,
+	ANIM_MOVE_DOWN_L = 3,
+	ANIM_MOVE_DOWN_R = 4,
+	ANIM_MOVE_RIGHT = 5,
+	ANIM_EXIT = 6,
+	ANIM_EATBASE_UP_L = 7,
+	ANIM_EATBASE_UP_R = 8,
+	ANIM_EATBASE_LEFT = 9,
+	ANIM_EATBASE_DOWN_L = 10,
+	ANIM_EATBASE_DOWN_R = 11,
+	ANIM_EATBASE_RIGHT = 12,
+	ANIM_EATBASE_ATTOP = 13,
+	ANIM_EATBASE_ATLEFT = 14,
+	ANIM_EATBASE_ATBOTTOM = 15,
+	ANIM_EATBASE_ATRIGHT = 16,
+	ANIM_EATINFOTRON_UP_L = 17,
+	ANIM_EATINFOTRON_UP_R = 18,
+	ANIM_EATINFOTRON_LEFT = 19,
+	ANIM_EATINFOTRON_DOWN_L = 20,
+	ANIM_EATINFOTRON_DOWN_R = 21,
+	ANIM_EATINFOTRON_RIGHT = 22,
+	ANIM_EATINFOTRON_ATTOP = 23,
+	ANIM_EATINFOTRON_ATLEFT = 24,
+	ANIM_EATINFOTRON_ATBOTTOM = 25,
+	ANIM_EATINFOTRON_ATRIGHT = 26,
+	ANIM_SHIFTZONK_LEFT = 27,
+	ANIM_SHIFTZONK_RIGHT = 28,
+	ANIM_TELEPORT_UP = 29,
+	ANIM_TELEPORT_LEFT = 30,
+	ANIM_TELEPORT_DOWN = 31,
+	ANIM_TELEPORT_RIGHT = 32,
+	ANIM_EATDISK_UP_L = 33,
+	ANIM_EATDISK_UP_R = 34,
+	ANIM_EATDISK_LEFT = 35,
+	ANIM_EATDISK_DOWN_L = 36,
+	ANIM_EATDISK_DOWN_R = 37,
+	ANIM_EATDISK_RIGHT = 38,
+	ANIM_EATDISK_ATTOP = 39,
+	ANIM_EATDISK_ATLEFT = 40,
+	ANIM_EATDISK_ATBOTTOM = 41,
+	ANIM_EATDISK_ATRIGHT = 42,
+	ANIM_SHIFTYELLOWDISK_UP = 43,
+	ANIM_SHIFTYELLOWDISK_LEFT = 44,
+	ANIM_SHIFTYELLOWDISK_DOWN = 45,
+	ANIM_SHIFTYELLOWDISK_RIGHT = 46,
+	ANIM_SHIFTORANGEDISK_LEFT = 47,
+	ANIM_SHIFTORANGEDISK_RIGHT = 48,
+	ANIM_PLACEREDDISK = 49,
+};
+
 enum MapElements
 {
 	MAP_SPACE = 0,
@@ -65,7 +119,7 @@ enum MapElements
 	MAP_INVISIBLE_WALL,				// 40
 };
 
-static unsigned speed = 50;
+static unsigned speed = 30;
 
 static GLuint texFixed;
 static float texFixedStepX;
@@ -98,6 +152,7 @@ extern "C" {
 extern unsigned short PlayerAnim_ID;
 extern short PlayerPosition_PixelsX;
 extern short PlayerPosition_PixelsY;
+extern unsigned int PlayerPosition_Ofs;
 extern unsigned short PlayerIsLookingLeft;
 extern unsigned short PlayerIsInsideTeleport;
 extern unsigned char NumRedDisks;
@@ -170,6 +225,7 @@ void paintHex(int xx, int yy, unsigned char value)
 void paintGameField()
 {
 	bool dont_overpaint[MAP_WIDTH * MAP_HEIGHT];
+	unsigned char murphy_mode = 0;
 
 	char buf[64];
 	sprintf(buf, "%02X %04X\n", RedDiskDetonateTimer, RedDiskPlacementTimer);
@@ -184,6 +240,9 @@ void paintGameField()
 			unsigned short ch = levelmap[y * MAP_WIDTH + x];
 			unsigned char object = ch & 0xFF;
 			unsigned char high = (ch >> 8) & 0xFF;
+
+			if (object == MAP_MURPHY)
+				murphy_mode = high;
 
 			float tx1 = 0.0f, tx2 = 0.0f, ty1 = 0.0f, ty2 = 0.0f;
 			int x1 = x * 16;
@@ -354,11 +413,8 @@ void paintGameField()
 			{
 				if (object == MAP_SPACE && dont_overpaint[y * MAP_WIDTH + x])
 					dont_paint = true;
-				else
+				else if (object != MAP_MURPHY)
 				{
-					if (object == MAP_MURPHY)
-						object = MAP_SPACE;
-
 					glBindTexture(GL_TEXTURE_2D, texFixed);
 					glEnable(GL_TEXTURE_2D);
 					tx1 = (float)(object * 16) * texFixedStepX;
@@ -390,20 +446,436 @@ void paintGameField()
 	}
 
 	// Paint the player
-	if (true)
 	{
-		glBindTexture(GL_TEXTURE_2D, texFixed);
-		glEnable(GL_TEXTURE_2D);
-
-		float tx1 = (float)(MAP_MURPHY * 16) * texFixedStepX;
-		float ty1 = (float)(16) * texFixedStepY;
-		float tx2 = (float)(MAP_MURPHY * 16 + 16) * texFixedStepX;
-		float ty2 = (float)(0) * texFixedStepY;
+		int paintAbove = -1, paintBelow = -1, paintInPlace = -1, paintOver = -1, paintOverShift = 0;
+		int texX, texY, texW = 16, texH = 16;
 
 		int x1 = PlayerPosition_PixelsX;
 		int y1 = PlayerPosition_PixelsY;
-		int x2 = x1 + 16;
-		int y2 = y1 + 16;
+
+		if (PlayerAnim_NumFrames > 0 && PlayerAnim_NumFrames < 8)
+		{
+			const int shift[] = { 0, 16, 16, 32, 32, 16, 16, 0 };
+			int idx = (7 - PlayerAnim_NumFrames);
+
+			switch (PlayerAnim_ID)
+			{
+			case ANIM_EATBASE_LEFT:
+				texY = 0;
+				texX = idx * 32;
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_EATBASE_RIGHT:
+				if (idx < 2)
+				{
+					texX = 256 + idx * 32;
+					texY = 0;
+				}
+				else
+				{
+					texX = (idx - 2) * 32;
+					texY = 16;
+				}
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+				break;
+
+			case ANIM_MOVE_LEFT:
+				texY = 32;
+				texX = 32 + idx * 32;
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_MOVE_RIGHT:
+				if (idx == 0)
+				{
+					texX = 288;
+					texY = 32;
+				}
+				else
+				{
+					texY = 48;
+					texX = (idx - 1) * 32;
+				}
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+				break;
+
+			case ANIM_EATINFOTRON_LEFT:
+				texY = 212;
+				texX = idx * 32;
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_EATINFOTRON_RIGHT:
+				if (idx < 2)
+				{
+					texX = 256 + idx * 32;
+					texY = 212;
+				}
+				else
+				{
+					texY = 228;
+					texX = (idx - 2) * 32;
+				}
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+				break;
+
+			case ANIM_MOVE_UP_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				break;
+
+			case ANIM_MOVE_UP_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				break;
+
+			case ANIM_MOVE_DOWN_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				break;
+
+			case ANIM_MOVE_DOWN_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				break;
+
+			case ANIM_EATBASE_UP_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintInPlace = MAP_BASE;
+				break;
+
+			case ANIM_EATBASE_UP_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintInPlace = MAP_BASE;
+				break;
+
+			case ANIM_EATBASE_DOWN_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintInPlace = MAP_BASE;
+				break;
+
+			case ANIM_EATBASE_DOWN_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintInPlace = MAP_BASE;
+				break;
+
+			case ANIM_EATINFOTRON_UP_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintInPlace = MAP_INFOTRON;
+				break;
+
+			case ANIM_EATINFOTRON_UP_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintInPlace = MAP_INFOTRON;
+				break;
+
+			case ANIM_EATINFOTRON_DOWN_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintInPlace = MAP_INFOTRON;
+				break;
+
+			case ANIM_EATINFOTRON_DOWN_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintInPlace = MAP_INFOTRON;
+				break;
+
+			case ANIM_EATDISK_UP_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintAbove = MAP_DISK_RED;
+				break;
+
+			case ANIM_EATDISK_UP_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintAbove = MAP_DISK_RED;
+				break;
+
+			case ANIM_EATDISK_DOWN_L:
+				texY = 66;
+				texX = shift[idx & 7];
+				paintBelow = MAP_DISK_RED;
+				break;
+
+			case ANIM_EATDISK_DOWN_R:
+				texY = 66;
+				texX = 48 + shift[idx & 7];
+				paintBelow = MAP_DISK_RED;
+				break;
+
+			case ANIM_SHIFTZONK_LEFT:
+				if (idx < 6)
+				{
+					texY = 116;
+					texX = idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 132;
+					texX = (idx - 6) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 2) * 16;
+				break;
+
+			case ANIM_SHIFTZONK_RIGHT:
+				if (idx < 4)
+				{
+					texY = 132;
+					texX = 96 + idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 148;
+					texX = (idx - 4) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_SHIFTORANGEDISK_LEFT:
+				if (idx < 6)
+				{
+					texY = 276;
+					texX = idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 292;
+					texX = (idx - 6) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 2) * 16;
+				break;
+
+			case ANIM_SHIFTORANGEDISK_RIGHT:
+				if (idx < 4)
+				{
+					texY = 292;
+					texX = 96 + idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 308;
+					texX = (idx - 4) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_SHIFTYELLOWDISK_LEFT:
+				if (idx < 6)
+				{
+					texY = 324;
+					texX = idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 340;
+					texX = (idx - 6) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 2) * 16;
+				break;
+
+			case ANIM_SHIFTYELLOWDISK_RIGHT:
+				if (idx < 4)
+				{
+					texY = 340;
+					texX = 96 + idx * 48;
+					texW = 48;
+				}
+				else
+				{
+					texY = 356;
+					texX = (idx - 4) * 48;
+					texW = 48;
+				}
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_SHIFTYELLOWDISK_UP:
+				texY = 422;
+				texX = 304;
+				texH = 16;
+				if (PlayerIsLookingLeft)
+				{
+					texX += 16;
+					texW = -16;
+				}
+				paintOver = MAP_DISK_YELLOW;
+				paintOverShift = y1 - ((PlayerPosition_Ofs >> 1) / MAP_WIDTH + 1) * 16;
+				break;
+
+			case ANIM_SHIFTYELLOWDISK_DOWN:
+				texY = 408;
+				texX = 288;
+				texH = 16;
+				if (PlayerIsLookingLeft)
+				{
+					texX += 16;
+					texW = -16;
+				}
+				paintOver = MAP_DISK_YELLOW;
+				paintOverShift = y1 - ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
+				break;
+			}
+		}
+		else
+		{
+			static byte prevMurphyMode = 0;
+
+			byte origMode = murphy_mode;
+			if (!murphy_mode && (prevMurphyMode == 0x0E || prevMurphyMode == 0x0F ||
+					prevMurphyMode == 0x28 || prevMurphyMode == 0x29 ||
+					prevMurphyMode == 0x24 || prevMurphyMode == 0x27 ||
+					prevMurphyMode == 0x25 || prevMurphyMode == 0x26))
+				murphy_mode = prevMurphyMode;
+
+			if (murphy_mode == 0x27 || murphy_mode == 0x24)
+			{
+				if (PlayerIsLookingLeft)
+				{
+					texX = 240;
+					texY = 16;
+				}
+				else
+				{
+					texX = 224;
+					texY = 16;
+				}
+			}
+			else if (murphy_mode == 0x0E || murphy_mode == 0x28 || murphy_mode == 0x25)
+			{
+				texX = 240;
+				texY = 16;
+			}
+			else if (murphy_mode == 0x0F || murphy_mode == 0x29 || murphy_mode == 0x26)
+			{
+				texX = 224;
+				texY = 16;
+			}
+			else if (PlayerIsLookingLeft)
+			{
+				texX = 0;
+				texY = 66;
+			}
+			else
+			{
+				texX = 48;
+				texY = 66;
+			}
+
+			//texX = 304;
+			//texY = 132;
+			prevMurphyMode = origMode;
+		}
+
+		if (paintAbove != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texFixed);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(paintAbove * 16) * texFixedStepX;
+			float ty1 = (float)(16) * texFixedStepY;
+			float tx2 = (float)(paintAbove * 16 + 16) * texFixedStepX;
+			float ty2 = (float)(0) * texFixedStepY;
+
+			int xx1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+			int yy1 = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
+
+			int xx2 = xx1 + 16;
+			int yy2 = yy1 + 16;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(xx1, yy1);
+				glTexCoord2f(tx2, ty1); glVertex2i(xx2, yy1);
+				glTexCoord2f(tx2, ty2); glVertex2i(xx2, yy2);
+				glTexCoord2f(tx1, ty2); glVertex2i(xx1, yy2);
+			glEnd();
+		}
+
+		if (paintBelow != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texFixed);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(paintBelow * 16) * texFixedStepX;
+			float ty1 = (float)(16) * texFixedStepY;
+			float tx2 = (float)(paintBelow * 16 + 16) * texFixedStepX;
+			float ty2 = (float)(0) * texFixedStepY;
+
+			int xx1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+			int yy1 = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH + 1) * 16;
+
+			int xx2 = xx1 + 16;
+			int yy2 = yy1 + 16;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(xx1, yy1);
+				glTexCoord2f(tx2, ty1); glVertex2i(xx2, yy1);
+				glTexCoord2f(tx2, ty2); glVertex2i(xx2, yy2);
+				glTexCoord2f(tx1, ty2); glVertex2i(xx1, yy2);
+			glEnd();
+		}
+
+		if (paintInPlace != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texFixed);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(paintInPlace * 16) * texFixedStepX;
+			float ty1 = (float)(16) * texFixedStepY;
+			float tx2 = (float)(paintInPlace * 16 + 16) * texFixedStepX;
+			float ty2 = (float)(0) * texFixedStepY;
+
+			int xx1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+			int yy1 = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+
+			int xx2 = xx1 + 16;
+			int yy2 = yy1 + 16;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(xx1, yy1);
+				glTexCoord2f(tx2, ty1); glVertex2i(xx2, yy1);
+				glTexCoord2f(tx2, ty2); glVertex2i(xx2, yy2);
+				glTexCoord2f(tx1, ty2); glVertex2i(xx1, yy2);
+			glEnd();
+		}
+
+		glBindTexture(GL_TEXTURE_2D, texMoving);
+		glEnable(GL_TEXTURE_2D);
+
+		float tx1 = (float)(texX) * texMovingStepX;
+		float ty1 = (float)(462 - texY) * texMovingStepY;
+		float tx2 = (float)(texX + texW) * texMovingStepX;
+		float ty2 = (float)(462 - texY - texH) * texMovingStepY;
+
+		int x2 = x1 + abs(texW);
+		int y2 = y1 + abs(texH);
 
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		glBegin(GL_QUADS);
@@ -412,24 +884,31 @@ void paintGameField()
 			glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
 			glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
 		glEnd();
-	}
-	else
-	{
-		/*glBindTexture(GL_TEXTURE_2D, texMoving);
-		glEnable(GL_TEXTURE_2D);
 
-		float tx1 = (float)(288) * texMovingStepX;
-		float ty1 = (float)(462 - 132) * texMovingStepY;
-		float tx2 = (float)(288 + 16) * texMovingStepX;
-		float ty2 = (float)(462 - 132 - 16) * texMovingStepY;
+		if (paintOver != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texFixed);
+			glEnable(GL_TEXTURE_2D);
 
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
-		glBegin(GL_QUADS);
-			glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
-			glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
-			glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
-			glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
-		glEnd();*/
+			float tx1 = (float)(paintOver * 16) * texFixedStepX;
+			float ty1 = (float)(16) * texFixedStepY;
+			float tx2 = (float)(paintOver * 16 + 16) * texFixedStepX;
+			float ty2 = (float)(0) * texFixedStepY;
+
+			int xx1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+			int yy1 = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16 + paintOverShift;
+
+			int xx2 = xx1 + 16;
+			int yy2 = yy1 + 16;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(xx1, yy1);
+				glTexCoord2f(tx2, ty1); glVertex2i(xx2, yy1);
+				glTexCoord2f(tx2, ty2); glVertex2i(xx2, yy2);
+				glTexCoord2f(tx1, ty2); glVertex2i(xx1, yy2);
+			glEnd();
+		}
 	}
 
 	// Paint the red diskette
@@ -532,7 +1011,7 @@ void idle()
 			joystickbuttons = 9;
 
 		if (GetAsyncKeyState(VK_F1) & 0x8000)
-			speed = 50;
+			speed = 30;
 		else if (GetAsyncKeyState(VK_F2) & 0x8000)
 			speed = 100;
 		else if (GetAsyncKeyState(VK_F3) & 0x8000)
@@ -572,7 +1051,8 @@ int main(int argc, char ** argv)
 		return 1;
 		//64=gravity
 		//61=red diskettes
-	int levelNumber = 63;//15;//30;//11;//27;
+		//104=yellow diskettes
+	int levelNumber = 104;//34;//63;//15;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
 	char buf[1536];
 	fread(buf, 1536, 1, f);
