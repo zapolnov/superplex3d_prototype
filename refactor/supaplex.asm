@@ -2636,6 +2636,7 @@ loc_3CC92:	mov		[byte_403C3], 0
 			call	sub_3E0D7
 			pop		esi
 			jnc		@@movedown
+			ret
 
 @@moveright:mov		[PlayerIsLookingLeft], 0
 			mov		ax, word ptr _levelmap[esi + 2]
