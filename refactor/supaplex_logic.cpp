@@ -77,12 +77,12 @@ enum PlayerAnim
 enum MapElements
 {
 	MAP_SPACE = 0,
-	MAP_ZONK,
-	MAP_BASE,
-	MAP_MURPHY,
-	MAP_INFOTRON,
-	MAP_RAM_CHIP_SQUARE,			// 5
-	MAP_GRAY_DENTED_PYRAMID,
+	MAP_ZONK = 1,
+	MAP_BASE = 2,
+	MAP_MURPHY = 3,
+	MAP_INFOTRON = 4,
+	MAP_RAM_CHIP,					// 5
+	MAP_HARDWARE,
 	MAP_EXIT,
 	MAP_DISK_ORANGE,
 	MAP_PORT_LEFT_TO_RIGHT,
@@ -105,21 +105,22 @@ enum MapElements
 	MAP_RAM_CHIP_LEFT,
 	MAP_RAM_CHIP_RIGHT,
 	MAP_HARDWARE_1,
-	MAP_GREEN_LAMP,
-	MAP_BLUE_LAMP,					// 30
-	MAP_RED_LAMP,
-	MAP_YELLOW_BLACK_DIAGONAL,
 	MAP_HARDWARE_2,
-	MAP_HARDWARE_3,
-	MAP_HARDWARE_4,					// 35
+	MAP_HARDWARE_3,					// 30
+	MAP_HARDWARE_4 = 31,
+	MAP_BOOM = 31,
 	MAP_HARDWARE_5,
 	MAP_HARDWARE_6,
+	MAP_HARDWARE_7,
+	MAP_HARDWARE_8,					// 35
+	MAP_HARDWARE_9,
+	MAP_HARDWARE_10,
 	MAP_RAM_CHIP_TOP,
 	MAP_RAM_CHIP_BOTTOM,
 	MAP_INVISIBLE_WALL,				// 40
 };
 
-static unsigned speed = 30;
+static unsigned speed = 25;
 
 static GLuint texFixed;
 static float texFixedStepX;
@@ -149,6 +150,7 @@ static const int MAP_NUM_CELLS = MAP_WIDTH * MAP_HEIGHT;
 static unsigned long long prevTime = 0;
 
 extern "C" {
+extern unsigned short PlayerExploded;
 extern unsigned short PlayerAnim_ID;
 extern short PlayerPosition_PixelsX;
 extern short PlayerPosition_PixelsY;
@@ -170,7 +172,46 @@ extern void sub_392df();
 extern void initplayerstate();
 extern void beginlevel();
 extern bool runthelevel();
+
+unsigned char OriginalLevelData[1536];
+
+void SND_PlayZonkFallSound()
+{
+	OutputDebugString("SND_PlayZonkFallSound\n");
 }
+
+void SND_PlayObjectPushSound()
+{
+	OutputDebugString("SND_PlayObjectPushSound\n");
+}
+
+void SND_PlayBoomSound()
+{
+	OutputDebugString("SND_PlayBoomSound\n");
+}
+
+void SND_PlayBugSound()
+{
+	OutputDebugString("SND_PlayBugSound\n");
+}
+
+void SND_PlayExitSound()
+{
+	OutputDebugString("SND_PlayExitSound\n");
+}
+
+void SND_PlayBaseEatSound()
+{
+	OutputDebugString("SND_PlayBaseEatSound\n");
+}
+
+void SND_PlayEatInfotronSound()
+{
+	OutputDebugString("SND_PlayEatInfotronSound\n");
+}
+
+} // extern "C"
+
 
 void startLevel()
 {
@@ -183,7 +224,7 @@ void startLevel()
 	initplayerstate();
 }
 
-void paintChar(int xx, int yy, unsigned char ch)
+void paintChar(int xx, int yy, unsigned char ch, float r = 1.0f, float g = 1.0f, float b = 1.0f)
 {
 	if (ch == 0xFF)
 	{
@@ -206,7 +247,7 @@ void paintChar(int xx, int yy, unsigned char ch)
 		float x1 = (float)offset * texFontStepX;
 		float x2 = (float)(offset + 8) * texFontStepX;
 
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glColor4f(r, g, b, 1.0f);
 		glBegin(GL_QUADS);
 			glTexCoord2f(x1, 1.0f); glVertex2i(xx, yy);
 			glTexCoord2f(x2, 1.0f); glVertex2i(xx + 8, yy);
@@ -216,20 +257,16 @@ void paintChar(int xx, int yy, unsigned char ch)
 	}
 }
 
-void paintHex(int xx, int yy, unsigned char value)
+void paintHex(int xx, int yy, unsigned char value, float r = 1.0f, float g = 1.0f, float b = 1.0f)
 {
-	paintChar(xx, yy, value >> 4);
-	paintChar(xx + 8, yy, value & 0xF);
+	paintChar(xx, yy, value >> 4, r, g, b);
+	paintChar(xx + 8, yy, value & 0xF, r, g, b);
 }
 
 void paintGameField()
 {
 	bool dont_overpaint[MAP_WIDTH * MAP_HEIGHT];
 	unsigned char murphy_mode = 0;
-
-	char buf[64];
-	sprintf(buf, "%02X %04X\n", RedDiskDetonateTimer, RedDiskPlacementTimer);
-	OutputDebugString(buf);
 
 	memset(dont_overpaint, 0, sizeof(dont_overpaint));
 	for (int y = 0; y < MAP_HEIGHT; y++)
@@ -380,6 +417,21 @@ void paintGameField()
 				x2 = x1 + 32;
 				dont_overpaint[y * MAP_WIDTH + x + 1] = true;
 			}
+			else if (object == MAP_BUG && high < 0x80)
+			{
+				int sx[] = { 304, 256, 272, 288, 304, 288, 272, 288, 304, 288, 272, 256, 304, };
+				int sy[] = { 100, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 100, };
+
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				unsigned char ofs = high % 13;
+
+				tx1 = (float)(sx[ofs]) * texMovingStepX;
+				ty1 = (float)(462 - sy[ofs]) * texMovingStepY;
+				tx2 = (float)(sx[ofs] + 16) * texMovingStepX;
+				ty2 = (float)(462 - sy[ofs] - 16) * texMovingStepY;
+			}
 			else if (object == MAP_DISK_ORANGE && (high & 0xF0) == 0x30)	// Fall down
 			{
 				glBindTexture(GL_TEXTURE_2D, texFixed);
@@ -393,7 +445,7 @@ void paintGameField()
 				y2 = y2 + (high & 0xF) * 2;
 				dont_overpaint[(y + 1) * MAP_WIDTH + x] = true;
 			}
-			else if (object == MAP_RED_LAMP && (high >= 0 && high < 8))
+			else if (object == MAP_BOOM && (high >= 0 && high < 8))
 			{
 				glBindTexture(GL_TEXTURE_2D, texMoving);
 				glEnable(GL_TEXTURE_2D);
@@ -403,9 +455,26 @@ void paintGameField()
 				tty = 196;
 
 				tx1 = (float)(ttx) * texMovingStepX;
-				ty1 = (float)(462 - tty - 16) * texMovingStepY;
+				ty1 = (float)(462 - tty) * texMovingStepY;
 				tx2 = (float)(ttx + 16) * texMovingStepX;
-				ty2 = (float)(462 - tty) * texMovingStepY;
+				ty2 = (float)(462 - tty - 16) * texMovingStepY;
+			}
+			else if (object == MAP_BOOM && high >= 0x80)
+			{
+				glBindTexture(GL_TEXTURE_2D, texMoving);
+				glEnable(GL_TEXTURE_2D);
+
+				if (high > 0x87)
+					high = 0x87;
+
+				int ttx, tty;
+				ttx = 128 + (high - 0x80) * 16;
+				tty = 196;
+
+				tx1 = (float)(ttx) * texMovingStepX;
+				ty1 = (float)(462 - tty) * texMovingStepY;
+				tx2 = (float)(ttx + 16) * texMovingStepX;
+				ty2 = (float)(462 - tty - 16) * texMovingStepY;
 			}
 			else if (ch == 0xFFFF || ch == 0x8888 || ch == 0x9999 || ch == 0xAAAA || object == 0xBB)
 				dont_paint = true;
@@ -415,6 +484,9 @@ void paintGameField()
 					dont_paint = true;
 				else if (object != MAP_MURPHY)
 				{
+					if (object == MAP_HARDWARE || object == MAP_RAM_CHIP)
+						object = OriginalLevelData[y * MAP_WIDTH + x];
+
 					glBindTexture(GL_TEXTURE_2D, texFixed);
 					glEnable(GL_TEXTURE_2D);
 					tx1 = (float)(object * 16) * texFixedStepX;
@@ -441,22 +513,56 @@ void paintGameField()
 				glEnd();
 			}
 
-			paintHex(x * 16, y * 16 + MAP_HEIGHT * 16, high);
+			if (object == MAP_MURPHY)
+				paintHex(x * 16, y * 16 + MAP_HEIGHT * 16, high, 1, 1, 0);
+			else
+				paintHex(x * 16, y * 16 + MAP_HEIGHT * 16, high);
 		}
 	}
 
 	// Paint the player
+	if (!PlayerExploded)
 	{
 		int paintAbove = -1, paintBelow = -1, paintInPlace = -1, paintOver = -1, paintOverShift = 0;
+		int secondTexX = -1, secondTexY = -1, secondX, secondY;
 		int texX, texY, texW = 16, texH = 16;
+		bool use_default = true;
 
 		int x1 = PlayerPosition_PixelsX;
 		int y1 = PlayerPosition_PixelsY;
 
-		if (PlayerAnim_NumFrames > 0 && PlayerAnim_NumFrames < 8)
+		if (PlayerAnim_ID == ANIM_EXIT)
+		{
+			unsigned idx = (41 - PlayerAnim_NumFrames) >> 2;
+			if (idx == 0)
+			{
+				texX = 192;
+				texY = 16;
+			}
+			else if (idx == 1)
+			{
+				texX = 176;
+				texY = 16;
+			}
+			else if (idx >= 9)
+			{
+				texX = 302;
+				texY = 16;
+			}
+			else
+			{
+				texX = 192 + (idx - 2) * 16;
+				texY = 64;
+			}
+
+			use_default = false;
+		}
+		else if (PlayerAnim_NumFrames > 0 && PlayerAnim_NumFrames < 8)
 		{
 			const int shift[] = { 0, 16, 16, 32, 32, 16, 16, 0 };
 			int idx = (7 - PlayerAnim_NumFrames);
+
+			use_default = false;
 
 			switch (PlayerAnim_ID)
 			{
@@ -521,6 +627,51 @@ void paintGameField()
 				{
 					texY = 228;
 					texX = (idx - 2) * 32;
+				}
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+				break;
+
+			case ANIM_EATDISK_LEFT:
+				if (idx < 5)
+				{
+					texY = 260;
+					texX = 128 + idx * 32;
+				}
+				else
+				{
+					texY = 260 + (idx - 5) * 32;
+					texX = 288;
+				}
+				texW = 32;
+				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+				break;
+
+			case ANIM_EATDISK_RIGHT:
+				if (idx < 4)
+				{
+					texX = 192 + idx * 32;
+					texY = 308;
+				}
+				else if (idx == 4)
+				{
+					texY = 324;
+					texX = 288;
+				}
+				else if (idx == 5)
+				{
+					texY = 340;
+					texX = 288;
+				}
+				else if (idx == 6)
+				{
+					texY = 356;
+					texX = 192;
+				}
+				else
+				{
+					texY = 356;
+					texX = 224;
 				}
 				texW = 32;
 				x1 = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
@@ -739,19 +890,138 @@ void paintGameField()
 				paintOver = MAP_DISK_YELLOW;
 				paintOverShift = y1 - ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
 				break;
+
+			case ANIM_EATBASE_ATTOP:
+			case ANIM_EATBASE_ATLEFT:
+			case ANIM_EATBASE_ATBOTTOM:
+			case ANIM_EATBASE_ATRIGHT:
+				if (idx < 4)
+				{
+					secondTexX = 256 + idx * 16;
+					secondTexY = 84;
+				}
+				else
+				{
+					secondTexX = 256 + (idx - 4) * 16;
+					secondTexY = 100;
+				}
+        		switch (PlayerAnim_ID)
+				{
+				case ANIM_EATBASE_ATTOP:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
+					break;
+				case ANIM_EATBASE_ATLEFT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				case ANIM_EATBASE_ATBOTTOM:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH + 1) * 16;
+					break;
+				case ANIM_EATBASE_ATRIGHT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH + 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				}
+				use_default = true;
+				break;
+
+			case ANIM_EATINFOTRON_ATTOP:
+			case ANIM_EATINFOTRON_ATLEFT:
+			case ANIM_EATINFOTRON_ATBOTTOM:
+			case ANIM_EATINFOTRON_ATRIGHT:
+				secondTexX = 192 + idx * 16;
+				secondTexY = 148;
+        		switch (PlayerAnim_ID)
+				{
+				case ANIM_EATINFOTRON_ATTOP:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
+					break;
+				case ANIM_EATINFOTRON_ATLEFT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				case ANIM_EATINFOTRON_ATBOTTOM:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH + 1) * 16;
+					break;
+				case ANIM_EATINFOTRON_ATRIGHT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH + 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				}
+				use_default = true;
+				break;
+
+			case ANIM_EATDISK_ATTOP:
+			case ANIM_EATDISK_ATLEFT:
+			case ANIM_EATDISK_ATBOTTOM:
+			case ANIM_EATDISK_ATRIGHT:
+				if (idx < 4)
+				{
+					secondTexX = 256 + idx * 16;
+					secondTexY = 164;
+				}
+				else
+				{
+					secondTexX = 256 + (idx - 4) * 16;
+					secondTexY = 180;
+				}
+        		switch (PlayerAnim_ID)
+				{
+				case ANIM_EATDISK_ATTOP:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH - 1) * 16;
+					break;
+				case ANIM_EATDISK_ATLEFT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH - 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				case ANIM_EATDISK_ATBOTTOM:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH + 1) * 16;
+					break;
+				case ANIM_EATDISK_ATRIGHT:
+					secondX = ((PlayerPosition_Ofs >> 1) % MAP_WIDTH + 1) * 16;
+					secondY = ((PlayerPosition_Ofs >> 1) / MAP_WIDTH) * 16;
+					break;
+				}
+				use_default = true;
+				break;
+
+			case ANIM_PLACEREDDISK:
+				use_default = true;
+				break;
 			}
 		}
-		else
+
+		static byte prevMurphyMode = 0;
+
+		byte origMode = murphy_mode;
+		if (!murphy_mode && (prevMurphyMode == 0x0E || prevMurphyMode == 0x0F ||
+				prevMurphyMode == 0x28 || prevMurphyMode == 0x29 ||
+				prevMurphyMode == 0x24 || prevMurphyMode == 0x27 ||
+				prevMurphyMode == 0x25 || prevMurphyMode == 0x26 ||
+				prevMurphyMode == 0x10 || prevMurphyMode == 0x11 ||
+				prevMurphyMode == 0x12 || prevMurphyMode == 0x13 ||
+				prevMurphyMode == 0x03 || prevMurphyMode == 0x04 ||
+				prevMurphyMode == 0x05 || prevMurphyMode == 0x07 ||
+				prevMurphyMode == 0x06 || prevMurphyMode == 0x08 ||
+				prevMurphyMode == 0x09 || prevMurphyMode == 0x0A ||
+				prevMurphyMode == 0x0B || prevMurphyMode == 0x0C ||
+				prevMurphyMode == 0x1C || prevMurphyMode == 0x1D ||
+				prevMurphyMode == 0x1E || prevMurphyMode == 0x1F ||
+				prevMurphyMode == 0x14 || prevMurphyMode == 0x15 ||
+				prevMurphyMode == 0x16 || prevMurphyMode == 0x17 ||
+				prevMurphyMode == 0x20 || prevMurphyMode == 0x21 ||
+				prevMurphyMode == 0x22 || prevMurphyMode == 0x23 ||
+				prevMurphyMode == 0x01 || prevMurphyMode == 0x02))
+			murphy_mode = prevMurphyMode;
+
+		if (use_default)
 		{
-			static byte prevMurphyMode = 0;
-
-			byte origMode = murphy_mode;
-			if (!murphy_mode && (prevMurphyMode == 0x0E || prevMurphyMode == 0x0F ||
-					prevMurphyMode == 0x28 || prevMurphyMode == 0x29 ||
-					prevMurphyMode == 0x24 || prevMurphyMode == 0x27 ||
-					prevMurphyMode == 0x25 || prevMurphyMode == 0x26))
-				murphy_mode = prevMurphyMode;
-
 			if (murphy_mode == 0x27 || murphy_mode == 0x24)
 			{
 				if (PlayerIsLookingLeft)
@@ -775,21 +1045,50 @@ void paintGameField()
 				texX = 224;
 				texY = 16;
 			}
-			else if (PlayerIsLookingLeft)
+			else if (murphy_mode == 0x10 || murphy_mode == 0x14 || murphy_mode == 0x20)
 			{
-				texX = 0;
-				texY = 66;
+				texX = 160;
+				texY = 64;
 			}
+			else if (murphy_mode == 0x11 || murphy_mode == 0x15 || murphy_mode == 0x21)
+			{
+				texX = 208;
+				texY = 16;
+			}
+			else if (murphy_mode == 0x12 || murphy_mode == 0x16 || murphy_mode == 0x22)
+			{
+				texX = 176;
+				texY = 64;
+			}
+			else if (murphy_mode == 0x13 || murphy_mode == 0x17 || murphy_mode == 0x23)
+			{
+				texX = 192;
+				texY = 16;
+			}
+			else if (murphy_mode == 0x01 || murphy_mode == 0x02 || murphy_mode == 0x03 || murphy_mode == 0x04 ||
+				murphy_mode == 0x05 || murphy_mode == 0x06 || murphy_mode == 0x07 || murphy_mode == 0x08 ||
+				murphy_mode == 0x09 ||murphy_mode == 0x0A || murphy_mode == 0x0B || murphy_mode == 0x0C ||
+				murphy_mode == 0x1C ||murphy_mode == 0x1D || murphy_mode == 0x1E || murphy_mode == 0x1F)
+			{
+				if (PlayerIsLookingLeft)
+				{
+					texX = 0;
+					texY = 66;
+				}
+				else
+				{
+					texX = 48;
+					texY = 66;
+				}
+			}	
 			else
 			{
-				texX = 48;
-				texY = 66;
+				texX = 304;
+				texY = 132;
 			}
-
-			//texX = 304;
-			//texY = 132;
-			prevMurphyMode = origMode;
 		}
+
+		prevMurphyMode = origMode;
 
 		if (paintAbove != -1)
 		{
@@ -885,6 +1184,30 @@ void paintGameField()
 			glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
 		glEnd();
 
+		if (secondTexX != -1 && secondTexY != -1)
+		{
+			glBindTexture(GL_TEXTURE_2D, texMoving);
+			glEnable(GL_TEXTURE_2D);
+
+			float tx1 = (float)(secondTexX) * texMovingStepX;
+			float ty1 = (float)(462 - secondTexY) * texMovingStepY;
+			float tx2 = (float)(secondTexX + 16) * texMovingStepX;
+			float ty2 = (float)(462 - secondTexY - 16) * texMovingStepY;
+
+			int x1 = secondX;
+			int y1 = secondY;
+			int x2 = x1 + 16;
+			int y2 = y1 + 16;
+
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glBegin(GL_QUADS);
+				glTexCoord2f(tx1, ty1); glVertex2i(x1, y1);
+				glTexCoord2f(tx2, ty1); glVertex2i(x2, y1);
+				glTexCoord2f(tx2, ty2); glVertex2i(x2, y2);
+				glTexCoord2f(tx1, ty2); glVertex2i(x1, y2);
+			glEnd();
+		}
+
 		if (paintOver != -1)
 		{
 			glBindTexture(GL_TEXTURE_2D, texFixed);
@@ -963,8 +1286,9 @@ void paintGameField()
 
 	paintHex(0, 2 * MAP_HEIGHT * 16, NumRedDisks);
 
-	sprintf(buf, "%d %d %d %04X %04X", PlayerPosition_PixelsX, PlayerPosition_PixelsY,
-		PlayerAnim_NumFrames, PlayerIsLookingLeft, PlayerAnim_ID);
+	char buf[64];
+	sprintf(buf, "%d %d %d %04X %04X %02X %04X", PlayerPosition_PixelsX, PlayerPosition_PixelsY,
+		PlayerAnim_NumFrames, PlayerIsLookingLeft, PlayerAnim_ID, murphy_mode, PlayerExploded);
 	int x = 4*16;
 	for (int i = 0; buf[i]; i++, x += 8)
 	{
@@ -1011,7 +1335,7 @@ void idle()
 			joystickbuttons = 9;
 
 		if (GetAsyncKeyState(VK_F1) & 0x8000)
-			speed = 30;
+			speed = 25;
 		else if (GetAsyncKeyState(VK_F2) & 0x8000)
 			speed = 100;
 		else if (GetAsyncKeyState(VK_F3) & 0x8000)
@@ -1052,13 +1376,14 @@ int main(int argc, char ** argv)
 		//64=gravity
 		//61=red diskettes
 		//104=yellow diskettes
-	int levelNumber = 104;//34;//63;//15;//30;//11;//27;
+		//8=bugs
+		//29=electrons
+	int levelNumber = 2;//29;//61;//63;//15;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
-	char buf[1536];
-	fread(buf, 1536, 1, f);
+	fread(OriginalLevelData, 1536, 1, f);
 	for (int i = 0; i < 1536; i++)
 	{
-		*(unsigned short *)(&levelmap[i]) = *(unsigned char *)(&buf[i]);
+		*(unsigned short *)(&levelmap[i]) = *(unsigned char *)(&OriginalLevelData[i]);
 	}
 	fclose(f);
 

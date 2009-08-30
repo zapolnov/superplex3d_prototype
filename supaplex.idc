@@ -1742,28 +1742,28 @@ static main()
 	MakeName(0x3C71E, "SND_qqq");
 
 	MakeFunction(0x3C747, BADADDR);
-	MakeName(0x3C747, "SND_ttt");
+	MakeName(0x3C747, "SND_PlayBoomSound");
 
 	MakeFunction(0x3C7B0, BADADDR);
-	MakeName(0x3C7B0, "SND_ppp");
+	MakeName(0x3C7B0, "SND_PlayEatInfotronSound");
 
 	MakeFunction(0x3C819, BADADDR);
-	MakeName(0x3C819, "SND_mmm");
+	MakeName(0x3C819, "SND_PlayObjectPushSound");
 
 	MakeFunction(0x3C882, BADADDR);
-	MakeName(0x3C882, "SND_nnn");
+	MakeName(0x3C882, "SND_PlayZonkFallSound");
 
 	MakeFunction(0x3C8EB, BADADDR);
-	MakeName(0x3C8EB, "SND_aaa");
+	MakeName(0x3C8EB, "SND_PlayBugSound");
 
 	MakeFunction(0x3C955, BADADDR);
-	MakeName(0x3C955, "SND_bbb");
+	MakeName(0x3C955, "SND_PlayBaseEatSound");
 
 	MakeFunction(0x3C9BE, BADADDR);
-	MakeName(0x3C9BE, "SND_ccc");
+	MakeName(0x3C9BE, "SND_PlayExitSound");
 
 	MakeFunction(0x3CA30, BADADDR);
-	MakeName(0x3CA30, "SND_ddd");
+	MakeName(0x3CA30, "SND_TimerInterrupt");
 
 	MakeFunction(0x3CA60, BADADDR);
 	MakeName(0x3CA60, "xxx_HandleMurphy");

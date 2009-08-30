@@ -1,4 +1,15 @@
 
+.386
+
+ifdef TASM
+ locals @@
+else
+ .model flat
+endif
+
+.code
+
+public PlayerExploded
 public PlayerIsLookingLeft
 public PlayerAnim_NumFrames
 public PlayerAnim_ID
@@ -21,6 +32,7 @@ public beginlevel
 public runthelevel
 public joystickbuttons
 
+public _PlayerExploded
 public _PlayerIsLookingLeft
 public _PlayerAnim_NumFrames
 public _PlayerAnim_ID
@@ -43,6 +55,13 @@ public _beginlevel
 public _runthelevel
 public _joystickbuttons
 
+extrn _SND_PlayZonkFallSound : proc
+extrn _SND_PlayBaseEatSound : proc
+extrn _SND_PlayBugSound : proc
+extrn _SND_PlayBoomSound : proc
+extrn _SND_PlayExitSound : proc
+extrn _SND_PlayObjectPushSound : proc
+extrn _SND_PlayEatInfotronSound : proc
 
 SPECIAL_PORT	struc ;	(sizeof=0X6)
 coords		dw ?
@@ -112,65 +131,64 @@ ANIM_SHIFTORANGEDISK_RIGHT = 48
 ANIM_PLACEREDDISK = 49
 
 ; enum MAP_ELEMENT
-MAP_SPACE	 = 0
-MAP_ZONK	 = 1
-MAP_BASE	 = 2
-MAP_MURPHY	 = 3
-MAP_INFOTRON	 = 4
-MAP_RAM_CHIP_SQUARE  = 5
-MAP_GRAY_DENTED_PYRAMID	 = 6
-MAP_EXIT	 = 7
-MAP_DISK_ORANGE	 = 8
-MAP_PORT_LEFT_TO_RIGHT	= 9
-MAP_PORT_UP_TO_DOWN  = 0Ah
-MAP_PORT_RIGHT_TO_LEFT	= 0Bh
-MAP_PORT_DOWN_TO_UP  = 0Ch
-MAP_PORT_SPECIAL_LEFT_TO_RIGHT	= 0Dh
-MAP_PORT_SPECIAL_UP_TO_DOWN  = 0Eh
-MAP_PORT_SPECIAL_RIGHT_TO_LEFT	= 0Fh
-MAP_PORT_SPECIAL_DOWN_TO_UP  = 10h
-MAP_SNIK_SNAK	 = 11h
-MAP_DISK_YELLOW	 = 12h
-MAP_TERMINAL	 = 13h
-MAP_DISK_RED	 = 14h
-MAP_PORT_VERTICAL  = 15h
-MAP_PORT_HORIZONTAL  = 16h
-MAP_PORT_CROSS	 = 17h
-MAP_ELECTRON	 = 18h
-MAP_BUG		 = 19h
-MAP_RAM_CHIP_LEFT  = 1Ah
-MAP_RAM_CHIP_RIGHT  = 1Bh
-MAP_HARDWARE_1	 = 1Ch
-MAP_GREEN_LAMP	 = 1Dh
-MAP_BLUE_LAMP	 = 1Eh
-MAP_RED_LAMP	 = 1Fh
-MAP_YELLOW_BLACK_DIAGONAL  = 20h
-MAP_HARDWARE_2	 = 21h
-MAP_HARDWARE_3	 = 22h
-MAP_HARDWARE_4	 = 23h
-MAP_HARDWARE_5	 = 24h
-MAP_HARDWARE_6	 = 25h
-MAP_RAM_CHIP_TOP  = 26h
-MAP_RAM_CHIP_BOTTOM  = 27h
-MAP_INVISIBLE_WALL  = 28h
+MAP_SPACE						= 0
+MAP_ZONK						= 1
+MAP_BASE						= 2
+MAP_MURPHY						= 3
+MAP_INFOTRON					= 4
+MAP_RAM_CHIP 					= 5
+MAP_HARDWARE					= 6
+MAP_EXIT						= 7
+MAP_DISK_ORANGE					= 8
+MAP_PORT_LEFT_TO_RIGHT			= 9
+MAP_PORT_UP_TO_DOWN 			= 10
+MAP_PORT_RIGHT_TO_LEFT			= 11
+MAP_PORT_DOWN_TO_UP				= 12
+MAP_PORT_SPECIAL_LEFT_TO_RIGHT	= 13
+MAP_PORT_SPECIAL_UP_TO_DOWN		= 14
+MAP_PORT_SPECIAL_RIGHT_TO_LEFT	= 15
+MAP_PORT_SPECIAL_DOWN_TO_UP		= 16
+MAP_SNIK_SNAK					= 17
+MAP_DISK_YELLOW					= 18
+MAP_TERMINAL					= 19
+MAP_DISK_RED					= 20
+MAP_PORT_VERTICAL				= 21
+MAP_PORT_HORIZONTAL				= 22
+MAP_PORT_CROSS					= 23
+MAP_ELECTRON					= 24
+MAP_BUG							= 25
+MAP_RAM_CHIP_LEFT				= 26
+MAP_RAM_CHIP_RIGHT				= 27
+MAP_HARDWARE_1	 				= 28
+MAP_HARDWARE_2					= 29
+MAP_HARDWARE_3					= 30
+MAP_HARDWARE_4					= 31
+MAP_BOOM						= 31
+MAP_HARDWARE_5					= 32
+MAP_HARDWARE_6					= 33
+MAP_HARDWARE_7					= 34
+MAP_HARDWARE_8					= 35
+MAP_HARDWARE_9					= 36
+MAP_HARDWARE_10					= 37
+MAP_RAM_CHIP_TOP				= 38
+MAP_RAM_CHIP_BOTTOM				= 39
+MAP_INVISIBLE_WALL				= 40
 
-
+; enum JOYSTICK_BUTTON_CODE
+JB_UP							= 1
+JB_LEFT							= 2
+JB_DOWN							= 3
+JB_RIGHT						= 4
+JB_SPACE_UP						= 5
+JB_SPACE_LEFT					= 6
+JB_SPACE_DOWN					= 7
+JB_SPACE_RIGHT					= 8
+JB_SPACE						= 9
 
 ; enum MAP_DIMENSIONS
 MAP_HEIGHT	 = 24
 MAP_WIDTH	 = 60
 MAP_NUM_CELLS	 = 1440
-
-
-.386
-
-ifdef TASM
- locals @@
-else
- .model flat
-endif
-
-.code
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
@@ -193,16 +211,16 @@ handleZonk	proc near
 			je		short @@4
 			cmp		ax, MAP_INFOTRON
 			je		short @@4
-			cmp		ax, MAP_RAM_CHIP_SQUARE
+			cmp		ax, MAP_RAM_CHIP
 			je		short @@4
 			ret
-@@4:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+@@4:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			je		short @@7
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
 			je		short @@7
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
 			je		short @@7
-@@5:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+@@5:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			je		short @@9
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
 			je		short @@9
@@ -221,7 +239,7 @@ handleZonk	proc near
 			je		short @@11
 			cmp		word ptr _levelmap[esi + 2], 9999h
 			jne		short @@10
-			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 1
+			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_ZONK
 			jz		short @@11
 @@10:		ret
 @@11:		mov		byte ptr _levelmap[esi + 1], 60h
@@ -298,24 +316,24 @@ loc_37A96:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 400h + 0BBh
 loc_37AA1:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
 			jne		short loc_37AAB
 			jmp		loc_37B8E
-loc_37AAB:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 8
+loc_37AAB:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_ORANGE
 			jne		short loc_37AB5
 			jmp		loc_37B95
-loc_37AB5:	;call	SND_nnn
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 1
+loc_37AB5:	call	_SND_PlayZonkFallSound
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ZONK
 			je		short loc_37ACE
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 4
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_INFOTRON
 			je		short loc_37ACE
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 5
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RAM_CHIP
 			je		short loc_37ACE
 			ret
-loc_37ACE:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+loc_37ACE:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			je		short loc_37B0A
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
 			je		short loc_37B0A
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
 			je		short loc_37B0A
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			je		short loc_37B20
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
 			je		short loc_37B20
@@ -325,7 +343,7 @@ loc_37ACE:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
 loc_37AFD:	mov		word ptr _levelmap[esi], 7000h + MAP_ZONK
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			ret
-loc_37B0A:	cmp		word ptr _levelmap[esi - 2], MAP_BASE
+loc_37B0A:	cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			je		short loc_37B14
 			jmp		@@5
 loc_37B14:	mov		byte ptr _levelmap[esi + 1], 50h
@@ -353,16 +371,16 @@ loc_37B34:	mov		bl, byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1]
 loc_37B56:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_ELECTRON
 			jne		short loc_37B63
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
-loc_37B63:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_RED_LAMP
+loc_37B63:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_BOOM
 			je		short loc_37B70
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 loc_37B70:	jmp		short loc_37B8E
 loc_37B72:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_ELECTRON
 			jne		short loc_37B7F
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
-loc_37B7F:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_RED_LAMP
+loc_37B7F:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_BOOM
 			je		short loc_37B8C
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 loc_37B8C:	jmp		short loc_37B8E
 loc_37B8E:	add		esi, 2 * MAP_WIDTH
 			call	CreateExplosion
@@ -370,7 +388,7 @@ loc_37B8E:	add		esi, 2 * MAP_WIDTH
 loc_37B95:	add		esi, 2 * MAP_WIDTH
 			mov		ebx, esi
 			shr		ebx, 1
-			mov		byte ptr SomeLevelData[ebx], 6
+			mov		byte ptr ActiveExplosions[ebx], 6
 			ret
 locret_37BA2:
 			ret
@@ -395,14 +413,14 @@ loc_37BEE:	cmp		bl, 28h
 			ret
 loc_37BF8:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
-			mov		word ptr _levelmap[esi], 1000h + 1
+			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
 			ret
 loc_37C08:	and		bl, 7
 			shl		bl, 1
 			xor		bh, bh
 			mov		bl, byte ptr _levelmap[esi + 1]
 			inc		bl
-			cmp		bl, 34h	; '4'
+			cmp		bl, 34h
 			jne		short loc_37C40
 			mov		word ptr _levelmap[esi - 2], 0AAAAh
 loc_37C40:	cmp		bl, 36h
@@ -418,14 +436,14 @@ loc_37C53:	cmp		bl, 38h
 			ret
 loc_37C5D:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, MAP_WIDTH * 2
-			mov		word ptr _levelmap[esi], 1001h
+			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
 			ret
 loc_37C6D:	inc		bl
 			cmp		bl, 42h
 			jge		short loc_37C79
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37C79:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+loc_37C79:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			jz		short loc_37C87
 			dec		bl
 			mov		byte ptr _levelmap[esi + 1], bl
@@ -444,9 +462,9 @@ loc_37C9B:	xor		bh, bh
 			jge		short loc_37CD2
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37CD2:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+loc_37CD2:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			jne		short loc_37D02
-			cmp		word ptr _levelmap[esi - 2], 0
+			cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			je		short loc_37CE8
 			cmp		word ptr _levelmap[esi - 2], 8888h
 			jne		short loc_37D02
@@ -468,29 +486,29 @@ loc_37D09:	xor		bh, bh
 			jge		short loc_37D40
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37D40:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+loc_37D40:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			jne		short loc_37D70
-			cmp		word ptr _levelmap[esi + 2], 0
+			cmp		word ptr _levelmap[esi + 2], MAP_SPACE
 			je		short loc_37D56
 			cmp		word ptr _levelmap[esi + 2], 8888h
 			jne		short loc_37D70
 loc_37D56:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2
-			mov		byte ptr _levelmap[esi], 1
+			mov		byte ptr _levelmap[esi], MAP_ZONK
 			mov		byte ptr _levelmap[esi + 1], 32h
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0FFFFh
 			ret
 loc_37D70:	dec		bl
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37D77:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+loc_37D77:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			je		short loc_37D87
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			je		short loc_37D87
 			ret
 loc_37D87:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
-			mov		word ptr _levelmap[esi], 1001h
+			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
 			jmp		@@21
 
 handleZonk	endp
@@ -498,9 +516,9 @@ handleZonk	endp
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
 
-handleInfotron	proc near		; DATA XREF: DATA_SEG:1612o
+handleInfotron	proc near
 
-			cmp		byte ptr _levelmap[esi], 4
+			cmp		byte ptr _levelmap[esi], MAP_INFOTRON
 			jz		short @@1
 			ret
 @@1:		mov		ax, word ptr _levelmap[esi]
@@ -517,13 +535,13 @@ loc_37DAD:	mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
 			cmp		ax, 5
 			je		short loc_37DC6
 			ret
-loc_37DC6:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+loc_37DC6:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			je		short loc_37DFC
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
 			je		short loc_37DFC
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
 			je		short loc_37DFC
-loc_37DDD:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+loc_37DDD:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			je		short loc_37E12
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
 			je		short loc_37E12
@@ -532,13 +550,13 @@ loc_37DDD:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
 			ret
 loc_37DF5:	mov		byte ptr _levelmap[esi + 1], 40h
 			jmp		short loc_37E27
-loc_37DFC:	cmp		word ptr _levelmap[esi - 2], 0
+loc_37DFC:	cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			je		short loc_37E05
 			jmp		short loc_37DDD
 loc_37E05:	mov		byte ptr _levelmap[esi + 1], 50h
 			mov		word ptr _levelmap[esi - 2], 8888h
 			jmp		short loc_37E27
-loc_37E12:	cmp		word ptr _levelmap[esi + 2], 0
+loc_37E12:	cmp		word ptr _levelmap[esi + 2], MAP_SPACE
 			je		short loc_37E1A
 			ret
 loc_37E1A:	mov		byte ptr _levelmap[esi + 1], 60h
@@ -588,13 +606,13 @@ loc_37EA5:	cmp		bl, MAP_ELECTRON
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
 loc_37EAF:	mov		byte ptr _levelmap[esi + 1], 0
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			jnz		short loc_37EBE
 			jmp		loc_37F4D
 loc_37EBE:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			jnz		short loc_37EC9
 			jmp		loc_37F4D
-loc_37EC9:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
+loc_37EC9:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
 			jnz		short loc_37ED3
 			jmp		loc_37F84
 loc_37ED3:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_RED
@@ -609,40 +627,40 @@ loc_37EE7:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
 loc_37EF1:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
 			jnz		short loc_37EFB
 			jmp		loc_37FA6
-loc_37EFB:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 8
+loc_37EFB:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_ORANGE
 			jnz		short loc_37F05
 			jmp		loc_37FA6
-loc_37F05:	;call	SND_nnn
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 1
+loc_37F05:	call	_SND_PlayZonkFallSound
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ZONK
 			je		short loc_37F1E
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 4
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_INFOTRON
 			je		short loc_37F1E
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 5
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RAM_CHIP
 			je		short loc_37F1E
 			ret
-loc_37F1E:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+loc_37F1E:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			jz		short loc_37F5A
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
 			jz		short loc_37F5A
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
 			jz		short loc_37F5A
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			jz		short loc_37F70
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
 			jz		short loc_37F70
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0AAAAh
 			jz		short loc_37F70
 			ret
-loc_37F4D:	mov		word ptr _levelmap[esi], 7000h + 4
+loc_37F4D:	mov		word ptr _levelmap[esi], 7000h + MAP_INFOTRON
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			ret
-loc_37F5A:	cmp		word ptr _levelmap[esi - 2], 0
+loc_37F5A:	cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			je		short loc_37F64
 			jmp		loc_37DDD
 loc_37F64:	mov		byte ptr _levelmap[esi + 1], 50h
 			mov		word ptr _levelmap[esi - 2], 8888h
 			ret
-loc_37F70:	cmp		word ptr _levelmap[esi + 2], 0
+loc_37F70:	cmp		word ptr _levelmap[esi + 2], MAP_SPACE
 			je		short loc_37F78
 			ret
 loc_37F78:	mov		byte ptr _levelmap[esi + 1], 60h
@@ -684,7 +702,7 @@ loc_37FF8:	cmp		bl, 28h
 			jge		short loc_38002
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_38002:	mov		word ptr _levelmap[esi], 7000h + 4
+loc_38002:	mov		word ptr _levelmap[esi], 7000h + MAP_INFOTRON
 			ret
 loc_38009:	and		bl, 7
 			shl		bl, 1
@@ -704,21 +722,21 @@ loc_38053:	cmp		bl, 38h
 			jge		short loc_3805D
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_3805D:	mov		word ptr _levelmap[esi], 7000h + 4
+loc_3805D:	mov		word ptr _levelmap[esi], 7000h + MAP_INFOTRON
 			ret
 loc_38064:	inc		bl
 			cmp		bl, 42h
 			jge		short loc_38070
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_38070:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+loc_38070:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			jz		short loc_3807E
 			dec		bl
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
 loc_3807E:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
-			mov		byte ptr _levelmap[esi], 4
+			mov		byte ptr _levelmap[esi], MAP_INFOTRON
 			mov		byte ptr _levelmap[esi + 1], 10h
 			ret
 loc_38092:	xor		bh, bh
@@ -730,15 +748,15 @@ loc_38092:	xor		bh, bh
 			jge		short loc_380C9
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_380C9:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0
+loc_380C9:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			jnz		short loc_380F9
-			cmp		word ptr _levelmap[esi - 2], 0
+			cmp		word ptr _levelmap[esi - 2], MAP_SPACE
 			jz		short loc_380DF
 			cmp		word ptr _levelmap[esi - 2], 8888h
 			jnz		short loc_380F9
 loc_380DF:	mov		word ptr _levelmap[esi], 0FFFFh
 			sub		esi, 2
-			mov		byte ptr _levelmap[esi], 4
+			mov		byte ptr _levelmap[esi], MAP_INFOTRON
 			mov		byte ptr _levelmap[esi + 1], 22h
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			ret
@@ -754,29 +772,29 @@ loc_38100:	xor		bh, bh
 			jge		short loc_38137
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_38137:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0
+loc_38137:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
 			jne		short loc_38167
-			cmp		word ptr _levelmap[esi + 2], 0
+			cmp		word ptr _levelmap[esi + 2], MAP_SPACE
 			je		short loc_3814D
 			cmp		word ptr _levelmap[esi + 2], 8888h
 			jne		short loc_38167
 loc_3814D:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2
-			mov		byte ptr _levelmap[esi], 4
+			mov		byte ptr _levelmap[esi], MAP_INFOTRON
 			mov		byte ptr _levelmap[esi + 1], 32h
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			ret
 loc_38167:	dec		bl
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_3816E:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
+loc_3816E:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			je		short loc_3817E
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			je		short loc_3817E
 			ret
 loc_3817E:	mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
-			mov		word ptr _levelmap[esi], 1004h
+			mov		word ptr _levelmap[esi], 1000h + MAP_INFOTRON
 			jmp		loc_37E62
 
 handleInfotron	endp
@@ -785,65 +803,65 @@ handleInfotron	endp
 
 sub_38191	proc near
 
-			cmp		byte ptr _levelmap[esi], MAP_RED_LAMP
+			cmp		byte ptr _levelmap[esi], MAP_BOOM
 			je		short loc_3819E
-			mov		word ptr _levelmap[esi], 0
-loc_3819E:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3819E:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
 			je		short loc_381C8
 			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 9999h
 			je		short loc_381C8
-			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 1
+			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_ZONK
 			je		short loc_381BC
-			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 4
+			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_INFOTRON
 			je		short loc_381C2
 			ret
 loc_381BC:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 40h
 			ret
 loc_381C2:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 40h
 			ret
-loc_381C8:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 1
+loc_381C8:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], MAP_ZONK
 			je		short loc_381E5
-			cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 4
+			cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], MAP_INFOTRON
 			je		loc_3822A
-loc_381D6:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 1
+loc_381D6:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_ZONK
 			je		short loc_38208
-			cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 4
+			cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_INFOTRON
 			je		loc_3824D
 			ret
-loc_381E5:	cmp		word ptr _levelmap[esi - 2], 1
+loc_381E5:	cmp		word ptr _levelmap[esi - 2], MAP_ZONK
 			je		short loc_381FC
-			cmp		word ptr _levelmap[esi - 2], 4
+			cmp		word ptr _levelmap[esi - 2], MAP_INFOTRON
 			je		short loc_381FC
-			cmp		word ptr _levelmap[esi - 2], 5
+			cmp		word ptr _levelmap[esi - 2], MAP_RAM_CHIP
 			je		short loc_381FC
 			jmp		short loc_381D6
 loc_381FC:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH + 1)], 60h
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
-loc_38208:	cmp		word ptr _levelmap[esi + 2], 1
+loc_38208:	cmp		word ptr _levelmap[esi + 2], MAP_ZONK
 			je		short loc_3821E
-			cmp		word ptr _levelmap[esi + 2], 4
+			cmp		word ptr _levelmap[esi + 2], MAP_INFOTRON
 			je		short loc_3821E
-			cmp		word ptr _levelmap[esi + 2], 5
+			cmp		word ptr _levelmap[esi + 2], MAP_RAM_CHIP
 			je		short loc_3821E
 			ret
 loc_3821E:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 3)], 50h
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
-loc_3822A:	cmp		word ptr _levelmap[esi - 2], 1
+loc_3822A:	cmp		word ptr _levelmap[esi - 2], MAP_ZONK
 			je		short loc_38241
-			cmp		word ptr _levelmap[esi - 2], 4
+			cmp		word ptr _levelmap[esi - 2], MAP_INFOTRON
 			je		short loc_38241
-			cmp		word ptr _levelmap[esi - 2], 5
+			cmp		word ptr _levelmap[esi - 2], MAP_RAM_CHIP
 			je		short loc_38241
 			jmp		loc_381D6
 loc_38241:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH + 1)], 60h ; '`'
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
-loc_3824D:	cmp		word ptr _levelmap[esi + 2], 1
+loc_3824D:	cmp		word ptr _levelmap[esi + 2], MAP_ZONK
 			je		short loc_38263
-			cmp		word ptr _levelmap[esi + 2], 4
+			cmp		word ptr _levelmap[esi + 2], MAP_INFOTRON
 			je		short loc_38263
-			cmp		word ptr _levelmap[esi + 2], 5
+			cmp		word ptr _levelmap[esi + 2], MAP_RAM_CHIP
 			je		short loc_38263
 			ret
 loc_38263:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 3)], 50h
@@ -852,46 +870,44 @@ loc_38263:	mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 3)], 50h
 
 sub_38191	endp
 
-
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
-
 
 sub_3826F	proc near
 
-			cmp		byte ptr _levelmap[esi], MAP_RED_LAMP
+			cmp		byte ptr _levelmap[esi], MAP_BOOM
 			je		short loc_3827C
 			mov		word ptr _levelmap[esi], 0
-loc_3827C:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
+loc_3827C:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
 			je		short loc_38294
 			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 9999h
 			je		short loc_3828C
 			ret
-loc_3828C:	cmp		byte ptr _levelmap[esi - (4 * MAP_WIDTH)], 4
+loc_3828C:	cmp		byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_INFOTRON
 			je		short loc_38294
 			ret
-loc_38294:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 1
+loc_38294:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], MAP_ZONK
 			je		short loc_382A3
-loc_3829B:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 1
+loc_3829B:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_ZONK
 			je		short loc_382C7
 			ret
-loc_382A3:	cmp		word ptr _levelmap[esi - 2], 1
+loc_382A3:	cmp		word ptr _levelmap[esi - 2], MAP_ZONK
 			je		short loc_382BA
-			cmp		word ptr _levelmap[esi - 2], 4
+			cmp		word ptr _levelmap[esi - 2], MAP_INFOTRON
 			je		short loc_382BA
-			cmp		word ptr _levelmap[esi - 2], 5
+			cmp		word ptr _levelmap[esi - 2], MAP_RAM_CHIP
 			je		short loc_382BA
 			jmp		short loc_3829B
-loc_382BA:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 6001h
+loc_382BA:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 6000h + MAP_ZONK
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
-loc_382C7:	cmp		word ptr _levelmap[esi + 2], 1
+loc_382C7:	cmp		word ptr _levelmap[esi + 2], MAP_ZONK
 			je		short loc_382DD
-			cmp		word ptr _levelmap[esi + 2], 4
+			cmp		word ptr _levelmap[esi + 2], MAP_INFOTRON
 			je		short loc_382DD
-			cmp		word ptr _levelmap[esi + 2], 5
+			cmp		word ptr _levelmap[esi + 2], MAP_RAM_CHIP
 			je		short loc_382DD
 			ret
-loc_382DD:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 5001h
+loc_382DD:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 5000h + MAP_ZONK
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
 
@@ -903,40 +919,40 @@ sub_3826F	endp
 
 sub_382EA	proc near
 
-			cmp		byte ptr _levelmap[esi], MAP_RED_LAMP
+			cmp		byte ptr _levelmap[esi], MAP_BOOM
 			je		short loc_382F7
 			mov		word ptr _levelmap[esi], MAP_SPACE
-loc_382F7:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
+loc_382F7:	cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
 			je		short loc_3830F
 			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], 9999h
 			je		short loc_38307
 			ret
-loc_38307:	cmp		byte ptr _levelmap[esi - (4 * MAP_WIDTH)], 1
+loc_38307:	cmp		byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_ZONK
 			je		short loc_3830F
 			ret
-loc_3830F:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 4
+loc_3830F:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], MAP_INFOTRON
 			je		short loc_3831E
-loc_38316:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 4
+loc_38316:	cmp		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_INFOTRON
 			je		short loc_38342
 			ret
-loc_3831E:	cmp		word ptr _levelmap[esi - 2], 1
+loc_3831E:	cmp		word ptr _levelmap[esi - 2], MAP_ZONK
 			je		short loc_38335
-			cmp		word ptr _levelmap[esi - 2], 4
+			cmp		word ptr _levelmap[esi - 2], MAP_INFOTRON
 			je		short loc_38335
-			cmp		word ptr _levelmap[esi - 2], 5
+			cmp		word ptr _levelmap[esi - 2], MAP_RAM_CHIP
 			je		short loc_38335
 			jmp		short loc_38316
-loc_38335:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 6004h
+loc_38335:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], 6000h + MAP_INFOTRON
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
-loc_38342:	cmp		word ptr _levelmap[esi + 2], 1
+loc_38342:	cmp		word ptr _levelmap[esi + 2], MAP_ZONK
 			je		short loc_38358
-			cmp		word ptr _levelmap[esi + 2], 4
+			cmp		word ptr _levelmap[esi + 2], MAP_INFOTRON
 			je		short loc_38358
-			cmp		word ptr _levelmap[esi + 2], 5
+			cmp		word ptr _levelmap[esi + 2], MAP_RAM_CHIP
 			je		short loc_38358
 			ret
-loc_38358:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 5004h
+loc_38358:	mov		word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], 5000h + MAP_INFOTRON
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 8888h
 			ret
 
@@ -950,6 +966,7 @@ _initplayerstate	proc near
 			xor		ax, ax
 			mov		word ptr [PlayerIsLookingLeft], ax
 			mov		word ptr [PlayerDied], ax
+			mov		word ptr [PlayerExploded], ax
 			mov		word ptr [word_40C64], ax
 			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], ax
 			mov		byte ptr [NumRedDisks], 0
@@ -1043,7 +1060,7 @@ loc_384D8:	call	PlaceRedDisk
 			jz		short loc_3852B
 			cmp		word ptr [word_40CF7], 1
 loc_3852B:	jbe		short loc_3853C
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 loc_3853C:	mov		cx, word ptr [word_40CF7]
 loc_38540:	dec		cx
 			jz		short loc_38581
@@ -1137,9 +1154,10 @@ loc_38EE8:	cmp		word ptr [PlayerDied], 1
 loc_38F01:	cmp		word ptr [TimeoutAfterWhichLeaveTheLevel], 0
 			jne		short loc_38F1B
 			mov		word ptr [PlayerDied], 0
+			mov		word ptr [PlayerExploded], 1
 			mov		esi, dword ptr [CurrentMurphyOfs]
 			call	CreateExplosion
-			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], 40h
+			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], 64
 loc_38F1B:	ret
 
 MoveObjectsInTheLevel endp
@@ -1240,59 +1258,39 @@ loc_3901E:
 		jl	short loc_39034
 		call	GenerateRandomNumber
 		and	al, 3Fh
-		add	al, 20h	; ' '
+		add	al, 20h
 		neg	al
 		mov	bl, al
 
 loc_39034:
 		mov	byte ptr _levelmap[esi + 1], bl
-		cmp	bl, MAP_SPACE
+		cmp	bl, 0
 		jge	short loc_3903E
 		ret
 
-
 loc_3903E:
 		cmp	byte ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_MURPHY
-		jz	short loc_39078
-		cmp	byte ptr _levelmap[esi - 2], MAP_MURPHY	; -1
-		jz	short loc_39078
+		je	short loc_39078
+		cmp	byte ptr _levelmap[esi - 2], MAP_MURPHY
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi + 2], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_MURPHY
-		jz	short loc_39078
+		je	short loc_39078
 		jmp	short loc_3907B
 
-
 loc_39078:
-		;call	SND_aaa
+		call	_SND_PlayBugSound
 
 loc_3907B:
-		xor	bh, bh
-		;mov	di, word ptr word_456CB[esi]
-		;mov	esi, bx
-		;shl	esi, 1
-		;add	esi, offset unk_40872
-		;mov	esi, [esi]
-		;push	ds
-		;mov	ax, es
-		;mov	ds, ax
-		;mov	cx, 16
-
-;loc_39093:
-		;movsb
-		;movsb
-		;add	esi, 120
-		;add	di, 120
-		;loop	loc_39093
-		;pop	ds
 		ret
 
 xxx_HandleBug	endp
@@ -1301,7 +1299,7 @@ xxx_HandleBug	endp
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
 
-xxx_HandleTerminal proc	near		; DATA XREF: DATA_SEG:1630o
+xxx_HandleTerminal proc	near
 		cmp	byte ptr _levelmap[esi], MAP_TERMINAL
 		jz	short loc_390A7
 		ret
@@ -1521,12 +1519,12 @@ loc_39324:
 
 
 loc_39327:
-		mov	word ptr [esi], MAP_RAM_CHIP_SQUARE
+		mov	word ptr [esi], MAP_RAM_CHIP
 		jmp	loc_39398
 
 
 loc_3932D:
-		mov	word ptr [esi], MAP_GRAY_DENTED_PYRAMID
+		mov	word ptr [esi], MAP_HARDWARE
 		jmp	loc_39398
 
 
@@ -1666,7 +1664,7 @@ loc_39466:
 		ret
 
 loc_39487:
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
 		jne	short loc_3948F
 		ret
 
@@ -1678,7 +1676,7 @@ xxx_handleOrangeDisk endp
 
 
 loc_39493:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3949B
 		ret
 
@@ -1725,10 +1723,10 @@ CreateChainedExplosions	proc near
 		mov	ecx, MAP_WIDTH * MAP_HEIGHT
 
 loc_39539:
-		cmp	byte ptr SomeLevelData[ebx], 0
+		cmp	byte ptr ActiveExplosions[ebx], 0
 		jz	short loc_39551
 		jl	short loc_39558
-		dec	byte ptr SomeLevelData[ebx]
+		dec	byte ptr ActiveExplosions[ebx]
 		jnz	short loc_39551
 		push	esi
 		push	ecx
@@ -1746,7 +1744,7 @@ loc_39551:
 
 
 loc_39558:
-		inc	byte ptr SomeLevelData[ebx]
+		inc	byte ptr ActiveExplosions[ebx]
 		jnz	short loc_39551
 		push	esi
 		push	ecx
@@ -1764,7 +1762,7 @@ CreateChainedExplosions	endp
 
 
 CreateExplosion	proc near
-		cmp	byte ptr _levelmap[esi], MAP_GRAY_DENTED_PYRAMID
+		cmp	byte ptr _levelmap[esi], MAP_HARDWARE
 		jnz	short loc_39577
 		ret
 
@@ -1793,15 +1791,15 @@ loc_3959C:
 		mov	dh, dl
 		push	ecx
 		mov	ax, word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)]
-		cmp	al, 8
+		cmp	al, MAP_DISK_ORANGE
 		jz	short loc_395D0
 		cmp	al, MAP_DISK_YELLOW
 		jz	short loc_395D0
 		cmp	al, MAP_SNIK_SNAK
 		jz	short loc_395D0
-		cmp	al, 1
+		cmp	al, MAP_ZONK
 		jz	short loc_395EC
-		cmp	al, 4
+		cmp	al, MAP_INFOTRON
 		jz	short loc_395E2
 		cmp	al, MAP_ELECTRON
 		jnz	short loc_395C6
@@ -1810,17 +1808,17 @@ loc_3959C:
 		jmp	short loc_395D0
 
 loc_395C6:
-		cmp	al, 3
+		cmp	al, MAP_MURPHY
 		jnz	short loc_395D8
 		mov	word ptr [PlayerDied], 1
 
 loc_395D0:
-		cmp	al, 6
+		cmp	al, MAP_HARDWARE
 		jz	short loc_395D8
-		mov	SomeLevelData[ebx - MAP_WIDTH - 1], dh
+		mov	ActiveExplosions[ebx - MAP_WIDTH - 1], dh
 
 loc_395D8:
-		cmp	al, 6
+		cmp	al, MAP_HARDWARE
 		jz	short loc_395E0
 		mov	word ptr _levelmap[esi - (2 * MAP_WIDTH + 2)], cx
 
@@ -1846,15 +1844,15 @@ loc_395F6:
 		mov	dh, dl
 		push	ecx
 		mov	ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
-		cmp	al, 8
+		cmp	al, MAP_DISK_ORANGE
 		jz	short loc_39627
 		cmp	al, MAP_DISK_YELLOW
 		jz	short loc_39627
 		cmp	al, MAP_SNIK_SNAK
 		jz	short loc_39627
-		cmp	al, 1
+		cmp	al, MAP_ZONK
 		jz	short loc_39643
-		cmp	al, 4
+		cmp	al, MAP_INFOTRON
 		jz	short loc_39639
 		cmp	al, MAP_ELECTRON
 		jnz	short loc_3961D
@@ -1863,17 +1861,17 @@ loc_395F6:
 		jmp	short loc_39627
 
 loc_3961D:
-		cmp	al, 3
+		cmp	al, MAP_MURPHY
 		jnz	short loc_3962F
 		mov	word ptr [PlayerDied], 1
 
 loc_39627:
-		cmp	al, 6
+		cmp	al, MAP_HARDWARE
 		jz	short loc_3962F
-		mov	SomeLevelData[ebx - MAP_WIDTH], dh
+		mov	ActiveExplosions[ebx - MAP_WIDTH], dh
 
 loc_3962F:
-		cmp	al, 6
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39637
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], cx
 
@@ -1921,12 +1919,12 @@ loc_39674:
 		mov	word ptr [PlayerDied], 1
 
 loc_3967E:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39686
-		mov	SomeLevelData[ebx - (2 * MAP_WIDTH - 1)], dh
+		mov	ActiveExplosions[ebx - (2 * MAP_WIDTH - 1)], dh
 
 loc_39686:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_3968E
 		mov	word ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], cx
 
@@ -1975,12 +1973,12 @@ loc_396CB:
 		mov	word ptr [PlayerDied], 1
 
 loc_396D5:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_396DD
-		mov	SomeLevelData[ebx - 1], dh
+		mov	ActiveExplosions[ebx - 1], dh
 
 loc_396DD:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_396E5
 		mov	word ptr _levelmap[esi - 2], cx
 
@@ -2029,12 +2027,12 @@ loc_39726:
 		mov	word ptr [PlayerDied], 1
 
 loc_39730:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39738
-		mov	SomeLevelData[ebx + 1], dh
+		mov	ActiveExplosions[ebx + 1], dh
 
 loc_39738:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39740
 		mov	word ptr _levelmap[esi + 2], cx
 
@@ -2082,12 +2080,12 @@ loc_3977D:
 		mov	word ptr [PlayerDied], 1
 
 loc_39787:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_3978F
-		mov	byte ptr SomeLevelData[ebx + 2 * MAP_WIDTH - 1], dh
+		mov	byte ptr ActiveExplosions[ebx + 2 * MAP_WIDTH - 1], dh
 
 loc_3978F:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39797
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], cx
 
@@ -2135,12 +2133,12 @@ loc_397D4:
 		mov	word ptr [PlayerDied], 1
 
 loc_397DE:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_397E6
-		mov	SomeLevelData[ebx + MAP_WIDTH], dh
+		mov	ActiveExplosions[ebx + MAP_WIDTH], dh
 
 loc_397E6:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_397EE
 		mov word ptr _levelmap[esi + 2 * MAP_WIDTH], cx
 
@@ -2189,12 +2187,12 @@ loc_3982B:
 		mov	word ptr [PlayerDied], 1
 
 loc_39835:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_3983D
-		mov	SomeLevelData[ebx + MAP_WIDTH + 1], dh
+		mov	ActiveExplosions[ebx + MAP_WIDTH + 1], dh
 
 loc_3983D:
-		cmp	al, MAP_GRAY_DENTED_PYRAMID
+		cmp	al, MAP_HARDWARE
 		jz	short loc_39845
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], cx
 
@@ -2218,7 +2216,7 @@ loc_39851:
 
 loc_3985B:
 		pop	ecx
-		;call	SND_ttt
+		call	_SND_PlayBoomSound
 		ret
 CreateExplosion	endp
 
@@ -2381,7 +2379,7 @@ sub_39969	endp
 
 sub_399E9	proc near
 
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jnz	short @@1
 		ret
 
@@ -2397,7 +2395,7 @@ _loadlevelmap	proc near
 
 		push	edi
 
-		mov		edi, offset SomeLevelData
+		mov		edi, offset ActiveExplosions
 		xor		al, al
 		mov		ecx, 1536
 		cld
@@ -2489,25 +2487,25 @@ loc_3CBC8:
 		ret
 
 loc_3CBEF:
-		cmp	byte ptr [byte_403C8], 0
-		jz	short loc_3CC23
-		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
-		jnz	short loc_3CC23
-		cmp	bl, 1
-		jnz	short loc_3CC09
-		cmp	word ptr _levelmap[esi - 2 * MAP_WIDTH], 2
-		jz	short loc_3CC23
+			cmp		byte ptr [byte_403C8], 0
+			je		short loc_3CC23
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+			jne		short loc_3CC23
+			cmp		bl, JB_UP
+			jne		short loc_3CC09
+			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BASE
+			je		short loc_3CC23
 
 loc_3CC09:
 		cmp	bl, 2
 		jnz	short loc_3CC15
-		cmp	word ptr _levelmap[esi - 2], 2
+		cmp	word ptr _levelmap[esi - 2], MAP_BASE
 		jz	short loc_3CC23
 
 loc_3CC15:
 		cmp	bl, 4
 		jnz	short loc_3CC21
-		cmp	word ptr _levelmap[esi + 2], 2
+		cmp	word ptr _levelmap[esi + 2], MAP_BASE
 		jz	short loc_3CC23
 
 loc_3CC21:
@@ -2634,265 +2632,231 @@ loc_3CCED:
 		jb		short locret_3CCF9
 		jmp		loc_3CC98
 
-
-locret_3CCF9:				; CODE XREF: xxx_HandleMurphy+295j
+locret_3CCF9:
 		ret
-
 
 loc_3CCFA:
 		mov	word ptr [PlayerIsLookingLeft], 1
 		mov	ax, word ptr _levelmap[esi - 2]
-		cmp	ax, 0
+		cmp	ax, MAP_SPACE
 		jnz	short loc_3CD0C
 		jmp	loc_3CF61
 
 
-loc_3CD0C:				; CODE XREF: xxx_HandleMurphy+2A7j
-		cmp	ax, 2
+loc_3CD0C:
+		cmp	ax, MAP_BASE
 		jnz	short loc_3CD14
 		jmp	loc_3D03C
 
-
-loc_3CD14:				; CODE XREF: xxx_HandleMurphy+2AFj
-		cmp	al, 19h
+loc_3CD14:
+		cmp	al, MAP_BUG
 		jnz	short loc_3CD1B
 		jmp	loc_3D02B
 
-
-loc_3CD1B:				; CODE XREF: xxx_HandleMurphy+2B6j
-		cmp	ax, 4
+loc_3CD1B:
+		cmp	ax, MAP_INFOTRON
 		jnz	short loc_3CD23
 		jmp	loc_3D21E
 
-
-loc_3CD23:				; CODE XREF: xxx_HandleMurphy+2BEj
+loc_3CD23:
 		cmp	ax, MAP_EXIT
 		jnz	short loc_3CD2B
 		jmp	loc_3D376
 
-
-loc_3CD2B:				; CODE XREF: xxx_HandleMurphy+2C6j
-		cmp	ax, 1
+loc_3CD2B:
+		cmp	ax, MAP_ZONK
 		jnz	short loc_3CD33
 		jmp	loc_3D3BB
 
-
-loc_3CD33:				; CODE XREF: xxx_HandleMurphy+2CEj
-		cmp	al, 13h
+loc_3CD33:
+		cmp	al, MAP_TERMINAL
 		jnz	short loc_3CD3A
 		jmp	loc_3D46E
 
-
-loc_3CD3A:				; CODE XREF: xxx_HandleMurphy+2D5j
+loc_3CD3A:
 		cmp	al, MAP_PORT_RIGHT_TO_LEFT
 		jnz	short loc_3CD41
 		jmp	loc_3D55A
 
-
-loc_3CD41:				; CODE XREF: xxx_HandleMurphy+2DCj
-		cmp	al, 16h
+loc_3CD41:
+		cmp	al, MAP_PORT_HORIZONTAL
 		jnz	short loc_3CD48
 		jmp	loc_3D55A
 
-
-loc_3CD48:				; CODE XREF: xxx_HandleMurphy+2E3j
-		cmp	al, 17h
+loc_3CD48:
+		cmp	al, MAP_PORT_CROSS
 		jnz	short loc_3CD4F
 		jmp	loc_3D55A
 
-
-loc_3CD4F:				; CODE XREF: xxx_HandleMurphy+2EAj
+loc_3CD4F:
 		cmp	ax, MAP_DISK_RED
 		jnz	short loc_3CD57
 		jmp	loc_3D5EE
 
-
-loc_3CD57:				; CODE XREF: xxx_HandleMurphy+2F2j
+loc_3CD57:
 		cmp	ax, MAP_DISK_YELLOW
 		jnz	short loc_3CD5F
 		jmp	loc_3D711
 
-
-loc_3CD5F:				; CODE XREF: xxx_HandleMurphy+2FAj
-		cmp	ax, 8
+loc_3CD5F:
+		cmp	ax, MAP_DISK_ORANGE
 		jnz	short loc_3CD67
 		jmp	loc_3D7BB
 
+loc_3CD67:
+			push	esi
+			sub		esi, 2
+			call	sub_3E0D7
+			pop		esi
+			jb		short locret_3CD73
+			jmp		loc_3CCFA
 
-loc_3CD67:				; CODE XREF: xxx_HandleMurphy+302j
-		push	esi
-		sub	esi, 2
-		call	sub_3E0D7
-		pop	esi
-		jb	short locret_3CD73
-		jmp	loc_3CCFA
+locret_3CD73:
+			ret
 
+loc_3CD74:
+			mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
+			cmp		ax, MAP_SPACE
+			jne		short loc_3CD80
+			jmp		loc_3CF84
 
-locret_3CD73:				; CODE XREF: xxx_HandleMurphy+30Fj
-		ret
+loc_3CD80:
+			cmp		ax, MAP_BASE
+			jne		short loc_3CD88
+			jmp		loc_3D079
 
+loc_3CD88:
+			cmp		al, MAP_BUG
+			jne		short loc_3CD8F
+			jmp		loc_3D068
 
-loc_3CD74:				; CODE XREF: xxx_HandleMurphy+1E6j
-					; xxx_HandleMurphy+373j
-		mov	ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
-		cmp	ax, 0
-		jnz	short loc_3CD80
-		jmp	loc_3CF84
+loc_3CD8F:
+			cmp		ax, MAP_INFOTRON
+			jne		short loc_3CD97
+			jmp		loc_3D24A
 
+loc_3CD97:
+			cmp		ax, MAP_EXIT
+			jne		short loc_3CD9F
+			jmp		loc_3D376
 
-loc_3CD80:				; CODE XREF: xxx_HandleMurphy+31Bj
-		cmp	ax, 2
-		jnz	short loc_3CD88
-		jmp	loc_3D079
+loc_3CD9F:
+			cmp		al, MAP_TERMINAL
+			jne		short loc_3CDA6
+			jmp		loc_3D4A4
 
+loc_3CDA6:
+			cmp		al, MAP_PORT_UP_TO_DOWN
+			jne		short loc_3CDAD
+			jmp		loc_3D57E
 
-loc_3CD88:				; CODE XREF: xxx_HandleMurphy+323j
-		cmp	al, 19h
-		jnz	short loc_3CD8F
-		jmp	loc_3D068
+loc_3CDAD:
+			cmp		al, MAP_PORT_VERTICAL
+			jne		short loc_3CDB4
+			jmp		loc_3D57E
 
+loc_3CDB4:
+			cmp		al, MAP_PORT_CROSS
+			jne		short loc_3CDBB
+			jmp		loc_3D57E
 
-loc_3CD8F:				; CODE XREF: xxx_HandleMurphy+32Aj
-		cmp	ax, 4
-		jnz	short loc_3CD97
-		jmp	loc_3D24A
+loc_3CDBB:
+			cmp		al, MAP_DISK_RED
+			jne		short loc_3CDC2
+			jmp		loc_3D617
 
+loc_3CDC2:
+			cmp		al, MAP_DISK_YELLOW
+			jne		short loc_3CDC9
+			jmp		loc_3D74A
 
-loc_3CD97:				; CODE XREF: xxx_HandleMurphy+332j
-		cmp	ax, MAP_EXIT
-		jnz	short loc_3CD9F
-		jmp	loc_3D376
+loc_3CDC9:
+			push	esi
+			add		esi, 2 * MAP_WIDTH
+			call	sub_3E0D7
+			pop		esi
+			jb		short locret_3CDD5
+			jmp		loc_3CD74
 
-
-loc_3CD9F:				; CODE XREF: xxx_HandleMurphy+33Aj
-		cmp	al, 13h
-		jnz	short loc_3CDA6
-		jmp	loc_3D4A4
-
-
-loc_3CDA6:				; CODE XREF: xxx_HandleMurphy+341j
-		cmp	al, 0Ah
-		jnz	short loc_3CDAD
-		jmp	loc_3D57E
-
-
-loc_3CDAD:				; CODE XREF: xxx_HandleMurphy+348j
-		cmp	al, 15h
-		jnz	short loc_3CDB4
-		jmp	loc_3D57E
-
-
-loc_3CDB4:				; CODE XREF: xxx_HandleMurphy+34Fj
-		cmp	al, 17h
-		jnz	short loc_3CDBB
-		jmp	loc_3D57E
-
-
-loc_3CDBB:				; CODE XREF: xxx_HandleMurphy+356j
-		cmp	al, MAP_DISK_RED
-		jnz	short loc_3CDC2
-		jmp	loc_3D617
-
-
-loc_3CDC2:				; CODE XREF: xxx_HandleMurphy+35Dj
-		cmp	al, MAP_DISK_YELLOW
-		jnz	short loc_3CDC9
-		jmp	loc_3D74A
-
-
-loc_3CDC9:				; CODE XREF: xxx_HandleMurphy+364j
-		push	esi
-		add	esi, 78h	; 'x'
-		call	sub_3E0D7
-		pop	esi
-		jb	short locret_3CDD5
-		jmp	loc_3CD74
-
-
-locret_3CDD5:				; CODE XREF: xxx_HandleMurphy+371j
-		ret
+locret_3CDD5:
+			ret
 
 loc_3CDD6:
-		mov	word ptr [PlayerIsLookingLeft], 0
-		mov	ax, word ptr _levelmap[esi + 2]
-		cmp	ax, 0
-		jnz	short loc_3CDE8
-		jmp	loc_3CFB9
+			mov		word ptr [PlayerIsLookingLeft], 0
+			mov		ax, word ptr _levelmap[esi + 2]
+			cmp		ax, MAP_SPACE
+			jne		short loc_3CDE8
+			jmp		loc_3CFB9
 
 loc_3CDE8:
-		cmp	ax, 2
-		jnz	short loc_3CDF0
-		jmp	loc_3D0C2
+			cmp		ax, MAP_BASE
+			jne		short loc_3CDF0
+			jmp		loc_3D0C2
 
-loc_3CDF0:
-		cmp	al, 19h
-		jnz	short loc_3CDF7
-		jmp	loc_3D0B1
+loc_3CDF0:	cmp		al, MAP_BUG
+			jne		short loc_3CDF7
+			jmp		loc_3D0B1
 
+loc_3CDF7:
+			cmp		ax, MAP_INFOTRON
+			jne		short loc_3CDFF
+			jmp		loc_3D282
 
-loc_3CDF7:				; CODE XREF: xxx_HandleMurphy+392j
-		cmp	ax, 4
-		jnz	short loc_3CDFF
-		jmp	loc_3D282
+loc_3CDFF:
+			cmp		ax, MAP_EXIT
+			jne		short loc_3CE07
+			jmp		loc_3D376
 
-
-loc_3CDFF:				; CODE XREF: xxx_HandleMurphy+39Aj
-		cmp	ax, MAP_EXIT
-		jnz	short loc_3CE07
-		jmp	loc_3D376
-
-
-loc_3CE07:				; CODE XREF: xxx_HandleMurphy+3A2j
-		cmp	ax, 1
-		jnz	short loc_3CE0F
-		jmp	loc_3D3F4
-
+loc_3CE07:
+			cmp		ax, MAP_ZONK
+			jne		short loc_3CE0F
+			jmp		loc_3D3F4
 
 loc_3CE0F:
-		cmp	al, 13h
-		jnz	short loc_3CE16
-		jmp	loc_3D4DA
+			cmp		al, MAP_TERMINAL
+			jne		short loc_3CE16
+			jmp		loc_3D4DA
 
 loc_3CE16:
-		cmp	al, 9
-		jnz	short loc_3CE1D
-		jmp	loc_3D5A2
+			cmp		al, MAP_PORT_LEFT_TO_RIGHT
+			jne		short loc_3CE1D
+			jmp		loc_3D5A2
 
 loc_3CE1D:
-		cmp	al, 16h
-		jnz	short loc_3CE24
-		jmp	loc_3D5A2
+			cmp		al, MAP_PORT_HORIZONTAL
+			jne		short loc_3CE24
+			jmp		loc_3D5A2
 
 loc_3CE24:
-		cmp	al, 17h
-		jnz	short loc_3CE2B
-		jmp	loc_3D5A2
+			cmp		al, MAP_PORT_CROSS
+			jne		short loc_3CE2B
+			jmp		loc_3D5A2
 
 loc_3CE2B:
-		cmp	al, MAP_DISK_RED
-		jnz	short loc_3CE32
-		jmp	loc_3D63F
+			cmp		al, MAP_DISK_RED
+			jne		short loc_3CE32
+			jmp		loc_3D63F
 
 loc_3CE32:
-		cmp	al, MAP_DISK_YELLOW
-		jnz	short loc_3CE39
-		jmp	loc_3D783
+			cmp		al, MAP_DISK_YELLOW
+			jne		short loc_3CE39
+			jmp		loc_3D783
 
 loc_3CE39:
-		cmp	ax, 8
-		jnz	short loc_3CE41
-		jmp	loc_3D7F3
+			cmp		ax, MAP_DISK_ORANGE
+			jnz		short loc_3CE41
+			jmp		loc_3D7F3
 
 loc_3CE41:
-		push	esi
-		add	esi, 2
-		call	sub_3E0D7
-		pop	esi
-		jb	short locret_3CE4D
-		jmp	loc_3CDD6
+			push	esi
+			add		esi, 2
+			call	sub_3E0D7
+			pop		esi
+			jb		short locret_3CE4D
+			jmp		loc_3CDD6
 
 locret_3CE4D:
-		ret
+			ret
 
 loc_3CE4E:
 		mov	ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
@@ -3095,7 +3059,7 @@ loc_3CFED:
 			mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 2
 
 loc_3CFF3:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			cmp		word ptr [PlayerIsLookingLeft], 0
 			jz		short loc_3D002
 			mov		edx, offset stru_4046E
@@ -3123,7 +3087,7 @@ loc_3D036:
 			mov		word ptr _levelmap[esi - 2], 2
 
 loc_3D03C:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_4048E
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3144,7 +3108,7 @@ loc_3D073:
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 2
 
 loc_3D079:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			cmp		word ptr [PlayerIsLookingLeft], 0
 			jz		short loc_3D088
 			mov		edx, offset stru_4049E
@@ -3171,7 +3135,7 @@ loc_3D0B1:
 loc_3D0BC:
 			mov		word ptr _levelmap[esi + 2], 2
 loc_3D0C2:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_404BE
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3192,7 +3156,7 @@ loc_3D0F9:
 			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 2
 
 loc_3D0FF:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_404CE
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3209,7 +3173,7 @@ loc_3D137:
 			mov		word ptr _levelmap[esi - 2], 2
 
 loc_3D13D:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_404DE
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3226,11 +3190,11 @@ loc_3D175:
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 2
 
 loc_3D17B:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_404EE
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 1], MAP_DISK_YELLOW
+			mov		byte ptr _levelmap[esi + 1], 12h
 			jmp		loc_3D835
 
 loc_3D1A8:
@@ -3243,7 +3207,7 @@ loc_3D1B3:
 			mov		word ptr _levelmap[esi + 2], 2
 
 loc_3D1B9:
-			;call	SND_bbb
+			call	_SND_PlayBaseEatSound
 			mov		edx, offset stru_404FE
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3251,7 +3215,7 @@ loc_3D1B9:
 			jmp		loc_3D835
 
 loc_3D1E6:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			cmp		word ptr [PlayerIsLookingLeft], 0
 			jz		short loc_3D1F5
 			mov		edx, offset stru_4050E
@@ -3271,7 +3235,7 @@ loc_3D1F8:
 			jmp		loc_3D835
 
 loc_3D21E:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4052E
 			mov		word ptr [PlayerIsInsideTeleport], 0
 			mov		word ptr [RedDiskPlacementTimer], 0
@@ -3283,7 +3247,7 @@ loc_3D21E:
 			jmp		loc_3D835
 
 loc_3D24A:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			cmp		word ptr [PlayerIsLookingLeft], 0
 			jz		short loc_3D259
 			mov		edx, offset stru_4053E
@@ -3303,7 +3267,7 @@ loc_3D25C:
 		jmp	loc_3D835
 
 loc_3D282:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4055E
 		mov	word ptr [PlayerIsInsideTeleport], 0
 		mov	word ptr [RedDiskPlacementTimer], 0
@@ -3315,7 +3279,7 @@ loc_3D282:
 		jmp	loc_3D835
 
 loc_3D2AE:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4056E
 		mov	word ptr [PlayerIsInsideTeleport], 0
 		mov	word ptr [RedDiskPlacementTimer], 0
@@ -3324,7 +3288,7 @@ loc_3D2AE:
 		jmp	loc_3D835
 
 loc_3D2E0:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov	edx, offset stru_4057E
 		mov	word ptr [PlayerIsInsideTeleport], 0
 		mov	word ptr [RedDiskPlacementTimer], 0
@@ -3333,7 +3297,7 @@ loc_3D2E0:
 		jmp	loc_3D835
 
 loc_3D312:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4058E
 		mov	word ptr [PlayerIsInsideTeleport], 0
 		mov	word ptr [RedDiskPlacementTimer], 0
@@ -3342,7 +3306,7 @@ loc_3D312:
 		jmp	loc_3D835
 
 loc_3D344:
-			;call	SND_ppp
+			call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4059E
 		mov	word ptr [PlayerIsInsideTeleport], 0
 		mov	word ptr [RedDiskPlacementTimer], 0
@@ -3353,7 +3317,7 @@ loc_3D344:
 loc_3D376:
 		cmp	byte ptr [InfotronsLeftToCollect],	0
 		jnz	short locret_3D3BA
-		;call	SND_ccc
+		call	_SND_PlayExitSound
 		push	esi
 		cmp	byte ptr [IsDemoRunning], 0
 		jnz	short loc_3D397
@@ -3366,7 +3330,7 @@ loc_3D397:
 		mov	byte ptr [byte_403AA], 0
 
 loc_3D39C:
-		mov	word ptr [TimeoutAfterWhichLeaveTheLevel], 40h
+		mov	word ptr [TimeoutAfterWhichLeaveTheLevel], 64
 		pop	esi
 			mov		edx, offset stru_4045E
 		mov	word ptr [PlayerIsInsideTeleport], 0
@@ -3718,7 +3682,7 @@ loc_3D84B:
 		dec	ax
 		mov	word ptr [RedDiskPlacementTimer], ax
 		jnz	short loc_3D862
-		;call	SND_mmm
+		call	_SND_PlayObjectPushSound
 
 loc_3D862:
 		mov	bl, byte ptr _levelmap[esi + 1]
@@ -4058,7 +4022,7 @@ loc_3DB21:				; CODE XREF: xxx_HandleMurphy+10BBj
 
 loc_3DB24:				; CODE XREF: xxx_HandleMurphy+F28j
 					; xxx_HandleMurphy+F48j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3DB31
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 
@@ -4068,7 +4032,7 @@ loc_3DB31:				; CODE XREF: xxx_HandleMurphy+10C9j
 
 
 loc_3DB38:				; CODE XREF: xxx_HandleMurphy+F78j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DB45
 		mov	word ptr _levelmap[esi], 0
 
@@ -4082,7 +4046,7 @@ loc_3DB45:				; CODE XREF: xxx_HandleMurphy+10DDj
 
 
 loc_3DB5B:				; CODE XREF: xxx_HandleMurphy+F80j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DB68
 		mov	word ptr _levelmap[esi], 0
 
@@ -4130,7 +4094,7 @@ loc_3DB9E:
 loc_3DBAF:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi - 2], 1
-		cmp	byte ptr _levelmap[esi - 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
 		jz	short loc_3DBC8
 		mov	word ptr _levelmap[esi - 4], 0
 
@@ -4148,7 +4112,7 @@ loc_3DBDC:
 loc_3DBED:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi + 2], 1
-		cmp	byte ptr _levelmap[esi + 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
 		jz	short loc_3DC06
 		mov	word ptr _levelmap[esi + 4], 0
 
@@ -4166,7 +4130,7 @@ loc_3DC1A:
 loc_3DC2B:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi - 2], 8
-		cmp	byte ptr _levelmap[esi - 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
 		jz	short loc_3DC44
 		mov	word ptr _levelmap[esi - 4], 0
 
@@ -4184,7 +4148,7 @@ loc_3DC58:
 loc_3DC69:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi + 2], 8
-		cmp	byte ptr _levelmap[esi + 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
 		jz	short loc_3DC82
 		mov	word ptr _levelmap[esi + 4], 0
 
@@ -4202,7 +4166,7 @@ loc_3DC96:
 loc_3DCA7:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_BOOM
 		jz	short loc_3DCC0
 		mov	word ptr _levelmap[esi - (4 * MAP_WIDTH)], 0
 
@@ -4220,7 +4184,7 @@ loc_3DCD4:
 loc_3DCE5:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi - 2], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi - 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
 		jz	short loc_3DCFE
 		mov	word ptr _levelmap[esi - 4], 0
 
@@ -4238,7 +4202,7 @@ loc_3DD12:
 loc_3DD23:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_BOOM
 		jz	short loc_3DD3C
 		mov	word ptr _levelmap[esi + (4 * MAP_WIDTH)], 0
 
@@ -4256,7 +4220,7 @@ loc_3DD50:
 loc_3DD61:
 		mov	word ptr _levelmap[esi], 3
 		mov	word ptr _levelmap[esi + 2], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi + 4], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
 		jz	short loc_3DD7A
 		mov	word ptr _levelmap[esi + 4], 0
 
@@ -4304,7 +4268,7 @@ loc_3DDFF:				; CODE XREF: xxx_HandleMurphy+1399j
 		;call	sub_3EC01
 
 loc_3DE02:				; CODE XREF: xxx_HandleMurphy+F88j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
 		jz	short locret_3DE0F
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 
@@ -4321,7 +4285,7 @@ loc_3DE1B:				; CODE XREF: xxx_HandleMurphy+13B5j
 		;call	sub_3EC01
 
 loc_3DE1E:				; CODE XREF: xxx_HandleMurphy+F90j
-		cmp	byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
 		jz	short locret_3DE2B
 		mov	word ptr _levelmap[esi - 2], 0
 
@@ -4338,7 +4302,7 @@ loc_3DE37:				; CODE XREF: xxx_HandleMurphy+13D1j
 		;call	sub_3EC01
 
 loc_3DE3A:				; CODE XREF: xxx_HandleMurphy+FA0j
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
 		jz	short locret_3DE47
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
 
@@ -4355,7 +4319,7 @@ loc_3DE53:
 		;call	sub_3EC01
 
 loc_3DE56:
-		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
 		jz	short locret_3DE63
 		mov	word ptr _levelmap[esi + 2], 0
 
@@ -4364,7 +4328,7 @@ locret_3DE63:				; CODE XREF: xxx_HandleMurphy+13FBj
 
 
 loc_3DE64:				; CODE XREF: xxx_HandleMurphy+FE0j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DE71
 		mov	word ptr _levelmap[esi], 0
 
@@ -4382,7 +4346,7 @@ locret_3DE91:
 		ret
 
 loc_3DE92:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DE9F
 		mov	word ptr _levelmap[esi], 0
 
@@ -4400,7 +4364,7 @@ locret_3DEBE:
 		ret
 
 loc_3DEBF:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DECC
 		mov	word ptr _levelmap[esi], 0
 
@@ -4418,7 +4382,7 @@ locret_3DEEC:
 		ret
 
 loc_3DEED:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DEFA
 		mov	word ptr _levelmap[esi], 0
 
@@ -4437,7 +4401,7 @@ locret_3DF19:				; CODE XREF: xxx_HandleMurphy+14AEj
 
 
 loc_3DF1A:				; CODE XREF: xxx_HandleMurphy+1000j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DF27
 		mov	word ptr _levelmap[esi], 0
 
@@ -4450,7 +4414,7 @@ loc_3DF27:				; CODE XREF: xxx_HandleMurphy+14BFj
 
 
 loc_3DF38:				; CODE XREF: xxx_HandleMurphy+1008j
-		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
 		jz	short loc_3DF45
 		mov	word ptr _levelmap[esi + 2], 0
 
@@ -4462,7 +4426,7 @@ loc_3DF45:				; CODE XREF: xxx_HandleMurphy+14DDj
 
 
 loc_3DF53:				; CODE XREF: xxx_HandleMurphy+1010j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DF60
 		mov	word ptr _levelmap[esi], 0
 
@@ -4475,7 +4439,7 @@ loc_3DF60:				; CODE XREF: xxx_HandleMurphy+14F8j
 
 
 loc_3DF71:				; CODE XREF: xxx_HandleMurphy+1018j
-		cmp	byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
 		jz	short loc_3DF7E
 		mov	word ptr _levelmap[esi - 2], 0
 
@@ -4487,7 +4451,7 @@ loc_3DF7E:				; CODE XREF: xxx_HandleMurphy+1516j
 
 
 loc_3DF8C:				; CODE XREF: xxx_HandleMurphy+1020j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3DF99
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 
@@ -4498,7 +4462,7 @@ loc_3DF99:				; CODE XREF: xxx_HandleMurphy+1531j
 
 
 loc_3DFA1:				; CODE XREF: xxx_HandleMurphy+1028j
-		cmp	byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
 		jz	short loc_3DFAE
 		mov	word ptr _levelmap[esi - 2], 0
 
@@ -4509,7 +4473,7 @@ loc_3DFAE:				; CODE XREF: xxx_HandleMurphy+1546j
 
 
 loc_3DFB6:				; CODE XREF: xxx_HandleMurphy+1030j
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3DFC3
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
 
@@ -4520,7 +4484,7 @@ loc_3DFC3:
 
 
 loc_3DFCB:
-		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
 		jz	short loc_3DFD8
 		mov	word ptr _levelmap[esi + 2], 0
 
@@ -4530,7 +4494,7 @@ loc_3DFD8:
 		ret
 
 loc_3DFE0:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3DFED
 		mov	word ptr _levelmap[esi], 0
 
@@ -4541,7 +4505,7 @@ loc_3DFED:
 		ret
 
 loc_3DFFD:
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3E00A
 		mov	word ptr _levelmap[esi], 0
 
@@ -4553,7 +4517,7 @@ loc_3E00A:				; CODE XREF: xxx_HandleMurphy+15A2j
 
 
 loc_3E01A:				; CODE XREF: xxx_HandleMurphy+1050j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3E027
 		mov	word ptr _levelmap[esi], 0
 
@@ -4565,7 +4529,7 @@ loc_3E027:				; CODE XREF: xxx_HandleMurphy+15BFj
 
 
 loc_3E037:				; CODE XREF: xxx_HandleMurphy+1058j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3E044
 		mov	word ptr _levelmap[esi], 0
 
@@ -4577,7 +4541,7 @@ loc_3E044:				; CODE XREF: xxx_HandleMurphy+15DCj
 
 
 loc_3E054:				; CODE XREF: xxx_HandleMurphy+1060j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3E061
 		mov	word ptr _levelmap[esi], 0
 
@@ -4588,30 +4552,30 @@ loc_3E061:				; CODE XREF: xxx_HandleMurphy+15F9j
 		ret
 
 
-loc_3E071:				; CODE XREF: xxx_HandleMurphy+1068j
-		cmp	byte ptr _levelmap[esi], MAP_RED_LAMP
+loc_3E071:
+		cmp	byte ptr _levelmap[esi], MAP_BOOM
 		jz	short loc_3E07E
-		mov	word ptr _levelmap[esi], 0
+		mov	word ptr _levelmap[esi], MAP_SPACE
 
-loc_3E07E:				; CODE XREF: xxx_HandleMurphy+1616j
-		mov	word ptr _levelmap[esi + 2], 3
-		mov	word ptr _levelmap[esi + 4], 8
-		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH + 4], 0
+loc_3E07E:
+		mov	word ptr _levelmap[esi + 2], MAP_MURPHY
+		mov	word ptr _levelmap[esi + 4], MAP_DISK_ORANGE
+		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH + 4], MAP_SPACE
 		jnz	short loc_3E09B
-		mov	byte ptr _levelmap[esi + 5], 20h ; ' '
+		mov	byte ptr _levelmap[esi + 5], 20h
 		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 5], 8
 
-loc_3E09B:				; CODE XREF: xxx_HandleMurphy+162Fj
+loc_3E09B:
 		add	esi, 2
 		ret
 
 
-loc_3E09F:				; CODE XREF: xxx_HandleMurphy+1070j
-		mov	word ptr _levelmap[esi], 3
+loc_3E09F:
+		mov	word ptr _levelmap[esi], MAP_MURPHY
 		mov	byte ptr [RedDiskDetonateTimer], 2
 		dec	byte ptr [NumRedDisks]
 		;call	sub_3EC91
-		;call	SND_mmm
+		call	_SND_PlayObjectPushSound
 		ret
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
@@ -4619,25 +4583,25 @@ loc_3E09F:				; CODE XREF: xxx_HandleMurphy+1070j
 sub_3E0D7	proc near
 
 		cmp	ax, 0FFFFh
-		jz	short loc_3E14E
+		je	short loc_3E14E
 		cmp	ax, 0AAAAh
-		jz	short loc_3E14E
+		je	short loc_3E14E
 		cmp	ah, 0
-		jz	short loc_3E14E
-		cmp	al, 1
-		jz	short loc_3E107
-		cmp	al, MAP_RED_LAMP
-		jz	short loc_3E150
-		cmp	al, 8
-		jz	short loc_3E14E
-		cmp	al, 9
-		jz	short loc_3E14E
-		cmp	al, 0Ah
-		jz	short loc_3E14E
+		je	short loc_3E14E
+		cmp	al, MAP_ZONK
+		je	short loc_3E107
+		cmp	al, MAP_BOOM
+		je	short loc_3E150
+		cmp	al, MAP_DISK_ORANGE
+		je	short loc_3E14E
+		cmp	al, MAP_PORT_LEFT_TO_RIGHT
+		je	short loc_3E14E
+		cmp	al, MAP_PORT_UP_TO_DOWN
+		je	short loc_3E14E
 		cmp	al, MAP_PORT_RIGHT_TO_LEFT
-		jz	short loc_3E14E
-		cmp	al, 0Ch
-		jz	short loc_3E14E
+		je	short loc_3E14E
+		cmp	al, MAP_PORT_DOWN_TO_UP
+		je	short loc_3E14E
 		call	CreateExplosion
 		stc
 		ret
@@ -5021,7 +4985,7 @@ SnikSnakHandler_3:
 		shr	ebx, 1
 		cmp	bl, 7
 		jnz	short loc_3E426
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3E426
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
 
@@ -5084,7 +5048,7 @@ SnikSnakHandler_4 proc near
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E4CC
-		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
 		jz	short loc_3E4CC
 		mov	word ptr _levelmap[esi + 2], 0
 
@@ -5147,7 +5111,7 @@ SnikSnakHandler_5 proc near
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E579
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3E579
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 
@@ -5211,7 +5175,7 @@ SnikSnakHandler_6 proc near
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E620
-		cmp	byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
 		jz	short loc_3E620
 		mov	word ptr _levelmap[esi - 2], 0
 
@@ -5471,7 +5435,7 @@ ElectronHandler_3 proc near
 		shr	ebx, 1
 		cmp	bl, 7
 		jnz	short loc_3E897
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3E897
 		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
 
@@ -5535,7 +5499,7 @@ ElectronHandler_4 proc near
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E93D
-		cmp	byte ptr _levelmap[esi + 2], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
 		jz	short loc_3E93D
 		mov	word ptr _levelmap[esi + 2], 0
 
@@ -5608,7 +5572,7 @@ ElectronHandler_5 proc near
 		inc	bl
 		cmp	bl, 7
 		jnz	short loc_3E9EA
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_RED_LAMP
+		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
 		jz	short loc_3E9EA
 		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
 
@@ -5673,7 +5637,7 @@ ElectronHandler_6 proc near
 			inc		bl
 			cmp		bl, 7
 			jne		short @@1
-			cmp		byte ptr _levelmap[esi - 2], MAP_RED_LAMP
+			cmp		byte ptr _levelmap[esi - 2], MAP_BOOM
 			je		short @@1
 			mov		word ptr _levelmap[esi - 2], MAP_SPACE
 @@1:		cmp		bl, 8
@@ -5759,7 +5723,12 @@ _SupaplexYawnTimeout label word
 SupaplexYawnTimeout	dw 0
 
 word_403BF	dw 0
+
+_PlayerExploded label word
+PlayerExploded	dw 0
+
 PlayerDied	dw 0
+
 byte_403C3	db 0
 byte_403C7	db 0
 byte_403C8	db 0
@@ -5865,7 +5834,10 @@ word_40CF7	dw 1
 
 levelmap label word
 _levelmap	dw 1536 dup(0)
-SomeLevelData	db 1536	dup(0)
+
+ActiveExplosions label byte
+_ActiveExplosions	db 1536	dup(0)
+
 RandomSeed	dw 0
 word_4C47B	dw 0
 word_4C47D	dw 0
@@ -5887,7 +5859,7 @@ stru_4042E      dw ANIM_MOVE_DOWN_L, 8, 0, 2
 stru_4043E      dw ANIM_MOVE_DOWN_R, 8, 0, 2
                 ; ! Move right, eat nothing
 stru_4044E      dw ANIM_MOVE_RIGHT, 8, 2, 0
-                ; + Exit the level
+                ; ! Exit the level
 stru_4045E      dw ANIM_EXIT, 41, 0, 0
                 ; ! Move up (looking left), eat base
 stru_4046E      dw ANIM_EATBASE_UP_L, 8, 0, -2
@@ -5901,13 +5873,13 @@ stru_4049E      dw ANIM_EATBASE_DOWN_L, 8, 0, 2
 stru_404AE      dw ANIM_EATBASE_DOWN_R, 8, 0, 2
 				; ! Move right, eat base
 stru_404BE      dw ANIM_EATBASE_RIGHT, 8, 2, 0
-                ; + Eat base at top
+                ; ! Eat base at top
 stru_404CE      dw ANIM_EATBASE_ATTOP, 8, 0, 0
-                ; + Eat base at left
+                ; ! Eat base at left
 stru_404DE      dw ANIM_EATBASE_ATLEFT, 8, 0, 0
-                ; + Eat base at bottom
+                ; ! Eat base at bottom
 stru_404EE      dw ANIM_EATBASE_ATBOTTOM, 8, 0, 0
-                ; + Eat base at right
+                ; ! Eat base at right
 stru_404FE      dw ANIM_EATBASE_ATRIGHT, 8, 0, 0
                 ; ! Move up (looking left), eat infotron
 stru_4050E      dw ANIM_EATINFOTRON_UP_L, 8, 0, -2
@@ -5921,13 +5893,13 @@ stru_4053E      dw ANIM_EATINFOTRON_DOWN_L, 8, 0, 2
 stru_4054E      dw ANIM_EATINFOTRON_DOWN_R, 8, 0, 2
                 ; ! Move right, eat infotron
 stru_4055E      dw ANIM_EATINFOTRON_RIGHT, 8, 2, 0
-                ; + Eat infotron at top
+                ; ! Eat infotron at top
 stru_4056E      dw ANIM_EATINFOTRON_ATTOP, 8, 0, 0
-                ; + Eat infotron at left
+                ; ! Eat infotron at left
 stru_4057E      dw ANIM_EATINFOTRON_ATLEFT, 8, 0, 0
-                ; + Eat infotron at bottom
+                ; ! Eat infotron at bottom
 stru_4058E      dw ANIM_EATINFOTRON_ATBOTTOM, 8, 0, 0
-                ; + Eat infotron at right
+                ; ! Eat infotron at right
 stru_4059E      dw ANIM_EATINFOTRON_ATRIGHT, 8, 0, 0
                 ; ! Shift zonk left
 stru_405AE      dw ANIM_SHIFTZONK_LEFT, 8, -2, 0
@@ -5945,21 +5917,21 @@ stru_405FE      dw ANIM_TELEPORT_RIGHT, 8, 4, 0
 stru_4060E      dw ANIM_EATDISK_UP_L, 8, 0, -2
                 ; ! Move up (looking right), eat red disk
 stru_4061E      dw ANIM_EATDISK_UP_R, 8, 0, -2
-                ; + Move left, eat red disk
+                ; ! Move left, eat red disk
 stru_4062E      dw ANIM_EATDISK_LEFT, 8, -2, 0
                 ; ! Move down (looking left), eat red disk
 stru_4063E      dw ANIM_EATDISK_DOWN_L, 8, 0, 2
                 ; ! Move down (looking right), eat red disk
 stru_4064E      dw ANIM_EATDISK_DOWN_R, 8, 0, 2
-                ; + Move right, eat red disk
+                ; ! Move right, eat red disk
 stru_4065E      dw ANIM_EATDISK_RIGHT, 8, 2, 0
-                ; + Eat red disk at top
+                ; ! Eat red disk at top
 stru_4066E      dw ANIM_EATDISK_ATTOP, 8, 0, 0 
-                ; + Eat red disk at left
+                ; ! Eat red disk at left
 stru_4067E      dw ANIM_EATDISK_ATLEFT, 8, 0, 0
-                ; + Eat red disk at bottom
+                ; ! Eat red disk at bottom
 stru_4068E      dw ANIM_EATDISK_ATBOTTOM, 8, 0, 0
-                ; + Eat red disk at right
+                ; ! Eat red disk at right
 stru_4069E      dw ANIM_EATDISK_ATRIGHT, 8, 0, 0
                 ; ! Shift yellow disk up
 stru_406AE      dw ANIM_SHIFTYELLOWDISK_UP, 8, 0, -2
@@ -5973,7 +5945,7 @@ stru_406DE      dw ANIM_SHIFTYELLOWDISK_RIGHT, 8, 2, 0
 stru_406EE      dw ANIM_SHIFTORANGEDISK_LEFT, 8, -2, 0
                 ; ! Shift orange disk right
 stru_406FE      dw ANIM_SHIFTORANGEDISK_RIGHT, 8, 2, 0
-                ; + Place red disk
+                ; ! Place red disk
 stru_4070E      dw ANIM_PLACEREDDISK, 2, 0, 0
 
 		end
