@@ -174,6 +174,50 @@ MAP_RAM_CHIP_TOP				= 38
 MAP_RAM_CHIP_BOTTOM				= 39
 MAP_INVISIBLE_WALL				= 40
 
+; enum MURPHY_ANIM
+MURPHY_ANIM_MOVE_UP_EAT_SPACE	= 1
+MURPHY_ANIM_MOVE_LEFT_EAT_SPACE	= 2
+MURPHY_ANIM_MOVE_DOWN_EAT_SPACE	= 3
+MURPHY_ANIM_MOVE_RIGHT_EAT_SPACE= 4
+MURPHY_ANIM_MOVE_UP_EAT_BASE	= 5
+MURPHY_ANIM_MOVE_LEFT_EAT_BASE	= 6
+MURPHY_ANIM_MOVE_DOWN_EAT_BASE	= 7
+MURPHY_ANIM_MOVE_RIGHT_EAT_BASE	= 8
+MURPHY_ANIM_MOVE_UP_EAT_INFTR	= 9
+MURPHY_ANIM_MOVE_LEFT_EAT_INFTR	= 10
+MURPHY_ANIM_MOVE_DOWN_EAT_INFTR	= 11
+MURPHY_ANIM_MOVE_RIGHT_EAT_INFTR= 12
+MURPHY_ANIM_EXIT				= 13
+MURPHY_ANIM_SHIFT_ZONK_LEFT		= 14
+MURPHY_ANIM_SHIFT_ZONK_RIGHT	= 15
+MURPHY_ANIM_EAT_BASE_TOP		= 16
+MURPHY_ANIM_EAT_BASE_LEFT		= 17
+MURPHY_ANIM_EAT_BASE_BOTTOM		= 18
+MURPHY_ANIM_EAT_BASE_RIGHT		= 19
+MURPHY_ANIM_EAT_INFOTRON_TOP	= 20
+MURPHY_ANIM_EAT_INFOTRON_LEFT	= 21
+MURPHY_ANIM_EAT_INFOTRON_BOTTOM	= 22
+MURPHY_ANIM_EAT_INFOTRON_RIGHT	= 23
+MURPHY_ANIM_TELEPORT_UP			= 24
+MURPHY_ANIM_TELEPORT_LEFT		= 25
+MURPHY_ANIM_TELEPORT_DOWN		= 26
+MURPHY_ANIM_TELEPORT_RIGHT		= 27
+MURPHY_ANIM_MOVE_UP_EAT_BOMB	= 28
+MURPHY_ANIM_MOVE_LEFT_EAT_BOMB	= 29
+MURPHY_ANIM_MOVE_DOWN_EAT_BOMB	= 30
+MURPHY_ANIM_MOVE_RIGHT_EAT_BOMB	= 31
+MURPHY_ANIM_EAT_BOMB_TOP		= 32
+MURPHY_ANIM_EAT_BOMB_LEFT		= 33
+MURPHY_ANIM_EAT_BOMB_BOTTOM		= 34
+MURPHY_ANIM_EAT_BOMB_RIGHT		= 35
+MURPHY_ANIM_MOVE_YELLOW_DISK_UP	= 36
+MURPHY_ANIM_MOVE_YELLOW_DISK_LF	= 37
+MURPHY_ANIM_MOVE_YELLOW_DISK_RT	= 38
+MURPHY_ANIM_MOVE_YELLOW_DISK_DN	= 39
+MURPHY_ANIM_SHIFT_ORANGE_DISK_LF= 40
+MURPHY_ANIM_SHIFT_ORANGE_DISK_RT= 41
+MURPHY_ANIM_PUT_BOMB			= 42
+
 ; enum JOYSTICK_BUTTON_CODE
 JB_UP							= 1
 JB_LEFT							= 2
@@ -192,326 +236,308 @@ MAP_NUM_CELLS	 = 1440
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
-handleZonk	proc near
+HandleZonk	proc near
 
 			cmp		byte ptr _levelmap[esi], MAP_ZONK
-			je		short @@1
-			ret
-@@1:		mov		ax,	word ptr _levelmap[esi]
+			jne		@@done
+			mov		ax,	word ptr _levelmap[esi]
 			cmp		ax, MAP_ZONK
-			je		short @@2
-			jmp		@@12
-@@2:		cmp		byte ptr [byte_40325], 2
-			jne		short @@3
-			ret
-@@3:		mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
+			jne		@@7
+			cmp		byte ptr [byte_40325], 2
+			je		@@done
+			mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
 			cmp		ax, MAP_SPACE
-			je		short @@6
+			je		short @@3
 			cmp		ax, MAP_ZONK
-			je		short @@4
+			je		short @@1
 			cmp		ax, MAP_INFOTRON
-			je		short @@4
+			je		short @@1
 			cmp		ax, MAP_RAM_CHIP
+			jne		@@done
+@@1:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
 			je		short @@4
-			ret
-@@4:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
-			je		short @@7
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
-			je		short @@7
+			je		short @@4
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
-			je		short @@7
-@@5:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
-			je		short @@9
+			je		short @@4
+@@2:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
+			je		short @@5
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
-			je		short @@9
+			je		short @@5
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0AAAAh
-			je		short @@9
+			je		short @@5
 			ret
-@@6:		mov		byte ptr _levelmap[esi + 1], 40h
-			jmp		short @@12
-@@7:		cmp		word ptr _levelmap[esi - 2], MAP_SPACE
-			je		short @@8
-			jmp		short @@5
-@@8:		mov		byte ptr _levelmap[esi + 1], 50h
+
+@@3:		mov		byte ptr _levelmap[esi + 1], 40h
+			jmp		short @@7
+
+@@4:		cmp		word ptr _levelmap[esi - 2], MAP_SPACE
+			jne		short @@2
+			mov		byte ptr _levelmap[esi + 1], 50h
 			mov		word ptr _levelmap[esi - 2], 8888h
-			jmp		short @@12
-@@9:		cmp		word ptr _levelmap[esi + 2], MAP_SPACE
-			je		short @@11
+			jmp		short @@7
+
+@@5:		cmp		word ptr _levelmap[esi + 2], MAP_SPACE
+			je		short @@6
 			cmp		word ptr _levelmap[esi + 2], 9999h
-			jne		short @@10
+			jne		@@done
 			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 2)], MAP_ZONK
-			jz		short @@11
-@@10:		ret
-@@11:		mov		byte ptr _levelmap[esi + 1], 60h
+			jne		@@done
+@@6:		mov		byte ptr _levelmap[esi + 1], 60h
 			mov		word ptr _levelmap[esi + 2], 8888h
-			jmp		short @@12
-@@12:		mov		bl, byte ptr _levelmap[esi + 1]
-			xor		bh, bh
+@@7:		movzx	ebx, byte ptr _levelmap[esi + 1]
 			mov		al, bl
 			and		al, 0F0h
 			cmp		al, 10h
-			jne		short @@13
-			jmp		short @@21
-@@13:		cmp		al, 20h
-			jne		short @@14
-			jmp		loc_37BA3
-@@14:		cmp		al, 30h
-			jne		short @@15
-			jmp		loc_37C08
-@@15:		cmp		byte ptr [byte_40325], 2
-			jne		short @@16
+			je		short @@8
+			cmp		al, 20h
+			je		@@22
+			cmp		al, 30h
+			je		@@26
+			cmp		byte ptr [byte_40325], 2
+			je		@@done
+			cmp		al, 40h
+			je		@@30
+			cmp		al, 50h
+			je		@@33
+			cmp		al, 60h
+			je		@@37
+			cmp		al, 70h
+			je		@@41
 			ret
-@@16:		cmp		al, 40h
-			jne		short @@17
-			jmp		loc_37C6D
-@@17:		cmp		al, 50h
-			jne		short @@18
-			jmp		loc_37C9B
-@@18:		cmp		al, 60h
-			jne		short @@19
-			jmp		loc_37D09
-@@19:		cmp		al, 70h
-			jne		short @@20
-			jmp		loc_37D77
-@@20:		ret
-@@21:		xor		bh, bh
-			shl		bl, 1
-			shl		bl, 1
-			and		bl, 1Fh
-			mov		bl, byte ptr _levelmap[esi + 1]
+
+@@8:		movzx	ebx, byte ptr _levelmap[esi + 1]
 			inc		bl
 			cmp		bl, 16h
-			jnz		short loc_37A4B
+			jnz		short @@9
 			mov		byte ptr _levelmap[esi + 1], bl
 			sub		esi, 2 * MAP_WIDTH
 			call	sub_3826F
 			add		esi, 2 * MAP_WIDTH
 			ret
-loc_37A4B:	cmp		bl, MAP_ELECTRON
-			jge		short loc_37A55
+
+@@9:		cmp		bl, 18h
+			jge		short @@10
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37A55:	mov		byte ptr _levelmap[esi + 1], 0
+
+@@10:		mov		byte ptr _levelmap[esi + 1], 0
 			cmp		byte ptr [byte_40325], 2
-			jne		short loc_37A62
-			ret
-loc_37A62:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
-			jne		short loc_37A6C
-			jmp		loc_37AFD
-loc_37A6C:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
-			jne		short loc_37A77
-			jmp		loc_37AFD
-loc_37A77:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
-			jne		short loc_37A81
-			jmp		loc_37B34
-loc_37A81:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SNIK_SNAK
-			jne		short loc_37A8B
-			jmp		loc_37B8E
-loc_37A8B:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 200h + 0BBh
-			jne		short loc_37A96
-			jmp		loc_37B56
-loc_37A96:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 400h + 0BBh
-			jne		short loc_37AA1
-			jmp		loc_37B72
-loc_37AA1:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
-			jne		short loc_37AAB
-			jmp		loc_37B8E
-loc_37AAB:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_ORANGE
-			jne		short loc_37AB5
-			jmp		loc_37B95
-loc_37AB5:	call	_SND_PlayZonkFallSound
+			je		@@done
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+			je		@@12
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
+			je		@@12
+			cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			je		@@15
+			cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SNIK_SNAK
+			je		@@20
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 200h + 0BBh
+			je		@@16
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 400h + 0BBh
+			je		@@18
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
+			je		@@20
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_ORANGE
+			je		@@21
+			call	_SND_PlayZonkFallSound
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ZONK
-			je		short loc_37ACE
+			je		short @@11
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_INFOTRON
-			je		short loc_37ACE
+			je		short @@11
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_RAM_CHIP
-			je		short loc_37ACE
+			je		short @@11
 			ret
-loc_37ACE:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
-			je		short loc_37B0A
+
+@@11:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
+			je		short @@13
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 8888h
-			je		short loc_37B0A
+			je		short @@13
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], 0AAAAh
-			je		short loc_37B0A
+			je		short @@13
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
-			je		short loc_37B20
+			je		short @@14
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 8888h
-			je		short loc_37B20
+			je		short @@14
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], 0AAAAh
-			je		short loc_37B20
+			je		short @@14
 			ret
-loc_37AFD:	mov		word ptr _levelmap[esi], 7000h + MAP_ZONK
+
+@@12:		mov		word ptr _levelmap[esi], 7000h + MAP_ZONK
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
 			ret
-loc_37B0A:	cmp		word ptr _levelmap[esi - 2], MAP_SPACE
-			je		short loc_37B14
-			jmp		@@5
-loc_37B14:	mov		byte ptr _levelmap[esi + 1], 50h
+
+@@13:		cmp		word ptr _levelmap[esi - 2], MAP_SPACE
+			jne		@@2
+			mov		byte ptr _levelmap[esi + 1], 50h
 			mov		word ptr _levelmap[esi - 2], 8888h
 			ret
-loc_37B20:	cmp		word ptr _levelmap[esi + 2], 0
-			jz		short loc_37B28
-			ret
-loc_37B28:	mov		byte ptr _levelmap[esi + 1], 60h
+
+@@14:		cmp		word ptr _levelmap[esi + 2], MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi + 1], 60h
 			mov		word ptr _levelmap[esi + 2], 8888h
 			ret
-loc_37B34:	mov		bl, byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1]
+
+@@15:		mov		bl, byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1]
 			cmp		bl, 0Eh
-			je		locret_37BA2
+			je		@@done
 			cmp		bl, 0Fh
-			je		locret_37BA2
+			je		@@done
 			cmp		bl, 28h
-			je		short locret_37BA2
+			je		@@done
 			cmp		bl, 29h
-			je		short locret_37BA2
+			je		@@done
 			cmp		bl, 25h
-			je		short locret_37BA2
+			je		@@done
 			cmp		bl, 26h
-			je		short locret_37BA2
-loc_37B56:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_ELECTRON
-			jne		short loc_37B63
+			je		@@done
+@@16:		cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_ELECTRON
+			jne		short @@17
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
-loc_37B63:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_BOOM
-			je		short loc_37B70
+@@17:		cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_BOOM
+			je		short @@20
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
-loc_37B70:	jmp		short loc_37B8E
-loc_37B72:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_ELECTRON
-			jne		short loc_37B7F
+			jmp		short @@20
+
+@@18:		cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_ELECTRON
+			jne		short @@19
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_ELECTRON
-loc_37B7F:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_BOOM
-			je		short loc_37B8C
+@@19:		cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_BOOM
+			je		short @@20
 			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
-loc_37B8C:	jmp		short loc_37B8E
-loc_37B8E:	add		esi, 2 * MAP_WIDTH
+			jmp		short @@20
+
+@@20:		add		esi, 2 * MAP_WIDTH
 			call	CreateExplosion
 			ret
-loc_37B95:	add		esi, 2 * MAP_WIDTH
+
+@@21:		add		esi, 2 * MAP_WIDTH
 			mov		ebx, esi
 			shr		ebx, 1
 			mov		byte ptr ActiveExplosions[ebx], 6
 			ret
-locret_37BA2:
-			ret
-loc_37BA3:	and		bl, 7
-			shl		bl, 1
-			xor		bh, bh
-			mov		bl, byte ptr _levelmap[esi + 1]
+
+@@22:		movzx	ebx, byte ptr _levelmap[esi + 1]
 			inc		bl
 			cmp		bl, 24h
-			jnz		short loc_37BDB
+			jne		short @@23
 			mov		word ptr _levelmap[esi + 2], 0AAAAh
-loc_37BDB:	cmp		bl, 26h
-			jnz		short loc_37BEE
+@@23:		cmp		bl, 26h
+			jnz		short @@24
 			mov		byte ptr _levelmap[esi + 1], bl
 			add		esi, 2
 			call	sub_3826F
 			sub		esi, 2
 			ret
-loc_37BEE:	cmp		bl, 28h
-			jge		short loc_37BF8
+@@24:		cmp		bl, 28h
+			jge		short @@25
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37BF8:	mov		word ptr _levelmap[esi], 0FFFFh
+
+@@25:		mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
 			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
 			ret
-loc_37C08:	and		bl, 7
-			shl		bl, 1
-			xor		bh, bh
-			mov		bl, byte ptr _levelmap[esi + 1]
+
+@@26:		movzx	ebx, byte ptr _levelmap[esi + 1]
 			inc		bl
 			cmp		bl, 34h
-			jne		short loc_37C40
+			jne		short @@27
 			mov		word ptr _levelmap[esi - 2], 0AAAAh
-loc_37C40:	cmp		bl, 36h
-			jnz		short loc_37C53
+@@27:		cmp		bl, 36h
+			jnz		short @@28
 			mov		byte ptr _levelmap[esi + 1], bl
 			sub		esi, 2
 			call	sub_3826F
 			add		esi, 2
 			ret
-loc_37C53:	cmp		bl, 38h
-			jge		short loc_37C5D
+
+@@28:		cmp		bl, 38h
+			jge		short @@29
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37C5D:	mov		word ptr _levelmap[esi], 0FFFFh
+
+@@29:		mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, MAP_WIDTH * 2
 			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
 			ret
-loc_37C6D:	inc		bl
+
+@@30:		inc		bl
 			cmp		bl, 42h
-			jge		short loc_37C79
+			jge		short @@31
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37C79:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
-			jz		short loc_37C87
+
+@@31:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+			je		short @@32
 			dec		bl
 			mov		byte ptr _levelmap[esi + 1], bl
 			ret
-loc_37C87:	mov		word ptr _levelmap[esi], 0FFFFh
-			add		esi, 2 * MAP_WIDTH
-			mov		byte ptr _levelmap[esi], 1
-			mov		byte ptr _levelmap[esi + 1], 10h
-			ret
-loc_37C9B:	xor		bh, bh
-			and		bl, 0Fh
-			shl		bl, 1
-			mov		bl, byte ptr _levelmap[esi + 1]
-			inc		bl
-			cmp		bl, 52h
-			jge		short loc_37CD2
-			mov		byte ptr _levelmap[esi + 1], bl
-			ret
-loc_37CD2:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
-			jne		short loc_37D02
-			cmp		word ptr _levelmap[esi - 2], MAP_SPACE
-			je		short loc_37CE8
-			cmp		word ptr _levelmap[esi - 2], 8888h
-			jne		short loc_37D02
-loc_37CE8:	mov		word ptr _levelmap[esi], 0FFFFh
-			sub		esi, 2
-			mov		byte ptr _levelmap[esi], 1
-			mov		byte ptr _levelmap[esi + 1], 22h
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0FFFFh
-			ret
-loc_37D02:	dec		bl
-			mov		byte ptr _levelmap[esi + 1], bl
-			ret
-loc_37D09:	xor		bh, bh
-			and		bl, 7
-			shl		bl, 1
-			mov		bl, byte ptr _levelmap[esi + 1]
-			inc		bl
-			cmp		bl, 62h
-			jge		short loc_37D40
-			mov		byte ptr _levelmap[esi + 1], bl
-			ret
-loc_37D40:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
-			jne		short loc_37D70
-			cmp		word ptr _levelmap[esi + 2], MAP_SPACE
-			je		short loc_37D56
-			cmp		word ptr _levelmap[esi + 2], 8888h
-			jne		short loc_37D70
-loc_37D56:	mov		word ptr _levelmap[esi], 0FFFFh
-			add		esi, 2
-			mov		byte ptr _levelmap[esi], MAP_ZONK
-			mov		byte ptr _levelmap[esi + 1], 32h
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0FFFFh
-			ret
-loc_37D70:	dec		bl
-			mov		byte ptr _levelmap[esi + 1], bl
-			ret
-loc_37D77:	cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
-			je		short loc_37D87
-			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
-			je		short loc_37D87
-			ret
-loc_37D87:	mov		word ptr _levelmap[esi], 0FFFFh
+
+@@32:		mov		word ptr _levelmap[esi], 0FFFFh
 			add		esi, 2 * MAP_WIDTH
 			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
-			jmp		@@21
+			ret
 
-handleZonk	endp
+@@33:		movzx	ebx, byte ptr _levelmap[esi + 1]
+			inc		bl
+			cmp		bl, 52h
+			jge		short @@34
+			mov		byte ptr _levelmap[esi + 1], bl
+			ret
+
+@@34:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH - 2], MAP_SPACE
+			jne		short @@36
+			cmp		word ptr _levelmap[esi - 2], MAP_SPACE
+			je		short @@35
+			cmp		word ptr _levelmap[esi - 2], 8888h
+			jne		short @@36
+@@35:		mov		word ptr _levelmap[esi], 0FFFFh
+			sub		esi, 2
+			mov		word ptr _levelmap[esi], 2200h + MAP_ZONK
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0FFFFh
+			ret
+
+@@36:		dec		bl
+			mov		byte ptr _levelmap[esi + 1], bl
+			ret
+
+@@37:		movzx	ebx, byte ptr _levelmap[esi + 1]
+			inc		bl
+			cmp		bl, 62h
+			jge		short @@38
+			mov		byte ptr _levelmap[esi + 1], bl
+			ret
+
+@@38:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 2], MAP_SPACE
+			jne		short @@40
+			cmp		word ptr _levelmap[esi + 2], MAP_SPACE
+			je		short @@39
+			cmp		word ptr _levelmap[esi + 2], 8888h
+			jne		short @@40
+@@39:		mov		word ptr _levelmap[esi], 0FFFFh
+			add		esi, 2
+			mov		word ptr _levelmap[esi], 3200h + MAP_ZONK
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 0FFFFh
+			ret
+
+@@40:		dec		bl
+			mov		byte ptr _levelmap[esi + 1], bl
+			ret
+
+@@41:		cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+			je		short @@42
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], 9999h
+			jne		short @@done
+@@42:		mov		word ptr _levelmap[esi], 0FFFFh
+			add		esi, 2 * MAP_WIDTH
+			mov		word ptr _levelmap[esi], 1000h + MAP_ZONK
+			jmp		@@8
+
+@@done:		ret
+
+HandleZonk	endp
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
@@ -967,7 +993,7 @@ _initplayerstate	proc near
 			mov		word ptr [PlayerIsLookingLeft], ax
 			mov		word ptr [PlayerDied], ax
 			mov		word ptr [PlayerExploded], ax
-			mov		word ptr [word_40C64], ax
+			mov		word ptr [PlayerCompletedLevel], ax
 			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], ax
 			mov		byte ptr [NumRedDisks], 0
 			mov		byte ptr [byte_40C6C], 0
@@ -988,7 +1014,7 @@ _initplayerstate	proc near
 			mov		byte ptr [byte_403A6], 0
 			mov		byte ptr [byte_403B0], 0
 			mov		byte ptr [byte_40C5A], 7Fh
-			mov		byte ptr [byte_40C5B], 0
+			mov		byte ptr [TerminalsActivated], 0
 			mov		word ptr [CurrentFrameNumber], 0
 			mov		byte ptr [byte_403B1], 1
 			mov		byte ptr [byte_403B2], 0
@@ -1072,16 +1098,16 @@ loc_38540:	dec		cx
 			pop		ecx
 			jmp		short loc_38540
 loc_38581:	cmp		word ptr [word_40CF3], 0
-			jz		short loc_38592
+			je		short loc_38592
 loc_38592:	inc		word ptr [CurrentFrameNumber]
-			cmp		word ptr [word_40C64], 1
-			jz		short loc_385B0
+			cmp		word ptr [PlayerCompletedLevel], 1
+			je		short loc_385B0
 			cmp		word ptr [TimeoutAfterWhichLeaveTheLevel], 0
-			jnz		short loc_385A7
+			jne		short loc_385A7
 			mov		eax, 1
 			jmp short locret
 loc_385A7:	dec		word ptr [TimeoutAfterWhichLeaveTheLevel]
-			jz		short loc_385B0
+			je		short loc_385B0
 			mov		eax, 1
 			jmp short locret
 loc_385B0:	;mov		[word_40392], 0
@@ -1116,7 +1142,7 @@ _runthelevel	endp
 MoveObjectsInTheLevel proc near
 
 			mov		esi, dword ptr [PlayerPosition_Ofs]
-			call	xxx_HandleMurphy
+			call	HandlePlayerMovement
 			mov		dword ptr [PlayerPosition_Ofs], esi
 			cmp		word ptr [word_40CF3], 0
 			jz		short loc_38E6D
@@ -1551,9 +1577,9 @@ loc_39350:
 		jmp	short loc_39398
 
 loc_39361:
-		cmp	word ptr [esi-2], 0
+		cmp	word ptr [esi - 2], 0
 		jnz	short loc_3936D
-		mov	byte ptr [esi+1], 1
+		mov	byte ptr [esi + 1], 1
 		jmp	short loc_39398
 
 loc_3936D:
@@ -2408,86 +2434,61 @@ _loadlevelmap	endp
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
-xxx_HandleMurphy proc near
+HandlePlayerMovement proc near
 
-			mov		word ptr [word_403BF], 1
+			mov		[word_403BF], 1
 			cmp		byte ptr _levelmap[esi], MAP_MURPHY
-			jz		short @@1
-			ret
-
-@@1:		mov		dword ptr [CurrentMurphyOfs], esi
+			jne		@@done
+			mov		[CurrentMurphyOfs], esi
 			mov		ax, word ptr _levelmap[esi]
 			cmp		ax, MAP_MURPHY
-			je		short @@2
-			jmp		loc_3D84B
-
-@@2:		mov		byte ptr [byte_403C8], 0
-			cmp		byte ptr [byte_4030C], 0
-			je		short @@3
+			jne		loc_3D84B
+			mov		[byte_403C8], 0
+			cmp		[byte_4030C], 0
+			je		short @@1
 			cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_PORT_DOWN_TO_UP
-			je		short @@3
+			je		short @@1
 			cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_PORT_VERTICAL
-			je		short @@3
+			je		short @@1
 			cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_PORT_CROSS
-			je		short @@3
+			je		short @@1
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
-			jne		short @@3
-			mov		byte ptr [byte_403C8], 1
-@@3:		mov		bl, byte ptr [_joystickbuttons]
+			jne		short @@1
+			mov		[byte_403C8], 1
+@@1:		mov		bl, [_joystickbuttons]
 			cmp		bl, 0
-			jne		loc_3CBEF
-			mov		byte ptr [byte_403C3], 1
-			cmp		byte ptr [byte_403C8], 0
-			jne		loc_3CF84
-			mov		ax, word ptr [CurrentFrameNumber]
+			jne		@@keypress
+			mov		[byte_403C3], 1
+			cmp		[byte_403C8], 0
+			jne		@@d_space
+			mov		ax, [CurrentFrameNumber]
 			and		ax, 3
-			je		short @@4
-			ret
-
-@@4:		inc		word ptr [SupaplexYawnTimeout]
-			cmp		word ptr [SupaplexYawnTimeout], 4
-			jnz		short loc_3CAEE
-			ret
-
-loc_3CAEE:	cmp		word ptr [SupaplexYawnTimeout], 500
-			jg		short loc_3CAF7
-			ret
-
-loc_3CAF7:	cmp		word ptr [SupaplexYawnTimeout], 522
-			jg		short loc_3CB20
-			ret
-
-loc_3CB20:	cmp		word ptr [SupaplexYawnTimeout], 1000
-			jg		short loc_3CB29
-			ret
-
-loc_3CB29:	cmp		word ptr [SupaplexYawnTimeout], 1022
-			jg		short loc_3CB52
-			ret
-
-loc_3CB52:	cmp		word ptr [SupaplexYawnTimeout], 1600
-			jg		short loc_3CB5B
-			ret
-
-loc_3CB5B:	cmp		word ptr [SupaplexYawnTimeout], 1622
-			jg		short loc_3CB84
-			ret
-
-loc_3CB84:	cmp		word ptr [SupaplexYawnTimeout], 1654
-			jg		short locret_3CBA0
+			jne		@@done
+			inc		[SupaplexYawnTimeout]
+			cmp		[SupaplexYawnTimeout], 4
+			je		@@done
+			cmp		[SupaplexYawnTimeout], 500
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 522
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 1000
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 1022
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 1600
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 1622
+			jle		@@done
+			cmp		[SupaplexYawnTimeout], 1654
+			jg		@@done
 			cmp		word ptr _levelmap[esi - 2], MAP_SPACE
-			jnz		short loc_3CBA1
+			jne		@@done
 			cmp		word ptr _levelmap[esi + 2], MAP_SPACE
-			jnz		short loc_3CBC8
-			mov		word ptr [SupaplexYawnTimeout], 24h
+			jne		@@done
+			mov		[SupaplexYawnTimeout], 36
+			ret
 
-locret_3CBA0:
-loc_3CBA1:
-loc_3CBC8:
-		ret
-
-loc_3CBEF:
-			cmp		byte ptr [byte_403C8], 0
+@@keypress:	cmp		[byte_403C8], 0
 			je		short loc_3CC23
 			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
 			jne		short loc_3CC23
@@ -2495,1570 +2496,1231 @@ loc_3CBEF:
 			jne		short loc_3CC09
 			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BASE
 			je		short loc_3CC23
+loc_3CC09:	cmp		bl, JB_LEFT
+			jne		short loc_3CC15
+			cmp		word ptr _levelmap[esi - 2], MAP_BASE
+			je		short loc_3CC23
+loc_3CC15:	cmp		bl, JB_RIGHT
+			jne		short loc_3CC21
+			cmp		word ptr _levelmap[esi + 2], MAP_BASE
+			je		short loc_3CC23
+loc_3CC21:	mov		bl, JB_DOWN
+loc_3CC23:	cmp		bl, JB_UP
+			jne		short loc_3CC2F
+			mov		[byte_403C3], 0
+			jmp		@@moveup
+loc_3CC2F:	cmp		bl, JB_LEFT
+			jne		short loc_3CC3C
+			mov		[byte_403C3], 0
+			jmp		@@moveleft
+loc_3CC3C:	cmp		bl, JB_DOWN
+			jne		short loc_3CC49
+			mov		[byte_403C3], 0
+			jmp		@@movedown
+loc_3CC49:	cmp		bl, JB_RIGHT
+			jne		short loc_3CC56
+			mov		[byte_403C3], 0
+			jmp		@@moveright
+loc_3CC56:	cmp		bl, JB_SPACE_UP
+			jne		short loc_3CC63
+			mov		[byte_403C3], 0
+			jmp		@@eattop
+loc_3CC63:	cmp		bl, JB_SPACE_LEFT
+			jne		short loc_3CC70
+			mov		[byte_403C3], 0
+			jmp		@@eatleft
+loc_3CC70:	cmp		bl, JB_SPACE_DOWN
+			jne		short loc_3CC7D
+			mov		[byte_403C3], 0
+			jmp		@@eatbottom
+loc_3CC7D:	cmp		bl, JB_SPACE_RIGHT
+			jne		short loc_3CC8A
+			mov		[byte_403C3], 0
+			jmp		@@eatright
+loc_3CC8A:	cmp		bl, JB_SPACE
+			jne		short loc_3CC92
+			jmp		@@putbomb
+loc_3CC92:	mov		[byte_403C3], 0
+			ret
 
-loc_3CC09:
-		cmp	bl, 2
-		jnz	short loc_3CC15
-		cmp	word ptr _levelmap[esi - 2], MAP_BASE
-		jz	short loc_3CC23
+@@moveup:	mov		ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
+			cmp		ax, MAP_SPACE
+			je		@@u_space
+			cmp		ax, MAP_BASE
+			je		@@u_base
+			cmp		al, MAP_BUG
+			je		@@u_bug
+			cmp		ax, MAP_INFOTRON
+			je		@@u_inftr
+			cmp		ax, MAP_EXIT
+			je		@@levelexit
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_PORT_DOWN_TO_UP
+			je		@@u_port
+			cmp		al, MAP_PORT_VERTICAL
+			je		@@u_port
+			cmp		al, MAP_PORT_CROSS
+			je		@@u_port
+			cmp		al, MAP_DISK_RED
+			je		@@u_rdisk
+			cmp		al, MAP_DISK_YELLOW
+			je		@@u_ydisk
+			push	esi
+			sub		esi, 2 * MAP_WIDTH
+			call	sub_3E0D7
+			pop		esi
+			jnc		@@moveup
+			ret
 
-loc_3CC15:
-		cmp	bl, 4
-		jnz	short loc_3CC21
-		cmp	word ptr _levelmap[esi + 2], MAP_BASE
-		jz	short loc_3CC23
-
-loc_3CC21:
-		mov	bl, 3
-
-loc_3CC23:
-		cmp	bl, 1
-		jnz	short loc_3CC2F
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CC98
-
-loc_3CC2F:
-		cmp	bl, 2
-		jnz	short loc_3CC3C
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CCFA
-
-loc_3CC3C:
-		cmp	bl, 3
-		jnz	short loc_3CC49
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CD74
-
-loc_3CC49:
-		cmp	bl, 4
-		jnz	short loc_3CC56
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CDD6
-
-loc_3CC56:
-		cmp	bl, 5
-		jnz	short loc_3CC63
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CE4E
-
-loc_3CC63:
-		cmp	bl, 6
-		jnz	short loc_3CC70
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CE78
-
-loc_3CC70:
-		cmp	bl, MAP_EXIT
-		jnz	short loc_3CC7D
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CEA8
-
-loc_3CC7D:
-		cmp	bl, 8
-		jnz	short loc_3CC8A
-		mov	byte ptr [byte_403C3], 0
-		jmp	loc_3CED2
-
-loc_3CC8A:
-		cmp	bl, 9
-		jnz	short loc_3CC92
-		jmp	loc_3CF02
-
-loc_3CC92:
-		mov	byte ptr [byte_403C3], 0
-		ret
-
-loc_3CC98:
-		mov	ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
-		cmp	ax, 0
-		jnz	short loc_3CCA4
-		jmp	loc_3CF32
-
-loc_3CCA4:
-		cmp	ax, 2
-		jnz	short loc_3CCAC
-		jmp	loc_3CFF3
-
-loc_3CCAC:
-		cmp	al, MAP_BUG
-		jnz	short loc_3CCB3
-		jmp	loc_3CFE2
-
-loc_3CCB3:
-		cmp	ax, MAP_INFOTRON
-		jnz	short loc_3CCBB
-		jmp	loc_3D1E6
-
-loc_3CCBB:
-		cmp	ax, MAP_EXIT
-		jnz	short loc_3CCC3
-		jmp	loc_3D376
-
-loc_3CCC3:
-		cmp	al, MAP_TERMINAL
-		jnz	short loc_3CCCA
-		jmp	loc_3D437
-
-loc_3CCCA:
-		cmp	al, MAP_PORT_DOWN_TO_UP
-		jnz	short loc_3CCD1
-		jmp	loc_3D536
-
-loc_3CCD1:
-		cmp	al, MAP_PORT_VERTICAL
-		jnz	short loc_3CCD8
-		jmp	loc_3D536
-
-loc_3CCD8:
-		cmp	al, MAP_PORT_CROSS
-		jnz	short loc_3CCDF
-		jmp	loc_3D536
-
-loc_3CCDF:
-		cmp	al, MAP_DISK_RED
-		jnz	short loc_3CCE6
-		jmp	loc_3D5C6
-
-loc_3CCE6:
-		cmp	al, MAP_DISK_YELLOW
-		jnz	short loc_3CCED
-		jmp	loc_3D6D8
-
-loc_3CCED:
-		push	esi
-		sub		esi, 120
-		call	sub_3E0D7
-		pop		esi
-		jb		short locret_3CCF9
-		jmp		loc_3CC98
-
-locret_3CCF9:
-		ret
-
-loc_3CCFA:
-		mov	word ptr [PlayerIsLookingLeft], 1
-		mov	ax, word ptr _levelmap[esi - 2]
-		cmp	ax, MAP_SPACE
-		jnz	short loc_3CD0C
-		jmp	loc_3CF61
-
-
-loc_3CD0C:
-		cmp	ax, MAP_BASE
-		jnz	short loc_3CD14
-		jmp	loc_3D03C
-
-loc_3CD14:
-		cmp	al, MAP_BUG
-		jnz	short loc_3CD1B
-		jmp	loc_3D02B
-
-loc_3CD1B:
-		cmp	ax, MAP_INFOTRON
-		jnz	short loc_3CD23
-		jmp	loc_3D21E
-
-loc_3CD23:
-		cmp	ax, MAP_EXIT
-		jnz	short loc_3CD2B
-		jmp	loc_3D376
-
-loc_3CD2B:
-		cmp	ax, MAP_ZONK
-		jnz	short loc_3CD33
-		jmp	loc_3D3BB
-
-loc_3CD33:
-		cmp	al, MAP_TERMINAL
-		jnz	short loc_3CD3A
-		jmp	loc_3D46E
-
-loc_3CD3A:
-		cmp	al, MAP_PORT_RIGHT_TO_LEFT
-		jnz	short loc_3CD41
-		jmp	loc_3D55A
-
-loc_3CD41:
-		cmp	al, MAP_PORT_HORIZONTAL
-		jnz	short loc_3CD48
-		jmp	loc_3D55A
-
-loc_3CD48:
-		cmp	al, MAP_PORT_CROSS
-		jnz	short loc_3CD4F
-		jmp	loc_3D55A
-
-loc_3CD4F:
-		cmp	ax, MAP_DISK_RED
-		jnz	short loc_3CD57
-		jmp	loc_3D5EE
-
-loc_3CD57:
-		cmp	ax, MAP_DISK_YELLOW
-		jnz	short loc_3CD5F
-		jmp	loc_3D711
-
-loc_3CD5F:
-		cmp	ax, MAP_DISK_ORANGE
-		jnz	short loc_3CD67
-		jmp	loc_3D7BB
-
-loc_3CD67:
+@@moveleft:	mov		[PlayerIsLookingLeft], 1
+			mov		ax, word ptr _levelmap[esi - 2]
+			cmp		ax, MAP_SPACE
+			je		@@l_space
+			cmp		ax, MAP_BASE
+			je		@@l_base
+			cmp		al, MAP_BUG
+			je		@@l_bug
+			cmp		ax, MAP_INFOTRON
+			je		@@l_inftr
+			cmp		ax, MAP_EXIT
+			je		@@levelexit
+			cmp		ax, MAP_ZONK
+			je		@@l_zonk
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_PORT_RIGHT_TO_LEFT
+			je		@@l_port
+			cmp		al, MAP_PORT_HORIZONTAL
+			je		@@l_port
+			cmp		al, MAP_PORT_CROSS
+			je		@@l_port
+			cmp		ax, MAP_DISK_RED
+			je		@@l_rdisk
+			cmp		ax, MAP_DISK_YELLOW
+			je		@@l_ydisk
+			cmp		ax, MAP_DISK_ORANGE
+			je		@@l_odisk
 			push	esi
 			sub		esi, 2
 			call	sub_3E0D7
 			pop		esi
-			jb		short locret_3CD73
-			jmp		loc_3CCFA
-
-locret_3CD73:
+			jnc		@@moveleft
 			ret
 
-loc_3CD74:
-			mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
+@@movedown:	mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
 			cmp		ax, MAP_SPACE
-			jne		short loc_3CD80
-			jmp		loc_3CF84
-
-loc_3CD80:
+			je		@@d_space
 			cmp		ax, MAP_BASE
-			jne		short loc_3CD88
-			jmp		loc_3D079
-
-loc_3CD88:
+			je		@@d_base
 			cmp		al, MAP_BUG
-			jne		short loc_3CD8F
-			jmp		loc_3D068
-
-loc_3CD8F:
+			je		@@d_bug
 			cmp		ax, MAP_INFOTRON
-			jne		short loc_3CD97
-			jmp		loc_3D24A
-
-loc_3CD97:
+			je		@@d_inftr
 			cmp		ax, MAP_EXIT
-			jne		short loc_3CD9F
-			jmp		loc_3D376
-
-loc_3CD9F:
+			je		@@levelexit
 			cmp		al, MAP_TERMINAL
-			jne		short loc_3CDA6
-			jmp		loc_3D4A4
-
-loc_3CDA6:
+			je		@@terminal
 			cmp		al, MAP_PORT_UP_TO_DOWN
-			jne		short loc_3CDAD
-			jmp		loc_3D57E
-
-loc_3CDAD:
+			je		@@d_port
 			cmp		al, MAP_PORT_VERTICAL
-			jne		short loc_3CDB4
-			jmp		loc_3D57E
-
-loc_3CDB4:
+			je		@@d_port
 			cmp		al, MAP_PORT_CROSS
-			jne		short loc_3CDBB
-			jmp		loc_3D57E
-
-loc_3CDBB:
+			je		@@d_port
 			cmp		al, MAP_DISK_RED
-			jne		short loc_3CDC2
-			jmp		loc_3D617
-
-loc_3CDC2:
+			je		@@d_rdisk
 			cmp		al, MAP_DISK_YELLOW
-			jne		short loc_3CDC9
-			jmp		loc_3D74A
-
-loc_3CDC9:
+			je		@@d_ydisk
 			push	esi
 			add		esi, 2 * MAP_WIDTH
 			call	sub_3E0D7
 			pop		esi
-			jb		short locret_3CDD5
-			jmp		loc_3CD74
+			jnc		@@movedown
 
-locret_3CDD5:
-			ret
-
-loc_3CDD6:
-			mov		word ptr [PlayerIsLookingLeft], 0
+@@moveright:mov		[PlayerIsLookingLeft], 0
 			mov		ax, word ptr _levelmap[esi + 2]
 			cmp		ax, MAP_SPACE
-			jne		short loc_3CDE8
-			jmp		loc_3CFB9
-
-loc_3CDE8:
+			je		@@r_space
 			cmp		ax, MAP_BASE
-			jne		short loc_3CDF0
-			jmp		loc_3D0C2
-
-loc_3CDF0:	cmp		al, MAP_BUG
-			jne		short loc_3CDF7
-			jmp		loc_3D0B1
-
-loc_3CDF7:
+			je		@@r_base
+			cmp		al, MAP_BUG
+			je		@@r_bug
 			cmp		ax, MAP_INFOTRON
-			jne		short loc_3CDFF
-			jmp		loc_3D282
-
-loc_3CDFF:
+			je		@@r_inftr
 			cmp		ax, MAP_EXIT
-			jne		short loc_3CE07
-			jmp		loc_3D376
-
-loc_3CE07:
+			je		@@levelexit
 			cmp		ax, MAP_ZONK
-			jne		short loc_3CE0F
-			jmp		loc_3D3F4
-
-loc_3CE0F:
+			je		@@r_zonk
 			cmp		al, MAP_TERMINAL
-			jne		short loc_3CE16
-			jmp		loc_3D4DA
-
-loc_3CE16:
+			je		@@terminal
 			cmp		al, MAP_PORT_LEFT_TO_RIGHT
-			jne		short loc_3CE1D
-			jmp		loc_3D5A2
-
-loc_3CE1D:
+			je		@@r_port
 			cmp		al, MAP_PORT_HORIZONTAL
-			jne		short loc_3CE24
-			jmp		loc_3D5A2
-
-loc_3CE24:
+			je		@@r_port
 			cmp		al, MAP_PORT_CROSS
-			jne		short loc_3CE2B
-			jmp		loc_3D5A2
-
-loc_3CE2B:
+			je		@@r_port
 			cmp		al, MAP_DISK_RED
-			jne		short loc_3CE32
-			jmp		loc_3D63F
-
-loc_3CE32:
+			je		@@r_rdisk
 			cmp		al, MAP_DISK_YELLOW
-			jne		short loc_3CE39
-			jmp		loc_3D783
-
-loc_3CE39:
+			je		@@r_ydisk
 			cmp		ax, MAP_DISK_ORANGE
-			jnz		short loc_3CE41
-			jmp		loc_3D7F3
-
-loc_3CE41:
+			je		@@r_odisk
 			push	esi
 			add		esi, 2
 			call	sub_3E0D7
 			pop		esi
-			jb		short locret_3CE4D
-			jmp		loc_3CDD6
-
-locret_3CE4D:
+			jnc		@@moveright
 			ret
 
-loc_3CE4E:
-		mov	ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
-		cmp	ax, 2
-		jnz	short loc_3CE5A
-		jmp	loc_3D0FF
-
-
-loc_3CE5A:
-		cmp	al, 19h
-		jnz	short loc_3CE61
-		jmp	loc_3D0EE
-
-loc_3CE61:
-		cmp	ax, 4
-		jnz	short loc_3CE69
-		jmp	loc_3D2AE
-
-loc_3CE69:
-		cmp	al, 13h
-		jnz	short loc_3CE70
-		jmp	loc_3D437
-
-loc_3CE70:
-		cmp	al, MAP_DISK_RED
-		jnz	short locret_3CE77
-		jmp	loc_3D668
-
-locret_3CE77:
-		ret
-
-loc_3CE78:
-		mov	word ptr [PlayerIsLookingLeft], 1
-		mov	ax, word ptr _levelmap[esi - 2]
-		cmp	ax, 2
-		jnz	short loc_3CE8A
-		jmp	loc_3D13D
-
-loc_3CE8A:
-		cmp	al, 19h
-		jnz	short loc_3CE91
-		jmp	loc_3D12C
-
-loc_3CE91:
-		cmp	ax, 4
-		jnz	short loc_3CE99
-		jmp	loc_3D2E0
-
-loc_3CE99:
-		cmp	al, 13h
-		jnz	short loc_3CEA0
-		jmp	loc_3D46E
-
-loc_3CEA0:
-		cmp	al, MAP_DISK_RED
-		jnz	short locret_3CEA7
-		jmp	loc_3D684
-
-locret_3CEA7:
-		ret
-
-loc_3CEA8:
-		mov	ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
-		cmp	ax, 2
-		jnz	short loc_3CEB4
-		jmp	loc_3D17B
-
-loc_3CEB4:
-		cmp	al, 19h
-		jnz	short loc_3CEBB
-		jmp	loc_3D16A
-
-loc_3CEBB:
-		cmp	ax, 4
-		jnz	short loc_3CEC3
-		jmp	loc_3D312
-
-loc_3CEC3:
-		cmp	al, 13h
-		jnz	short loc_3CECA
-		jmp	loc_3D4A4
-
-loc_3CECA:
-		cmp	al, MAP_DISK_RED
-		jnz	short locret_3CED1
-		jmp	loc_3D6A0
-
-locret_3CED1:
-		ret
-
-loc_3CED2:
-		mov	word ptr [PlayerIsLookingLeft], 0
-		mov	ax, word ptr _levelmap[esi + 2]
-		cmp	ax, 2
-		jnz	short loc_3CEE4
-		jmp	loc_3D1B9
-
-loc_3CEE4:
-		cmp	al, 19h
-		jnz	short loc_3CEEB
-		jmp	loc_3D1A8
-
-loc_3CEEB:
-		cmp	ax, 4
-		jnz	short loc_3CEF3
-		jmp	loc_3D344
-
-loc_3CEF3:
-		cmp	al, 13h
-		jnz	short loc_3CEFA
-		jmp	loc_3D4DA
-
-loc_3CEFA:
-		cmp	al, MAP_DISK_RED
-		jnz	short locret_3CF01
-		jmp	loc_3D6BC
-
-locret_3CF01:
-		ret
-
-loc_3CF02:
-		cmp	byte ptr [NumRedDisks], 0
-		jz	short locret_3CF31
-		cmp	byte ptr [RedDiskDetonateTimer], 0
-		jnz	short locret_3CF31
-		cmp	byte ptr [byte_403C3], 1
-		jnz	short locret_3CF31
-		mov	byte ptr _levelmap[esi + 1], 2Ah
-		mov	word ptr [RedDiskPlacementTimer], 40h
-		mov	edx, offset stru_4070E
-		mov	byte ptr [RedDiskDetonateTimer], 1
-		mov	dword ptr [RedDiskPosition], esi
-		jmp	loc_3D835
-
-locret_3CF31:
-		ret
-
-loc_3CF32:
-		cmp	word ptr [PlayerIsLookingLeft], 0
-		jz	short loc_3CF3E
-		mov	edx, offset stru_403FE
-		jmp	short loc_3CF41
-loc_3CF3E:
-		mov	edx, offset stru_4040E
-loc_3CF41:
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 1
-		mov	byte ptr _levelmap[esi - 2 * MAP_WIDTH], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		sub	esi, 2 * MAP_WIDTH
-		jmp	loc_3D835
-
-loc_3CF61:
-		mov	edx, offset stru_4041E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi - 1], 2
-		mov	byte ptr _levelmap[esi - 2], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		sub	esi, 2
-		jmp	loc_3D835
-
-loc_3CF84:
-		cmp	word ptr [PlayerIsLookingLeft], 0
-		jz	short loc_3CF90
-		mov	edx, offset stru_4042E
-		jmp	short loc_3CF93
-
-loc_3CF90:
-		mov	edx, offset stru_4043E
-loc_3CF93:
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 3
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		add	esi, 78h
-		jmp	loc_3D835
-
-loc_3CFB9:
-		mov	edx, offset stru_4044E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 3], 4
-		mov	byte ptr _levelmap[esi + 2], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		add	esi, 2
-		jmp	loc_3D835
-
-loc_3CFE2:
-			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
-			jl		short loc_3CFED
-			call	CreateExplosion
+@@eattop:	mov		ax, word ptr _levelmap[esi - 2 * MAP_WIDTH]
+			cmp		ax, MAP_BASE
+			je		@@et_base
+			cmp		al, MAP_BUG
+			je		@@et_bug
+			cmp		ax, MAP_INFOTRON
+			je		@@et_inftr
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_DISK_RED
+			je		@@et_rdisk
 			ret
-    
-loc_3CFED:
-			mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 2
 
-loc_3CFF3:
-			call	_SND_PlayBaseEatSound
-			cmp		word ptr [PlayerIsLookingLeft], 0
-			jz		short loc_3D002
-			mov		edx, offset stru_4046E
-			jmp		short loc_3D005
+@@eatleft:	mov		[PlayerIsLookingLeft], 1
+			mov		ax, word ptr _levelmap[esi - 2]
+			cmp		ax, MAP_BASE
+			je		@@el_base
+			cmp		al, MAP_BUG
+			je		@@el_bug
+			cmp		ax, MAP_INFOTRON
+			je		@@el_inftr
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_DISK_RED
+			je		@@el_rdisk
+			ret
 
-loc_3D002:
-			mov		edx, offset stru_4047E
-loc_3D005:
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 5
-			mov		byte ptr _levelmap[esi - 2 * MAP_WIDTH], 3
-			mov		byte ptr _levelmap[esi + 1], 3
-			mov		byte ptr _levelmap[esi], 0
-			sub		esi, 2 * MAP_WIDTH
+@@eatbottom:mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH]
+			cmp		ax, MAP_BASE
+			je		@@eb_base
+			cmp		al, MAP_BUG
+			je		@@eb_bug
+			cmp		ax, MAP_INFOTRON
+			je		@@eb_inftr
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_DISK_RED
+			je		@@eb_rdisk
+			ret
+
+@@eatright:	mov		[PlayerIsLookingLeft], 0
+			mov		ax, word ptr _levelmap[esi + 2]
+			cmp		ax, MAP_BASE
+			je		@@er_base
+			cmp		al, MAP_BUG
+			je		@@er_bug
+			cmp		ax,	MAP_INFOTRON
+			je		@@er_inftr
+			cmp		al, MAP_TERMINAL
+			je		@@terminal
+			cmp		al, MAP_DISK_RED
+			je		@@er_rdisk
+			ret
+
+@@putbomb:	cmp		[NumRedDisks], 0
+			je		@@done
+			cmp		[RedDiskDetonateTimer], 0
+			jne		@@done
+			cmp		[byte_403C3], 1
+			jne		@@done
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_PUT_BOMB
+			mov		word ptr [RedDiskPlacementTimer], 64
+			mov		edx, offset stru_4070E
+			mov		[RedDiskDetonateTimer], 1
+			mov		[RedDiskPosition], esi
 			jmp		loc_3D835
 
-loc_3D02B:
-			cmp		byte ptr _levelmap[esi - 1], 0
-			jl		short loc_3D036
-			call	CreateExplosion
-			ret
-
-loc_3D036:
-			mov		word ptr _levelmap[esi - 2], 2
-
-loc_3D03C:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_4048E
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi - 1], 2
-			mov		byte ptr _levelmap[esi - 2], 3
-			mov		byte ptr _levelmap[esi + 1], 3
-			mov		byte ptr _levelmap[esi], 0
-			sub		esi, 2
-			jmp		loc_3D835
-
-loc_3D068:
-			cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
-			jl		short loc_3D073
-			call	CreateExplosion
-			ret
-
-loc_3D073:
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 2
-
-loc_3D079:
-			call	_SND_PlayBaseEatSound
-			cmp		word ptr [PlayerIsLookingLeft], 0
-			jz		short loc_3D088
-			mov		edx, offset stru_4049E
-			jmp		short loc_3D08B
-
-loc_3D088:
-			mov		edx, offset stru_404AE
-loc_3D08B:
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 7
-			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
-			mov		byte ptr _levelmap[esi + 1], 3
-			mov		byte ptr _levelmap[esi], 0
-			add		esi, 2 * MAP_WIDTH
-			jmp		loc_3D835
-
-loc_3D0B1:
-			cmp		byte ptr _levelmap[esi + 3], 0
-			jl		short loc_3D0BC
-			call	CreateExplosion
-			ret
-
-loc_3D0BC:
-			mov		word ptr _levelmap[esi + 2], 2
-loc_3D0C2:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_404BE
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 3], 8
-			mov		byte ptr _levelmap[esi + 2], 3
-			mov		byte ptr _levelmap[esi + 1], 3
-			mov		byte ptr _levelmap[esi], 0
-			add		esi, 2
-			jmp		loc_3D835
-
-loc_3D0EE:
-			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
-			jl		short loc_3D0F9
-			call	CreateExplosion
-			ret
-
-loc_3D0F9:
-			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], 2
-
-loc_3D0FF:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_404CE
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 1], 10h
-			jmp		loc_3D835
-
-loc_3D12C:
-			cmp		byte ptr _levelmap[esi - 1], 0
-			jl		short loc_3D137
-			call	CreateExplosion
-			ret
-
-loc_3D137:
-			mov		word ptr _levelmap[esi - 2], 2
-
-loc_3D13D:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_404DE
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 1], MAP_SNIK_SNAK
-			jmp		loc_3D835
-
-loc_3D16A:
-			cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
-			jl		short loc_3D175
-			call	CreateExplosion
-			ret
-
-loc_3D175:
-			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], 2
-
-loc_3D17B:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_404EE
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 1], 12h
-			jmp		loc_3D835
-
-loc_3D1A8:
-			cmp		byte ptr _levelmap[esi + 3], 0
-			jl		short loc_3D1B3
-			call	CreateExplosion
-			ret
-
-loc_3D1B3:
-			mov		word ptr _levelmap[esi + 2], 2
-
-loc_3D1B9:
-			call	_SND_PlayBaseEatSound
-			mov		edx, offset stru_404FE
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi + 1], 13h
-			jmp		loc_3D835
-
-loc_3D1E6:
-			call	_SND_PlayEatInfotronSound
-			cmp		word ptr [PlayerIsLookingLeft], 0
-			jz		short loc_3D1F5
-			mov		edx, offset stru_4050E
-			jmp		short loc_3D1F8
-
-loc_3D1F5:
-			mov		edx, offset stru_4051E
-
-loc_3D1F8:
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 9
+@@u_space:	cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3CF3E
+			mov		edx, offset stru_403FE
+			jmp		short loc_3CF41
+loc_3CF3E:	mov		edx, offset stru_4040E
+loc_3CF41:	mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], MURPHY_ANIM_MOVE_UP_EAT_SPACE
 			mov		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
-			mov		byte ptr _levelmap[esi + 1], 3
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
 			mov		byte ptr _levelmap[esi], MAP_SPACE
 			sub		esi, 2 * MAP_WIDTH
 			jmp		loc_3D835
 
-loc_3D21E:
-			call	_SND_PlayEatInfotronSound
-			mov		edx, offset stru_4052E
-			mov		word ptr [PlayerIsInsideTeleport], 0
-			mov		word ptr [RedDiskPlacementTimer], 0
-			mov		byte ptr _levelmap[esi - 1], 0Ah
-			mov		byte ptr _levelmap[esi - 2], 3
-			mov		byte ptr _levelmap[esi + 1], 3
-			mov		byte ptr _levelmap[esi], 0
+@@l_space:	mov		edx, offset stru_4041E
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi - 1], MURPHY_ANIM_MOVE_LEFT_EAT_SPACE
+			mov		byte ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
 			sub		esi, 2
 			jmp		loc_3D835
 
-loc_3D24A:
-			call	_SND_PlayEatInfotronSound
-			cmp		word ptr [PlayerIsLookingLeft], 0
-			jz		short loc_3D259
+@@d_space:	cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3CF90
+			mov		edx, offset stru_4042E
+			jmp		short loc_3CF93
+loc_3CF90:	mov		edx, offset stru_4043E
+loc_3CF93:  mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MURPHY_ANIM_MOVE_DOWN_EAT_SPACE
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2 * MAP_WIDTH
+			jmp		loc_3D835
+
+@@r_space:	mov		edx, offset stru_4044E
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 3], MURPHY_ANIM_MOVE_RIGHT_EAT_SPACE
+			mov		byte ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_MURPHY
+			add		esi, 2
+			jmp		loc_3D835
+
+@@u_bug:	cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
+			jl		short @@u_bug_na
+			call	CreateExplosion
+			ret
+@@u_bug_na:	mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BASE
+@@u_base:	call	_SND_PlayBaseEatSound
+			cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3D002
+			mov		edx, offset stru_4046E
+			jmp		short loc_3D005
+loc_3D002:	mov		edx, offset stru_4047E
+loc_3D005:	mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], MURPHY_ANIM_MOVE_UP_EAT_BASE
+			mov		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			sub		esi, 2 * MAP_WIDTH
+			jmp		loc_3D835
+
+@@l_bug:	cmp		byte ptr _levelmap[esi - 1], 0
+			jl		short @@l_bug_na
+			call	CreateExplosion
+			ret
+@@l_bug_na:	mov		word ptr _levelmap[esi - 2], MAP_BASE
+@@l_base:	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_4048E
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi - 1], MURPHY_ANIM_MOVE_LEFT_EAT_SPACE	; FIXME: MURPHY_ANIM_MOVE_LEFT_EAT_BASE ???
+			mov		byte ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			sub		esi, 2
+			jmp		loc_3D835
+
+@@d_bug:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
+			jl		short @@d_bug_na
+			call	CreateExplosion
+			ret
+@@d_bug_na:	mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BASE
+@@d_base:	call	_SND_PlayBaseEatSound
+			cmp		[PlayerIsLookingLeft], 0
+			jz		short loc_3D088
+			mov		edx, offset stru_4049E
+			jmp		short loc_3D08B
+loc_3D088:	mov		edx, offset stru_404AE
+loc_3D08B:	mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MURPHY_ANIM_MOVE_DOWN_EAT_BASE
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2 * MAP_WIDTH
+			jmp		loc_3D835
+
+@@r_bug:	cmp		byte ptr _levelmap[esi + 3], 0
+			jl		short @@r_bug_na
+			call	CreateExplosion
+			ret
+@@r_bug_na:	mov		word ptr _levelmap[esi + 2], MAP_BASE
+@@r_base:  	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_404BE
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 3], MURPHY_ANIM_MOVE_RIGHT_EAT_BASE
+			mov		byte ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2
+			jmp		loc_3D835
+
+@@et_bug:	cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0
+			jl		short @@et_bug_na
+			call	CreateExplosion
+			ret
+@@et_bug_na:mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BASE
+@@et_base:	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_404CE
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BASE_TOP
+			jmp		loc_3D835
+
+@@el_bug:	cmp		byte ptr _levelmap[esi - 1], 0
+			jl		short @@el_bug_na
+			call	CreateExplosion
+			ret
+@@el_bug_na:mov		word ptr _levelmap[esi - 2], MAP_BASE
+@@el_base:	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_404DE
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BASE_LEFT
+			jmp		loc_3D835
+
+@@eb_bug:	cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0
+			jl		short @@eb_bug_na
+			call	CreateExplosion
+			ret
+@@eb_bug_na:mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BASE
+@@eb_base:	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_404EE
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BASE_BOTTOM
+			jmp		loc_3D835
+
+@@er_bug:	cmp		byte ptr _levelmap[esi + 3], 0
+			jl		short @@er_bug_na
+			call	CreateExplosion
+			ret
+@@er_bug_na:mov		word ptr _levelmap[esi + 2], MAP_BASE
+@@er_base:	call	_SND_PlayBaseEatSound
+			mov		edx, offset stru_404FE
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BASE_RIGHT
+			jmp		loc_3D835
+
+@@u_inftr:	call	_SND_PlayEatInfotronSound
+			cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3D1F5
+			mov		edx, offset stru_4050E
+			jmp		short loc_3D1F8
+loc_3D1F5:	mov		edx, offset stru_4051E
+loc_3D1F8:	mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], MURPHY_ANIM_MOVE_UP_EAT_INFTR
+			mov		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			sub		esi, 2 * MAP_WIDTH
+			jmp		loc_3D835
+
+@@l_inftr:	call	_SND_PlayEatInfotronSound
+			mov		edx, offset stru_4052E
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi - 1], MURPHY_ANIM_MOVE_LEFT_EAT_INFTR
+			mov		byte ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			sub		esi, 2
+			jmp		loc_3D835
+
+@@d_inftr:	call	_SND_PlayEatInfotronSound
+			cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3D259
 			mov		edx, offset stru_4053E
 			jmp		short loc_3D25C
+loc_3D259:	mov		edx, offset stru_4054E
+loc_3D25C:	mov		word ptr [PlayerIsInsideTeleport], 0
+			mov		word ptr [RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MURPHY_ANIM_MOVE_DOWN_EAT_INFTR
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2 * MAP_WIDTH
+			jmp		loc_3D835
 
-loc_3D259:
-			mov		edx, offset stru_4054E
-
-loc_3D25C:
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MAP_PORT_RIGHT_TO_LEFT
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		add	esi, 78h	; 'x'
-		jmp	loc_3D835
-
-loc_3D282:
-			call	_SND_PlayEatInfotronSound
+@@r_inftr:	call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4055E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 3], 0Ch
-		mov	byte ptr _levelmap[esi + 2], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		add	esi, 2
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 3], MURPHY_ANIM_MOVE_RIGHT_EAT_INFTR
+			mov		byte ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2
+			jmp		loc_3D835
 
-loc_3D2AE:
-			call	_SND_PlayEatInfotronSound
+@@et_inftr:	call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4056E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 1], MAP_DISK_RED
-		mov	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0FFh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_INFOTRON_TOP
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 0FFh
+			jmp		loc_3D835
 
-loc_3D2E0:
-			call	_SND_PlayEatInfotronSound
-			mov	edx, offset stru_4057E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 1], 15h
-		mov	byte ptr _levelmap[esi - 1], 0FFh
-		jmp	loc_3D835
+@@el_inftr:	call	_SND_PlayEatInfotronSound
+			mov		edx, offset stru_4057E
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_INFOTRON_LEFT
+			mov		byte ptr _levelmap[esi - 1], 0FFh
+			jmp		loc_3D835
 
-loc_3D312:
-			call	_SND_PlayEatInfotronSound
+@@eb_inftr:	call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4058E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 1], 16h
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0FFh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_INFOTRON_BOTTOM
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 0FFh
+			jmp		loc_3D835
 
-loc_3D344:
-			call	_SND_PlayEatInfotronSound
+@@er_inftr:	call	_SND_PlayEatInfotronSound
 			mov		edx, offset stru_4059E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 1], 17h
-		mov	byte ptr _levelmap[esi + 3], 0FFh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_INFOTRON_RIGHT
+			mov		byte ptr _levelmap[esi + 3], 0FFh
+			jmp		loc_3D835
 
-loc_3D376:
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jnz	short locret_3D3BA
-		call	_SND_PlayExitSound
-		push	esi
-		cmp	byte ptr [IsDemoRunning], 0
-		jnz	short loc_3D397
-		mov	byte ptr [byte_403AB], 1
-		mov	byte ptr [byte_403AA], 0
-		;call	sub_3BF39
-		jmp	short loc_3D39C
-
-loc_3D397:
-		mov	byte ptr [byte_403AA], 0
-
-loc_3D39C:
-		mov	word ptr [TimeoutAfterWhichLeaveTheLevel], 64
-		pop	esi
+@@levelexit:cmp		[InfotronsLeftToCollect], 0
+			jne		@@done
+			call	_SND_PlayExitSound
+			push	esi
+;			cmp		[IsDemoRunning], 0
+;			jne		short loc_3D397
+			mov		[byte_403AB], 1
+			mov		[byte_403AA], 0
+;			call	sub_3BF39
+;			jmp		short loc_3D39C
+;loc_3D397:	mov		byte ptr [byte_403AA], 0
+;loc_3D39C:	
+			mov		word ptr [TimeoutAfterWhichLeaveTheLevel], 64
+			pop		esi
 			mov		edx, offset stru_4045E
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	byte ptr _levelmap[esi + 1], 0Dh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EXIT
+			jmp		loc_3D835
 
-locret_3D3BA:
-		ret
-
-loc_3D3BB:
-		mov	ax, word ptr _levelmap[esi - 4]
-		cmp	ax, 0
-		jz	short loc_3D3C5
-		ret
-
-loc_3D3C5:
-		mov	byte ptr _levelmap[esi - 3], 1
+@@l_zonk:	mov		ax, word ptr _levelmap[esi - 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi - 3], MAP_ZONK
 			mov		edx, offset stru_405AE
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	byte ptr _levelmap[esi + 1], 0Eh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 8
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_SHIFT_ZONK_LEFT
+			jmp		loc_3D835
 
-loc_3D3F4:
-		mov	ax, word ptr _levelmap[esi + 4]
-		cmp	ax, 0
-		jz	short loc_3D3FE
-		ret
-
-loc_3D3FE:
-		mov	ax, word ptr _levelmap[esi + 2 * MAP_WIDTH + 2]
-		cmp	ax, 0
-		jnz	short loc_3D408
-		ret
-
-loc_3D408:
-		mov	byte ptr _levelmap[esi + 5], 1
+@@r_zonk:	mov		ax, word ptr _levelmap[esi + 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH + 2]
+			cmp		ax, MAP_SPACE
+			je		@@done
+			mov		byte ptr _levelmap[esi + 5], MAP_ZONK
 			mov		edx, offset stru_405BE
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	byte ptr _levelmap[esi + 1], 0Fh
-		jmp	loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 8
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_SHIFT_ZONK_RIGHT
+			jmp		loc_3D835
 
-loc_3D437:
-		cmp	byte ptr [byte_40C5B], 0
-		jz	short loc_3D458
-		mov	word ptr [SupaplexYawnTimeout], 0Ah
-		ret
+@@terminal:	cmp		byte ptr [TerminalsActivated], 0
+			je		@@term_act
+			mov		word ptr [SupaplexYawnTimeout], 10
+			ret
+@@term_act:	mov		byte ptr [byte_40C5A], 7
+			mov		byte ptr [TerminalsActivated], 1
+			push	esi
+			xor		esi, esi
+			mov		ecx, MAP_WIDTH * MAP_HEIGHT
+@@t_chk_dsk:cmp		word ptr _levelmap[esi], MAP_DISK_YELLOW
+			jne		short @@t_next
+			push	ecx
+			push	esi
+			call	CreateExplosion
+			pop		esi
+			pop		ecx
+@@t_next:	add		esi, 2
+			loop	@@t_chk_dsk
+			pop		esi
+			ret
 
-loc_3D458:
-		jmp	loc_3D510
-
-loc_3D46E:
-		cmp	byte ptr [byte_40C5B], 0
-		jz	short loc_3D48F
-		mov	word ptr [SupaplexYawnTimeout], 0Ah
-		ret
-
-loc_3D48F:
-		jmp	loc_3D510
-
-loc_3D4A4:
-		cmp	byte ptr [byte_40C5B], 0
-		jz	short loc_3D4C5
-		mov	word ptr [SupaplexYawnTimeout], 0Ah
-		ret
-
-loc_3D4C5:
-		jmp	short loc_3D510
-
-loc_3D4DA:
-		cmp	byte ptr [byte_40C5B], 0
-		jz	short loc_3D4FB
-		mov	word ptr [SupaplexYawnTimeout], 0Ah
-		ret
-
-loc_3D4FB:
-		jmp	short loc_3D510
-
-loc_3D510:
-		mov	byte ptr [byte_40C5A], 7
-		mov	byte ptr [byte_40C5B], 1
-		push	esi
-		mov	esi, 0
-		mov	ecx, MAP_WIDTH * MAP_HEIGHT
-
-loc_3D521:
-		cmp	word ptr _levelmap[esi], MAP_DISK_YELLOW
-		jnz	short loc_3D52F
-		push	ecx
-		push	esi
-		call	CreateExplosion
-		pop	esi
-		pop	ecx
-
-loc_3D52F:
-		add	esi, 2
-		loop	loc_3D521
-		pop	esi
-		ret
-
-loc_3D536:
-		cmp	word ptr _levelmap[esi - (4 * MAP_WIDTH)], 0
-		jz	short loc_3D53E
-		ret
-
-loc_3D53E:
+@@u_port:	cmp		word ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_SPACE
+			jne		@@done
 			mov		edx, offset stru_405CE
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 1
-		mov	byte ptr _levelmap[esi + 1], MAP_ELECTRON
-		mov	byte ptr _levelmap[esi - (4 * MAP_WIDTH - 1)], 3
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 1
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_TELEPORT_UP
+			mov		byte ptr _levelmap[esi - (4 * MAP_WIDTH - 1)], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D55A:
-		cmp	word ptr _levelmap[esi - 4], 0
-		jz	short loc_3D562
-		ret
-
-loc_3D562:
+@@l_port:	cmp		word ptr _levelmap[esi - 4], MAP_SPACE
+			jne		@@done
 			mov		edx, offset stru_405DE
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 1
-		mov	byte ptr _levelmap[esi + 1], 19h
-		mov	byte ptr _levelmap[esi - 3], 3
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 1
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_TELEPORT_LEFT
+			mov		byte ptr _levelmap[esi - 3], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D57E:
-		cmp	word ptr _levelmap[esi + (4 * MAP_WIDTH)], 0
-		jz	short loc_3D586
-		ret
-
-loc_3D586:
+@@d_port:	cmp		word ptr _levelmap[esi + (4 * MAP_WIDTH)], 0
+			jne		@@done
 			mov		edx, offset stru_405EE
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 1
-		mov	byte ptr _levelmap[esi + 1], 1Ah
-		mov	byte ptr _levelmap[esi + MAP_WIDTH * 4 + 1], 3
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 1
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_TELEPORT_DOWN
+			mov		byte ptr _levelmap[esi + MAP_WIDTH * 4 + 1], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D5A2:
-		cmp	word ptr _levelmap[esi + 4], 0
-		jz	short loc_3D5AA
-		ret
-
-loc_3D5AA:
+@@r_port:	cmp		word ptr _levelmap[esi + 4], 0
+			jne		@@done
 			mov		edx, offset stru_405FE
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 1
-		mov	byte ptr _levelmap[esi + 1], 1Bh
-		mov	byte ptr _levelmap[esi + 5], 3
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 1
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_TELEPORT_RIGHT
+			mov		byte ptr _levelmap[esi + 5], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D5C6:
-		cmp	word ptr [PlayerIsLookingLeft], 0
-		jz	short loc_3D5D2
+@@u_rdisk:	cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3D5D2
 			mov		edx, offset stru_4060E
-		jmp	short loc_3D5D5
+			jmp		short loc_3D5D5
+loc_3D5D2:	mov		edx, offset stru_4061E
+loc_3D5D5:	mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_UP_EAT_BOMB
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D5D2:
-			mov		edx, offset stru_4061E
+@@l_rdisk:	mov		edx, offset stru_4062E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi - 1], MURPHY_ANIM_MOVE_LEFT_EAT_BOMB
+			mov		byte ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			sub		esi, 2
+			jmp		loc_3D835
 
-loc_3D5D5:
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 1Ch
-		mov	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 3
-		jmp	loc_3D835
-
-loc_3D5EE:
-			mov		edx, offset stru_4062E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi - 1], 1Dh
-		mov	byte ptr _levelmap[esi - 2], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		sub	esi, 2
-		jmp	loc_3D835
-
-loc_3D617:
-		cmp	word ptr [PlayerIsLookingLeft], 0
-		jz	short loc_3D623
+@@d_rdisk:	cmp		[PlayerIsLookingLeft], 0
+			je		short loc_3D623
 			mov		edx, offset stru_4063E
-		jmp	short loc_3D626
+			jmp		short loc_3D626
+loc_3D623:	mov		edx, offset stru_4064E
+loc_3D626:	mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_DOWN_EAT_BOMB
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D623:
-			mov		edx, offset stru_4064E
+@@r_rdisk:	mov		edx, offset stru_4065E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 3], MURPHY_ANIM_MOVE_RIGHT_EAT_BOMB
+			mov		byte ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		byte ptr _levelmap[esi + 1], MAP_MURPHY
+			mov		byte ptr _levelmap[esi], MAP_SPACE
+			add		esi, 2
+			jmp		loc_3D835
 
-loc_3D626:
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 1Eh
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 3
-		jmp	loc_3D835
+@@et_rdisk:	mov		edx, offset stru_4066E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BOMB_TOP
+			mov		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], MAP_MURPHY
+			jmp		loc_3D835
 
+@@el_rdisk:	mov		edx, offset stru_4067E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BOMB_LEFT
+			mov		byte ptr _levelmap[esi - 1], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D63F:
-			mov		edx, offset stru_4065E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 3], 1Fh
-		mov	byte ptr _levelmap[esi + 2], 3
-		mov	byte ptr _levelmap[esi + 1], 3
-		mov	byte ptr _levelmap[esi], 0
-		add	esi, 2
-		jmp	loc_3D835
+@@eb_rdisk:	mov		edx, offset stru_4068E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BOMB_BOTTOM
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], MAP_MURPHY
+			jmp		loc_3D835
 
+@@er_rdisk:	mov		edx, offset stru_4069E
+			mov		[RedDiskPlacementTimer], 0
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_EAT_BOMB_RIGHT
+			mov		byte ptr _levelmap[esi + 3], MAP_MURPHY
+			jmp		loc_3D835
 
-loc_3D668:
-			mov		edx, offset stru_4066E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 20h
-		mov	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 3
-		jmp	loc_3D835
-
-loc_3D684:
-			mov		edx, offset stru_4067E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 21h
-		mov	byte ptr _levelmap[esi - 1], 3
-		jmp	loc_3D835
-
-loc_3D6A0:
-			mov		edx, offset stru_4068E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 22h
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 3
-		jmp	loc_3D835
-
-loc_3D6BC:
-			mov		edx, offset stru_4069E
-		mov	word ptr [RedDiskPlacementTimer], 0
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 23h
-		mov	byte ptr _levelmap[esi + 3], 3
-		jmp	loc_3D835
-
-loc_3D6D8:
-		mov	ax, word ptr _levelmap[esi - (4 * MAP_WIDTH)]
-		cmp	ax, 0
-		jz	short loc_3D6E2
-		ret
-
-loc_3D6E2:
-		mov	byte ptr _levelmap[esi - (4 * MAP_WIDTH - 1)], MAP_DISK_YELLOW
+@@u_ydisk:	mov		ax, word ptr _levelmap[esi - (4 * MAP_WIDTH)]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi - (4 * MAP_WIDTH - 1)], MAP_DISK_YELLOW
 			mov		edx, offset stru_406AE
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 24h
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 8
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_YELLOW_DISK_UP
+			jmp		loc_3D835
 
-loc_3D711:
-		mov	ax, word ptr _levelmap[esi - 4]
-		cmp	ax, 0
-		jz	short loc_3D71B
-		ret
-
-loc_3D71B:
-		mov	byte ptr _levelmap[esi - 3], MAP_DISK_YELLOW
+@@l_ydisk:	mov		ax, word ptr _levelmap[esi - 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi - 3], MAP_DISK_YELLOW
 			mov		edx, offset stru_406BE
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 25h
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 8
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_YELLOW_DISK_LF
+			jmp		loc_3D835
 
-loc_3D74A:
-		mov	ax, word ptr _levelmap[esi + (4 * MAP_WIDTH)]
-		cmp	ax, 0
-		jz	short loc_3D754
-		ret
-
-loc_3D754:
-		mov	byte ptr _levelmap[esi + MAP_WIDTH * 4 + 1], MAP_DISK_YELLOW
+@@d_ydisk:	mov		ax, word ptr _levelmap[esi + (4 * MAP_WIDTH)]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi + MAP_WIDTH * 4 + 1], MAP_DISK_YELLOW
 			mov		edx, offset stru_406CE
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 27h
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 8
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_YELLOW_DISK_DN
+			jmp		loc_3D835
 
-loc_3D783:
-		mov	ax, word ptr _levelmap[esi + 4]
-		cmp	ax, 0
-		jz	short loc_3D78D
-		ret
-
-loc_3D78D:
-		mov	byte ptr _levelmap[esi + 5], MAP_DISK_YELLOW
+@@r_ydisk:	mov		ax, word ptr _levelmap[esi + 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi + 5], MAP_DISK_YELLOW
 			mov		edx, offset stru_406DE
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	byte ptr _levelmap[esi + 1], 26h
-		jmp	loc_3D835
+			mov		[RedDiskPlacementTimer], 8
+			mov		[PlayerIsInsideTeleport], 0
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_MOVE_YELLOW_DISK_RT
+			jmp		loc_3D835
 
-loc_3D7BB:
-		mov	ax, word ptr _levelmap[esi - 4]
-		cmp	ax, 0
-		jz	short loc_3D7C5
-		ret
-
-loc_3D7C5:
-		mov	byte ptr _levelmap[esi - 3], 8
+@@l_odisk:	mov		ax, word ptr _levelmap[esi - 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		byte ptr _levelmap[esi - 3], MAP_DISK_ORANGE
 			mov		edx, offset stru_406EE
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	byte ptr _levelmap[esi + 1], 28h
-		jmp	short loc_3D835
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 8
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_SHIFT_ORANGE_DISK_LF
+			jmp		short loc_3D835
 
-loc_3D7F3:
-		mov	ax, word ptr _levelmap[esi + 4]
-		cmp	ax, 0
-		jz	short loc_3D7FD
-		ret
-
-loc_3D7FD:
-		mov	ax, word ptr _levelmap[esi + 2 * MAP_WIDTH + 2]
-		cmp	ax, 0
-		jnz	short loc_3D807
-		ret
-
-loc_3D807:
-		mov	byte ptr _levelmap[esi + 5], 1
+@@r_odisk:	mov		ax, word ptr _levelmap[esi + 4]
+			cmp		ax, MAP_SPACE
+			jne		@@done
+			mov		ax, word ptr _levelmap[esi + 2 * MAP_WIDTH + 2]
+			cmp		ax, MAP_SPACE
+			je		@@done
+			mov		byte ptr _levelmap[esi + 5], MAP_ZONK		; FIXME: MAP_DISK_ORANGE ???
 			mov		edx, offset stru_406FE
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		mov	word ptr [RedDiskPlacementTimer], 8
-		mov	byte ptr _levelmap[esi + 1], 29h
-		jmp	short loc_3D835
-
-loc_3D835:
-		mov ax, word ptr [edx + struc_2.animID]
-		mov word ptr [PlayerAnim_ID], ax
-		mov ax, word ptr [edx + struc_2.stepX]
-		mov word ptr [PlayerAnim_StepX], ax
-		mov ax, word ptr [edx + struc_2.stepY]
-		mov word ptr [PlayerAnim_StepY], ax
-		mov ax, word ptr [edx + struc_2.numFrames]
-		mov word ptr [PlayerAnim_NumFrames], ax
-		jmp	short loc_3D84B
-
-loc_3D84B:
-		mov	word ptr [SupaplexYawnTimeout], 0
-		mov	ax, word ptr [RedDiskPlacementTimer]
-		cmp	ax, 0
-		jz	short loc_3D8AF
-		dec	ax
-		mov	word ptr [RedDiskPlacementTimer], ax
-		jnz	short loc_3D862
-		call	_SND_PlayObjectPushSound
-
-loc_3D862:
-		mov	bl, byte ptr _levelmap[esi + 1]
-		cmp	bl, 0Eh
-		jnz	short loc_3D86E
-		jmp	loc_3DB9E
-
-loc_3D86E:
-		cmp	bl, 0Fh
-		jnz	short loc_3D876
-		jmp	loc_3DBDC
-
-loc_3D876:
-		cmp	bl, 28h
-		jnz	short loc_3D87E
-		jmp	loc_3DC1A
-
-loc_3D87E:
-		cmp	bl, 29h
-		jnz	short loc_3D886
-		jmp	loc_3DC58
-
-
-loc_3D886:
-		cmp	bl, 24h
-		jnz	short loc_3D88E
-		jmp	loc_3DC96
-
-loc_3D88E:
-		cmp	bl, 25h
-		jnz	short loc_3D896
-		jmp	loc_3DCD4
-
-loc_3D896:
-		cmp	bl, 27h
-		jnz	short loc_3D89E
-		jmp	loc_3DD12
-
-loc_3D89E:
-		cmp	bl, 26h
-		jnz	short loc_3D8A6
-		jmp	loc_3DD50
-
-loc_3D8A6:
-		cmp	bl, 2Ah
-		jnz	short locret_3D8AE
-		jmp	loc_3DD8E
-
-locret_3D8AE:
-		ret
-
-loc_3D8AF:
-		mov		ax, word ptr [PlayerAnim_StepX]
-		add		word ptr [PlayerPosition_PixelsX], ax
-		mov		ax, word ptr [PlayerAnim_StepY]
-		add		word ptr [PlayerPosition_PixelsY], ax
-		dec		word ptr [PlayerAnim_NumFrames]
-loc_3D948:
-		cmp		word ptr [PlayerAnim_NumFrames], 0
-		je		short loc_3D955
-		ret
-
-loc_3D955:
-		mov	bl, byte ptr _levelmap[esi + 1]
-		mov	byte ptr _levelmap[esi + 1], 0
-		cmp	bl, 1
-		jnz	short loc_3D97B
-		jmp	loc_3DAE8
-
-loc_3D97B:
-		cmp	bl, 2
-		jnz	short loc_3D983
-		jmp	loc_3DB06
-
-loc_3D983:
-		cmp	bl, 3
-		jnz	short loc_3D98B
-		jmp	loc_3DB24
-
-loc_3D98B:
-		cmp	bl, 4
-		jnz	short loc_3D993
-		jmp	loc_3DDE4
-
-loc_3D993:
-		cmp	bl, 5
-		jnz	short loc_3D99B
-		jmp	loc_3DAE8
-
-loc_3D99B:
-		cmp	bl, 6
-		jnz	short loc_3D9A3
-		jmp	loc_3DB06
-
-loc_3D9A3:
-		cmp	bl, 7
-		jnz	short loc_3D9AB
-		jmp	loc_3DB24
-
-loc_3D9AB:
-		cmp	bl, 8
-		jnz	short loc_3D9B3
-		jmp	loc_3DDE4
-
-loc_3D9B3:
-		cmp	bl, 9
-		jnz	short loc_3D9BB
-		jmp	loc_3DADA
-
-loc_3D9BB:
-		cmp	bl, 0Ah
-		jnz	short loc_3D9C3
-		jmp	loc_3DAF8
-
-loc_3D9C3:
-		cmp	bl, MAP_PORT_RIGHT_TO_LEFT
-		jnz	short loc_3D9CB
-		jmp	@@InfotronCollected
-
-loc_3D9CB:
-		cmp	bl, 0Ch
-		jnz	short loc_3D9D3
-		jmp	loc_3DDD6
-
-loc_3D9D3:
-		cmp	bl, 0Eh
-		jnz	short loc_3D9DB
-		jmp	loc_3DB38
-
-loc_3D9DB:
-		cmp	bl, 0Fh
-		jnz	short loc_3D9E3
-		jmp	loc_3DB5B
-
-loc_3D9E3:
-		cmp	bl, 10h
-		jnz	short loc_3D9EB
-		jmp	loc_3DE02
-
-loc_3D9EB:
-		cmp	bl, MAP_SNIK_SNAK
-		jnz	short loc_3D9F3
-		jmp	loc_3DE1E
-
-loc_3D9F3:
-		cmp	bl, 13h
-		jnz	short loc_3D9FB
-		jmp	loc_3DE56
-
-loc_3D9FB:
-		cmp	bl, MAP_DISK_YELLOW
-		jnz	short loc_3DA03
-		jmp	loc_3DE3A
-
-loc_3DA03:
-		cmp	bl, 13h
-		jnz	short loc_3DA0B
-		jmp	loc_3DE56
-
-loc_3DA0B:
-		cmp	bl, MAP_DISK_RED
-		jnz	short loc_3DA13
-		jmp	loc_3DDF4
-
-loc_3DA13:
-		cmp	bl, 15h
-		jnz	short loc_3DA1B
-		jmp	loc_3DE10
-
-loc_3DA1B:
-		cmp	bl, 17h
-		jnz	short loc_3DA23
-		jmp	loc_3DE48
-
-loc_3DA23:
-		cmp	bl, 16h
-		jnz	short loc_3DA2B
-		jmp	loc_3DE2C
-
-loc_3DA2B:
-		cmp	bl, 17h
-		jnz	short loc_3DA33
-		jmp	loc_3DE48
-
-loc_3DA33:
-		cmp	bl, 0Dh
-		jnz	short loc_3DA3B
-		jmp	loc_3DB97
-
-loc_3DA3B:
-		cmp	bl, MAP_ELECTRON
-		jnz	short loc_3DA43
-		jmp	loc_3DE64
-
-loc_3DA43:
-		cmp	bl, 19h
-		jnz	short loc_3DA4B
-		jmp	loc_3DE92
-
-loc_3DA4B:
-		cmp	bl, 1Ah
-		jnz	short loc_3DA53
-		jmp	loc_3DEBF
-
-loc_3DA53:
-		cmp	bl, MAP_RAM_CHIP_RIGHT
-		jnz	short loc_3DA5B
-		jmp	loc_3DEED
-
-loc_3DA5B:
-		cmp	bl, 1Ch
-		jnz	short loc_3DA63
-		jmp	loc_3DF1A
-
-loc_3DA63:
-		cmp	bl, 1Dh
-		jnz	short loc_3DA6B
-		jmp	loc_3DF38
-
-loc_3DA6B:
-		cmp	bl, 1Eh
-		jnz	short loc_3DA73
-		jmp	loc_3DF53
-
-loc_3DA73:
-		cmp	bl, 1Fh
-		jnz	short loc_3DA7B
-		jmp	loc_3DF71
-
-loc_3DA7B:
-		cmp	bl, 20h
-		jnz	short loc_3DA83
-		jmp	loc_3DF8C
-
-loc_3DA83:
-		cmp	bl, 21h
-		jnz	short loc_3DA8B
-		jmp	loc_3DFA1
-
-loc_3DA8B:
-		cmp	bl, 22h
-		jnz	short loc_3DA93
-		jmp	loc_3DFB6
-
-loc_3DA93:
-		cmp	bl, 23h
-		jnz	short loc_3DA9B
-		jmp	loc_3DFCB
-
-loc_3DA9B:
-		cmp	bl, 24h
-		jnz	short loc_3DAA3
-		jmp	loc_3DFE0
-
-loc_3DAA3:
-		cmp	bl, 25h
-		jnz	short loc_3DAAB
-		jmp	loc_3DFFD
-
-loc_3DAAB:
-		cmp	bl, 27h
-		jnz	short loc_3DAB3
-		jmp	loc_3E01A
-
-
-loc_3DAB3:				; CODE XREF: xxx_HandleMurphy+104Ej
-		cmp	bl, 26h	; '&'
-		jnz	short loc_3DABB
-		jmp	loc_3E037
-
-
-loc_3DABB:				; CODE XREF: xxx_HandleMurphy+1056j
-		cmp	bl, 28h	; '('
-		jnz	short loc_3DAC3
-		jmp	loc_3E054
-
-
-loc_3DAC3:				; CODE XREF: xxx_HandleMurphy+105Ej
-		cmp	bl, 29h	; ')'
-		jnz	short loc_3DACB
-		jmp	loc_3E071
-
-
-loc_3DACB:				; CODE XREF: xxx_HandleMurphy+1066j
-		cmp	bl, 2Ah	; '*'
-		jnz	short loc_3DAD3
-		jmp	loc_3E09F
-
-
-loc_3DAD3:				; CODE XREF: xxx_HandleMurphy+106Ej
-		mov	word ptr [word_40C64], 1
-		ret
-
-
-loc_3DADA:				; CODE XREF: xxx_HandleMurphy+F58j
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jbe	short loc_3DAE5
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DAE5:				; CODE XREF: xxx_HandleMurphy+107Fj
-		;call	sub_3EC01
-
-loc_3DAE8:				; CODE XREF: xxx_HandleMurphy+F18j
-					; xxx_HandleMurphy+F38j
-		mov	word ptr _levelmap[esi], 3
-		add	esi, 78h	; 'x'
-		call	sub_38191
-		sub	esi, 78h	; 'x'
-		ret
-
-
-loc_3DAF8:				; CODE XREF: xxx_HandleMurphy+F60j
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jbe	short loc_3DB03
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DB03:				; CODE XREF: xxx_HandleMurphy+109Dj
-		;call	sub_3EC01
-
-loc_3DB06:				; CODE XREF: xxx_HandleMurphy+F20j
-					; xxx_HandleMurphy+F40j
-		mov	word ptr _levelmap[esi], 3
-		add	esi, 2
-		call	sub_38191
-		sub	esi, 2
-		ret
-
-
-; __linkproc__ InfotronCollected
-@@InfotronCollected:			; CODE XREF: xxx_HandleMurphy+F68j
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jbe	short loc_3DB21
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DB21:				; CODE XREF: xxx_HandleMurphy+10BBj
-		;call	sub_3EC01
-
-loc_3DB24:				; CODE XREF: xxx_HandleMurphy+F28j
-					; xxx_HandleMurphy+F48j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
-		jz	short loc_3DB31
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
-
-loc_3DB31:				; CODE XREF: xxx_HandleMurphy+10C9j
-		mov	word ptr _levelmap[esi], 3
-		ret
-
-
-loc_3DB38:				; CODE XREF: xxx_HandleMurphy+F78j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DB45
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DB45:				; CODE XREF: xxx_HandleMurphy+10DDj
-		mov	word ptr _levelmap[esi - 2], 3
-		mov	word ptr _levelmap[esi - 4], 1
-		sub	esi, 4
-		call	sub_3DB7E
-		add	esi, 2
-		ret
-
-
-loc_3DB5B:				; CODE XREF: xxx_HandleMurphy+F80j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DB68
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DB68:				; CODE XREF: xxx_HandleMurphy+1100j
-		mov	word ptr _levelmap[esi + 2], 3
-		mov	word ptr _levelmap[esi + 4], 1
-		add	esi, 4
-		call	sub_3DB7E
-		sub	esi, 2
-		ret
-xxx_HandleMurphy endp
-
+			mov		[PlayerIsInsideTeleport], 0
+			mov		[RedDiskPlacementTimer], 8
+			mov		byte ptr _levelmap[esi + 1], MURPHY_ANIM_SHIFT_ORANGE_DISK_RT
+			jmp		short loc_3D835
+
+loc_3D835:	mov 	ax, [edx + struc_2.animID]
+			mov 	[PlayerAnim_ID], ax
+			mov 	ax, [edx + struc_2.stepX]
+			mov 	[PlayerAnim_StepX], ax
+			mov 	ax, [edx + struc_2.stepY]
+			mov 	[PlayerAnim_StepY], ax
+			mov 	ax, [edx + struc_2.numFrames]
+			mov 	[PlayerAnim_NumFrames], ax
+loc_3D84B:	mov		word ptr [SupaplexYawnTimeout], 0
+			mov		ax, word ptr [RedDiskPlacementTimer]
+			cmp		ax, 0
+			je		loc_3D8AF
+			dec		ax
+			mov		word ptr [RedDiskPlacementTimer], ax
+			jnz		short loc_3D862
+			call	_SND_PlayObjectPushSound
+loc_3D862:	mov		bl, byte ptr _levelmap[esi + 1]
+			cmp		bl, MURPHY_ANIM_SHIFT_ZONK_LEFT
+			je		@@do_l_zonk
+			cmp		bl, MURPHY_ANIM_SHIFT_ZONK_RIGHT
+			je		@@do_r_zonk
+			cmp		bl, MURPHY_ANIM_SHIFT_ORANGE_DISK_LF
+			je		@@do_l_odsk
+			cmp		bl, MURPHY_ANIM_SHIFT_ORANGE_DISK_RT
+			je		@@do_r_odsk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_UP
+			je		@@do_u_ydsk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_LF
+			je		@@do_l_ydsk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_DN
+			je		@@do_d_ydsk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_RT
+			je		@@do_r_ydsk
+			cmp		bl, MURPHY_ANIM_PUT_BOMB
+			je		@@do_ptbomb
+			ret
+
+@@do_l_zonk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_LEFT
+			jne		short @@lz_cancel
+			cmp		word ptr _levelmap[esi - 2], MAP_ZONK
+			je		short locret_FFF
+@@lz_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 2], MAP_ZONK
+			cmp		byte ptr _levelmap[esi - 4], MAP_BOOM
+			je		short locret_FFF
+			mov		word ptr _levelmap[esi - 4], MAP_SPACE
+locret_FFF:	ret
+
+@@do_r_zonk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_RIGHT
+			jne		short @@rz_cancel
+			cmp		word ptr _levelmap[esi + 2], MAP_ZONK
+			je		short locret_GGG
+@@rz_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 2], MAP_ZONK
+			cmp		byte ptr _levelmap[esi + 4], MAP_BOOM
+			je		short locret_GGG
+			mov		word ptr _levelmap[esi + 4], MAP_SPACE
+locret_GGG:	ret
+
+@@do_l_odsk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_LEFT
+			jne		short @@lo_cancel
+			cmp		word ptr _levelmap[esi - 2], MAP_DISK_ORANGE
+			je		short locret_HHH
+@@lo_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 2], MAP_DISK_ORANGE
+			cmp		byte ptr _levelmap[esi - 4], MAP_BOOM
+			je		short locret_HHH
+			mov		word ptr _levelmap[esi - 4], MAP_SPACE
+locret_HHH:	ret
+
+@@do_r_odsk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_RIGHT
+			jne		short @@ro_cancel
+			cmp		word ptr _levelmap[esi + 2], MAP_DISK_ORANGE
+			je		short locret_III
+@@ro_cancel:mov		word ptr _levelmap[esi], 3
+			mov		word ptr _levelmap[esi + 2], MAP_DISK_ORANGE
+			cmp		byte ptr _levelmap[esi + 4], MAP_BOOM
+			jz		short locret_III
+			mov		word ptr _levelmap[esi + 4], MAP_SPACE
+locret_III:	ret
+
+@@do_u_ydsk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_UP
+			jne		short @@uy_cancel
+			cmp		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_DISK_YELLOW
+			je		short locret_JJJ
+@@uy_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_DISK_YELLOW
+			cmp		byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_BOOM
+			je		short locret_JJJ
+			mov		word ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_SPACE
+locret_JJJ:	ret
+
+@@do_l_ydsk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_LEFT
+			jne		short @@ly_cancel
+			cmp		word ptr _levelmap[esi - 2], MAP_DISK_YELLOW
+			je		short locret_KKK
+@@ly_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 2], MAP_DISK_YELLOW
+			cmp		byte ptr _levelmap[esi - 4], MAP_BOOM
+			je		short locret_KKK
+			mov		word ptr _levelmap[esi - 4], MAP_SPACE
+locret_KKK:	ret
+
+@@do_d_ydsk:mov		bl, [_joystickbuttons]
+			cmp		bl, 3
+			jne		short @@dy_cancel
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
+			je		short locret_LLL
+@@dy_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
+			cmp		byte ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_BOOM
+			je		short locret_LLL
+			mov		word ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_SPACE
+locret_LLL:	ret
+
+@@do_r_ydsk:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_RIGHT
+			jne		short @@ry_cancel
+			cmp		word ptr _levelmap[esi + 2], MAP_DISK_YELLOW
+			je		short locret_MMM
+@@ry_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 2], MAP_DISK_YELLOW
+			cmp		byte ptr _levelmap[esi + 4], MAP_BOOM
+			je		short locret_MMM
+			mov		word ptr _levelmap[esi + 4], MAP_SPACE
+locret_MMM: ret
+
+@@do_ptbomb:mov		bl, [_joystickbuttons]
+			cmp		bl, JB_SPACE
+			jne		short @@pb_cancel
+			cmp		[RedDiskPlacementTimer], 32
+			jg		short locret_NNN
+			mov		[RedDiskDetonateTimer], 1
+locret_NNN:	ret
+@@pb_cancel:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		[RedDiskDetonateTimer], 0
+			ret
+
+loc_3D8AF:	mov		ax, word ptr [PlayerAnim_StepX]
+			add		word ptr [PlayerPosition_PixelsX], ax
+			mov		ax, word ptr [PlayerAnim_StepY]
+			add		word ptr [PlayerPosition_PixelsY], ax
+			dec		word ptr [PlayerAnim_NumFrames]
+			cmp		word ptr [PlayerAnim_NumFrames], 0
+			jne		@@done
+			xor		bl, bl
+			xchg	bl, byte ptr _levelmap[esi + 1]
+			cmp		bl, MURPHY_ANIM_MOVE_UP_EAT_SPACE
+			je		@@d_u_move
+			cmp		bl, MURPHY_ANIM_MOVE_LEFT_EAT_SPACE
+			je		@@d_l_move
+			cmp		bl, MURPHY_ANIM_MOVE_DOWN_EAT_SPACE
+			je		@@d_d_move
+			cmp		bl, MURPHY_ANIM_MOVE_RIGHT_EAT_SPACE
+			je		@@d_r_move
+			cmp		bl, MURPHY_ANIM_MOVE_UP_EAT_BASE
+			je		@@d_u_move
+			cmp		bl, MURPHY_ANIM_MOVE_LEFT_EAT_BASE
+			je		@@d_l_move
+			cmp		bl, MURPHY_ANIM_MOVE_DOWN_EAT_BASE
+			je		@@d_d_move
+			cmp		bl, MURPHY_ANIM_MOVE_RIGHT_EAT_BASE
+			je		@@d_r_move
+			cmp		bl, MURPHY_ANIM_MOVE_UP_EAT_INFTR
+			je		@@d_u_inftr
+			cmp		bl, MURPHY_ANIM_MOVE_LEFT_EAT_INFTR
+			je		@@d_l_inftr
+			cmp		bl, MURPHY_ANIM_MOVE_DOWN_EAT_INFTR
+			je		@@d_d_inftr
+			cmp		bl, MURPHY_ANIM_MOVE_RIGHT_EAT_INFTR
+			je		@@d_r_inftr
+			cmp		bl, MURPHY_ANIM_SHIFT_ZONK_LEFT
+			je		@@d_l_zonk
+			cmp		bl, MURPHY_ANIM_SHIFT_ZONK_RIGHT
+			je		@@d_r_zonk
+			cmp		bl, MURPHY_ANIM_EAT_BASE_TOP
+			je		@@d_et_base
+			cmp		bl, MURPHY_ANIM_EAT_BASE_LEFT
+			je		@@d_el_base
+			cmp		bl, MURPHY_ANIM_EAT_BASE_RIGHT
+			je		@@d_er_base
+			cmp		bl, MURPHY_ANIM_EAT_BASE_BOTTOM
+			je		@@d_eb_base
+			cmp		bl, MURPHY_ANIM_EAT_INFOTRON_TOP
+			je		@@d_et_inft
+			cmp		bl, MURPHY_ANIM_EAT_INFOTRON_LEFT
+			je		@@d_el_inft
+			cmp		bl, MURPHY_ANIM_EAT_INFOTRON_RIGHT
+			je		@@d_er_inft
+			cmp		bl, MURPHY_ANIM_EAT_INFOTRON_BOTTOM
+			je		@@d_eb_inft
+			cmp		bl, MURPHY_ANIM_EXIT
+			je		@@d_levexit
+			cmp		bl, MURPHY_ANIM_TELEPORT_UP
+			je		@@d_u_port
+			cmp		bl, MURPHY_ANIM_TELEPORT_LEFT
+			je		@@d_l_port
+			cmp		bl, MURPHY_ANIM_TELEPORT_DOWN
+			je		@@d_d_port
+			cmp		bl, MURPHY_ANIM_TELEPORT_RIGHT
+			je		@@d_r_port
+			cmp		bl, MURPHY_ANIM_MOVE_UP_EAT_BOMB
+			je		@@d_u_bomb
+			cmp		bl, MURPHY_ANIM_MOVE_LEFT_EAT_BOMB
+			je		@@d_l_bomb
+			cmp		bl, MURPHY_ANIM_MOVE_DOWN_EAT_BOMB
+			je		@@d_d_bomb
+			cmp		bl, MURPHY_ANIM_MOVE_RIGHT_EAT_BOMB
+			je		@@d_r_bomb
+			cmp		bl, MURPHY_ANIM_EAT_BOMB_TOP
+			je		@@d_et_bomb
+			cmp		bl, MURPHY_ANIM_EAT_BOMB_LEFT
+			je		@@d_el_bomb
+			cmp		bl, MURPHY_ANIM_EAT_BOMB_BOTTOM
+			je		@@d_eb_bomb
+			cmp		bl, MURPHY_ANIM_EAT_BOMB_RIGHT
+			je		@@d_er_bomb
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_UP
+			je		@@d_u_ydisk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_LF
+			je		@@d_l_ydisk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_DN
+			je		@@d_d_ydisk
+			cmp		bl, MURPHY_ANIM_MOVE_YELLOW_DISK_RT
+			je		@@d_r_ydisk
+			cmp		bl, MURPHY_ANIM_SHIFT_ORANGE_DISK_LF
+			je		@@d_l_odisk
+			cmp		bl, MURPHY_ANIM_SHIFT_ORANGE_DISK_RT
+			je		@@d_r_odisk
+			cmp		bl, MURPHY_ANIM_PUT_BOMB	
+			je		@@d_putbomb
+			mov		word ptr [PlayerCompletedLevel], 1
+			ret
+
+@@d_u_inftr:cmp		[InfotronsLeftToCollect],	0
+			jbe		short @@d_u_move
+			dec		[InfotronsLeftToCollect]
+@@d_u_move:	mov		word ptr _levelmap[esi], MAP_MURPHY
+			add		esi, 2 * MAP_WIDTH
+			call	sub_38191
+			sub		esi, 2 * MAP_WIDTH
+			ret
+
+@@d_l_inftr:cmp		[InfotronsLeftToCollect],	0
+			jbe		short @@d_l_move
+			dec		[InfotronsLeftToCollect]
+@@d_l_move:	mov		word ptr _levelmap[esi], MAP_MURPHY
+			add		esi, 2
+			call	sub_38191
+			sub		esi, 2
+			ret
+
+@@d_d_inftr:cmp		[InfotronsLeftToCollect],	0
+			jbe		short @@d_d_move
+			dec		[InfotronsLeftToCollect]
+@@d_d_move:	cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
+			je		short loc_3DB31
+			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
+loc_3DB31:	mov		word ptr _levelmap[esi], MAP_MURPHY
+			ret
+
+@@d_l_zonk:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DB45
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DB45:	mov		word ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 4], MAP_ZONK
+			sub		esi, 4
+			call	sub_3DB7E
+			add		esi, 2
+			ret
+
+@@d_r_zonk:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DB68
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DB68:	mov		word ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 4], MAP_ZONK
+			add		esi, 4
+			call	sub_3DB7E
+			sub		esi, 2
+			ret
+
+@@d_r_inftr:cmp		[InfotronsLeftToCollect], 0
+			jbe		short @@d_r_move
+			dec		[InfotronsLeftToCollect]
+@@d_r_move:	sub		esi, 2
+			call	sub_38191
+			add		esi, 2
+			mov		word ptr _levelmap[esi], MAP_MURPHY
+			ret
+
+@@d_et_inft:cmp		[InfotronsLeftToCollect],	0
+			jbe		short @@d_et_base
+			dec		[InfotronsLeftToCollect]
+@@d_et_base:cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
+			je		short locret_XXX
+			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
+locret_XXX:	ret
+
+
+@@d_el_inft:cmp		[InfotronsLeftToCollect], 0
+			jbe		short @@d_el_base
+			dec		[InfotronsLeftToCollect]
+@@d_el_base:cmp		byte ptr _levelmap[esi - 2], MAP_BOOM
+			je		short locret_YYY
+			mov		word ptr _levelmap[esi - 2], MAP_SPACE
+locret_YYY:	ret
+
+@@d_eb_inft:cmp		[InfotronsLeftToCollect], 0
+			jbe		short @@d_eb_base
+			dec		[InfotronsLeftToCollect]
+@@d_eb_base:cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
+			je		short locret_ZZZ
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+locret_ZZZ:	ret
+
+@@d_er_inft:cmp		[InfotronsLeftToCollect],0
+			jbe		short @@d_er_base
+			dec		[InfotronsLeftToCollect]
+@@d_er_base:cmp		byte ptr _levelmap[esi + 2], MAP_BOOM
+			je		short locret_AAA
+			mov		word ptr _levelmap[esi + 2], MAP_SPACE
+locret_AAA:	ret
+
+@@d_u_port:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DE71
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DE71:	mov		word ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_MURPHY
+			mov		[PlayerIsInsideTeleport], 0
+			sub		esi, 4 * MAP_WIDTH
+			cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 1
+			jne		short locret_BBB
+			add		esi, 2 * MAP_WIDTH
+			call	sub_3E190
+			sub		esi, 2 * MAP_WIDTH
+locret_BBB:	ret
+
+@@d_l_port:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DE9F
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DE9F:	mov		word ptr _levelmap[esi - 4], MAP_MURPHY
+			mov		[PlayerIsInsideTeleport], 0
+			sub		esi, 4
+			cmp		byte ptr _levelmap[esi + 3], 1
+			jne		short locret_CCC
+			add		esi, 2
+			call	sub_3E190
+			sub		esi, 2
+locret_CCC:	ret
+
+@@d_d_port:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DECC
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DECC:	mov		word ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_MURPHY
+			mov		[PlayerIsInsideTeleport], 0
+			add		esi, 4 * MAP_WIDTH
+			cmp		byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 1
+			jne		short locret_DDD
+			sub		esi, 2 * MAP_WIDTH
+			call	sub_3E190
+			add		esi, 2 * MAP_WIDTH
+locret_DDD:	ret
+
+@@d_r_port:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DEFA
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DEFA:	mov		word ptr _levelmap[esi + 4], 3
+			mov		[PlayerIsInsideTeleport], 0
+			add		esi, 4
+			cmp		byte ptr _levelmap[esi - 1], 1
+			jne		short locret_EEE
+			sub 	esi, 2
+			call	sub_3E190
+			add		esi, 2
+locret_EEE:	ret
+
+@@d_u_bomb:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DF27
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DF27:	mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
+			inc		[NumRedDisks]
+			sub		esi, 2 * MAP_WIDTH
+			ret
+
+@@d_l_bomb:	cmp		byte ptr _levelmap[esi + 2], MAP_BOOM
+			je		short loc_3DF45
+			mov		word ptr _levelmap[esi + 2], MAP_SPACE
+loc_3DF45:	mov		word ptr _levelmap[esi], MAP_MURPHY
+			inc		[NumRedDisks]
+			ret
+
+@@d_d_bomb:	cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DF60
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DF60:	mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			inc		[NumRedDisks]
+			add		esi, 2 * MAP_WIDTH
+			ret
+
+@@d_r_bomb:	cmp		byte ptr _levelmap[esi - 2], MAP_BOOM
+			je		short loc_3DF7E
+			mov		word ptr _levelmap[esi - 2], MAP_SPACE
+loc_3DF7E:	mov		word ptr _levelmap[esi], MAP_MURPHY
+			inc		[NumRedDisks]
+			ret
+
+@@d_et_bomb:cmp		byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
+			je		short loc_3DF99
+			mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_SPACE
+loc_3DF99:	inc		[NumRedDisks]
+			ret
+
+@@d_el_bomb:cmp		byte ptr _levelmap[esi - 2], MAP_BOOM
+			je		short loc_3DFAE
+			mov		word ptr _levelmap[esi - 2], MAP_SPACE
+loc_3DFAE:	inc		[NumRedDisks]
+			ret
+
+@@d_eb_bomb:cmp		byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
+			je		short loc_3DFC3
+			mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_SPACE
+loc_3DFC3:	inc		[NumRedDisks]
+			ret
+
+@@d_er_bomb:cmp		byte ptr _levelmap[esi + 2], MAP_BOOM
+			je		short loc_3DFD8
+			mov		word ptr _levelmap[esi + 2], MAP_SPACE
+loc_3DFD8:	inc		[NumRedDisks]
+			ret
+
+@@d_u_ydisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3DFED
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3DFED:	mov		word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_MURPHY
+			mov		word ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_DISK_YELLOW
+			sub		esi, 2 * MAP_WIDTH
+			ret
+
+@@d_l_ydisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3E00A
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3E00A:	mov		word ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 4], MAP_DISK_YELLOW
+			sub		esi, 2
+			ret
+
+@@d_d_ydisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3E027
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3E027:	mov		word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_MURPHY
+			mov		word ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_DISK_YELLOW
+			add		esi, 2 * MAP_WIDTH
+			ret
+
+@@d_r_ydisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3E044
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3E044:	mov		word ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 4], MAP_DISK_YELLOW
+			add		esi, 2
+			ret
+
+@@d_l_odisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3E061
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3E061:	mov		word ptr _levelmap[esi - 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi - 4], MAP_DISK_ORANGE
+			sub		esi, 2
+			ret
+
+@@d_r_odisk:cmp		byte ptr _levelmap[esi], MAP_BOOM
+			je		short loc_3E07E
+			mov		word ptr _levelmap[esi], MAP_SPACE
+loc_3E07E:	mov		word ptr _levelmap[esi + 2], MAP_MURPHY
+			mov		word ptr _levelmap[esi + 4], MAP_DISK_ORANGE
+			cmp		word ptr _levelmap[esi + 2 * MAP_WIDTH + 4], MAP_SPACE
+			jne		short loc_3E09B
+			mov		byte ptr _levelmap[esi + 5], 20h
+			mov		byte ptr _levelmap[esi + 2 * MAP_WIDTH + 5], MAP_DISK_ORANGE
+loc_3E09B:	add		esi, 2
+			ret
+
+@@d_levexit:mov		[PlayerCompletedLevel], 1
+			ret
+
+@@d_putbomb:mov		word ptr _levelmap[esi], MAP_MURPHY
+			mov		[RedDiskDetonateTimer], 2
+			dec		[NumRedDisks]
+			call	_SND_PlayObjectPushSound
+			ret
+
+@@done:		ret
+
+HandlePlayerMovement endp
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
@@ -4079,504 +3741,7 @@ loc_3DB8D:
 
 sub_3DB7E	endp
 
-loc_3DB97:
-		mov	word ptr [word_40C64], 1
-		ret
 
-loc_3DB9E:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 2
-		jnz	short loc_3DBAF
-		cmp	word ptr _levelmap[esi - 2], 1
-		jnz	short loc_3DBAF
-		ret
-
-loc_3DBAF:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi - 2], 1
-		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
-		jz	short loc_3DBC8
-		mov	word ptr _levelmap[esi - 4], 0
-
-loc_3DBC8:
-		ret
-
-loc_3DBDC:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 4
-		jnz	short loc_3DBED
-		cmp	word ptr _levelmap[esi + 2], 1
-		jnz	short loc_3DBED
-		ret
-
-loc_3DBED:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi + 2], 1
-		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
-		jz	short loc_3DC06
-		mov	word ptr _levelmap[esi + 4], 0
-
-loc_3DC06:
-		ret
-
-loc_3DC1A:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 2
-		jnz	short loc_3DC2B
-		cmp	word ptr _levelmap[esi - 2], 8
-		jnz	short loc_3DC2B
-		ret
-
-loc_3DC2B:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi - 2], 8
-		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
-		jz	short loc_3DC44
-		mov	word ptr _levelmap[esi - 4], 0
-
-loc_3DC44:
-		ret
-
-loc_3DC58:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 4
-		jnz	short loc_3DC69
-		cmp	word ptr _levelmap[esi + 2], 8
-		jnz	short loc_3DC69
-		ret
-
-loc_3DC69:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi + 2], 8
-		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
-		jz	short loc_3DC82
-		mov	word ptr _levelmap[esi + 4], 0
-
-loc_3DC82:
-		ret
-
-loc_3DC96:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 1
-		jnz	short loc_3DCA7
-		cmp	word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		jnz	short loc_3DCA7
-		ret
-
-loc_3DCA7:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_BOOM
-		jz	short loc_3DCC0
-		mov	word ptr _levelmap[esi - (4 * MAP_WIDTH)], 0
-
-loc_3DCC0:
-		ret
-
-loc_3DCD4:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 2
-		jnz	short loc_3DCE5
-		cmp	word ptr _levelmap[esi - 2], MAP_DISK_YELLOW
-		jnz	short loc_3DCE5
-		ret
-
-loc_3DCE5:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi - 2], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi - 4], MAP_BOOM
-		jz	short loc_3DCFE
-		mov	word ptr _levelmap[esi - 4], 0
-
-loc_3DCFE:
-		ret
-
-loc_3DD12:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 3
-		jnz	short loc_3DD23
-		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		jnz	short loc_3DD23
-		ret
-
-loc_3DD23:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_BOOM
-		jz	short loc_3DD3C
-		mov	word ptr _levelmap[esi + (4 * MAP_WIDTH)], 0
-
-loc_3DD3C:
-		ret
-
-loc_3DD50:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 4
-		jnz	short loc_3DD61
-		cmp	word ptr _levelmap[esi + 2], MAP_DISK_YELLOW
-		jnz	short loc_3DD61
-		ret
-
-loc_3DD61:
-		mov	word ptr _levelmap[esi], 3
-		mov	word ptr _levelmap[esi + 2], MAP_DISK_YELLOW
-		cmp	byte ptr _levelmap[esi + 4], MAP_BOOM
-		jz	short loc_3DD7A
-		mov	word ptr _levelmap[esi + 4], 0
-
-loc_3DD7A:
-		ret
-
-loc_3DD8E:
-		mov	bl, byte ptr [_joystickbuttons]
-		cmp	bl, 9
-		jnz	short loc_3DDB7
-		cmp	word ptr [RedDiskPlacementTimer], 32
-		jg	short locret_3DDB6
-		mov	byte ptr [RedDiskDetonateTimer], 1
-
-locret_3DDB6:
-		ret
-
-loc_3DDB7:
-		mov		word ptr _levelmap[esi], 3
-		mov		byte ptr [RedDiskDetonateTimer], 0
-		ret
-
-loc_3DDD6:
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jbe	short loc_3DDE1
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DDE1:
-		;call	sub_3EC01
-
-loc_3DDE4:
-		sub	esi, 2
-		call	sub_38191
-		add	esi, 2
-		mov	word ptr _levelmap[esi], 3
-		ret
-
-
-loc_3DDF4:				; CODE XREF: xxx_HandleMurphy+FB0j
-		cmp	byte ptr [InfotronsLeftToCollect],	0
-		jbe	short loc_3DDFF
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DDFF:				; CODE XREF: xxx_HandleMurphy+1399j
-		;call	sub_3EC01
-
-loc_3DE02:				; CODE XREF: xxx_HandleMurphy+F88j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
-		jz	short locret_3DE0F
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
-
-locret_3DE0F:				; CODE XREF: xxx_HandleMurphy+13A7j
-		ret
-
-
-loc_3DE10:				; CODE XREF: xxx_HandleMurphy+FB8j
-		cmp	byte ptr [InfotronsLeftToCollect], 0
-		jbe	short loc_3DE1B
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DE1B:				; CODE XREF: xxx_HandleMurphy+13B5j
-		;call	sub_3EC01
-
-loc_3DE1E:				; CODE XREF: xxx_HandleMurphy+F90j
-		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
-		jz	short locret_3DE2B
-		mov	word ptr _levelmap[esi - 2], 0
-
-locret_3DE2B:				; CODE XREF: xxx_HandleMurphy+13C3j
-		ret
-
-
-loc_3DE2C:				; CODE XREF: xxx_HandleMurphy+FC8j
-		cmp	byte ptr [InfotronsLeftToCollect], 0
-		jbe	short loc_3DE37
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DE37:				; CODE XREF: xxx_HandleMurphy+13D1j
-		;call	sub_3EC01
-
-loc_3DE3A:				; CODE XREF: xxx_HandleMurphy+FA0j
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
-		jz	short locret_3DE47
-		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
-
-locret_3DE47:				; CODE XREF: xxx_HandleMurphy+13DFj
-		ret
-
-
-loc_3DE48:
-		cmp	byte ptr [InfotronsLeftToCollect],0
-		jbe	short loc_3DE53
-		dec	byte ptr [InfotronsLeftToCollect]
-
-loc_3DE53:
-		;call	sub_3EC01
-
-loc_3DE56:
-		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
-		jz	short locret_3DE63
-		mov	word ptr _levelmap[esi + 2], 0
-
-locret_3DE63:				; CODE XREF: xxx_HandleMurphy+13FBj
-		ret
-
-
-loc_3DE64:				; CODE XREF: xxx_HandleMurphy+FE0j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DE71
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DE71:				; CODE XREF: xxx_HandleMurphy+1409j
-		mov	word ptr _levelmap[esi - (4 * MAP_WIDTH)], 3
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		sub	esi, 0F0h
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 1], 1
-		jnz	short locret_3DE91
-		add	esi, 78h
-		call	sub_3E190
-		sub	esi, 78h
-
-locret_3DE91:
-		ret
-
-loc_3DE92:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DE9F
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DE9F:
-		mov	word ptr _levelmap[esi - 4], 3
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		sub	esi, 4
-		cmp	byte ptr _levelmap[esi + 3], 1
-		jnz	short locret_3DEBE
-		add	esi, 2
-		call	sub_3E190
-		sub	esi, 2
-
-locret_3DEBE:
-		ret
-
-loc_3DEBF:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DECC
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DECC:
-		mov	word ptr _levelmap[esi + (4 * MAP_WIDTH)], 3
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		add	esi, 0F0h
-		cmp	byte ptr _levelmap[esi - (2 * MAP_WIDTH - 1)], 1
-		jnz	short locret_3DEEC
-		sub	esi, 78h
-		call	sub_3E190
-		add	esi, 78h
-
-locret_3DEEC:
-		ret
-
-loc_3DEED:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DEFA
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DEFA:
-		mov	word ptr _levelmap[esi + 4], 3
-		mov	word ptr [PlayerIsInsideTeleport], 0
-		add	esi, 4
-		cmp	byte ptr _levelmap[esi - 1], 1
-		jnz	short locret_3DF19
-		sub esi, 2
-		call	sub_3E190
-		add	esi, 2
-
-locret_3DF19:				; CODE XREF: xxx_HandleMurphy+14AEj
-		ret
-
-
-loc_3DF1A:				; CODE XREF: xxx_HandleMurphy+1000j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DF27
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DF27:				; CODE XREF: xxx_HandleMurphy+14BFj
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 3
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		sub	esi, 78h
-		ret
-
-
-loc_3DF38:				; CODE XREF: xxx_HandleMurphy+1008j
-		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
-		jz	short loc_3DF45
-		mov	word ptr _levelmap[esi + 2], 0
-
-loc_3DF45:				; CODE XREF: xxx_HandleMurphy+14DDj
-		mov	word ptr _levelmap[esi], 3
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-
-loc_3DF53:				; CODE XREF: xxx_HandleMurphy+1010j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DF60
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DF60:				; CODE XREF: xxx_HandleMurphy+14F8j
-		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 3
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		add	esi, 78h	; 'x'
-		ret
-
-
-loc_3DF71:				; CODE XREF: xxx_HandleMurphy+1018j
-		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
-		jz	short loc_3DF7E
-		mov	word ptr _levelmap[esi - 2], 0
-
-loc_3DF7E:				; CODE XREF: xxx_HandleMurphy+1516j
-		mov	word ptr _levelmap[esi], 3
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-
-loc_3DF8C:				; CODE XREF: xxx_HandleMurphy+1020j
-		cmp	byte ptr _levelmap[esi - 2 * MAP_WIDTH], MAP_BOOM
-		jz	short loc_3DF99
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 0
-
-loc_3DF99:				; CODE XREF: xxx_HandleMurphy+1531j
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-
-loc_3DFA1:				; CODE XREF: xxx_HandleMurphy+1028j
-		cmp	byte ptr _levelmap[esi - 2], MAP_BOOM
-		jz	short loc_3DFAE
-		mov	word ptr _levelmap[esi - 2], 0
-
-loc_3DFAE:				; CODE XREF: xxx_HandleMurphy+1546j
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-
-loc_3DFB6:				; CODE XREF: xxx_HandleMurphy+1030j
-		cmp	byte ptr _levelmap[esi + 2 * MAP_WIDTH], MAP_BOOM
-		jz	short loc_3DFC3
-		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 0
-
-loc_3DFC3:
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-
-loc_3DFCB:
-		cmp	byte ptr _levelmap[esi + 2], MAP_BOOM
-		jz	short loc_3DFD8
-		mov	word ptr _levelmap[esi + 2], 0
-
-loc_3DFD8:
-		inc	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		ret
-
-loc_3DFE0:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3DFED
-		mov	word ptr _levelmap[esi], 0
-
-loc_3DFED:
-		mov	word ptr _levelmap[esi - 2 * MAP_WIDTH], 3
-		mov	word ptr _levelmap[esi - (4 * MAP_WIDTH)], MAP_DISK_YELLOW
-		sub	esi, 78h	; 'x'
-		ret
-
-loc_3DFFD:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3E00A
-		mov	word ptr _levelmap[esi], 0
-
-loc_3E00A:				; CODE XREF: xxx_HandleMurphy+15A2j
-		mov	word ptr _levelmap[esi - 2], 3
-		mov	word ptr _levelmap[esi - 4], MAP_DISK_YELLOW
-		sub	esi, 2
-		ret
-
-
-loc_3E01A:				; CODE XREF: xxx_HandleMurphy+1050j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3E027
-		mov	word ptr _levelmap[esi], 0
-
-loc_3E027:				; CODE XREF: xxx_HandleMurphy+15BFj
-		mov	word ptr _levelmap[esi + 2 * MAP_WIDTH], 3
-		mov	word ptr _levelmap[esi + (4 * MAP_WIDTH)], MAP_DISK_YELLOW
-		add	esi, 78h	; 'x'
-		ret
-
-
-loc_3E037:				; CODE XREF: xxx_HandleMurphy+1058j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3E044
-		mov	word ptr _levelmap[esi], 0
-
-loc_3E044:				; CODE XREF: xxx_HandleMurphy+15DCj
-		mov	word ptr _levelmap[esi + 2], 3
-		mov	word ptr _levelmap[esi + 4], MAP_DISK_YELLOW
-		add	esi, 2
-		ret
-
-
-loc_3E054:				; CODE XREF: xxx_HandleMurphy+1060j
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3E061
-		mov	word ptr _levelmap[esi], 0
-
-loc_3E061:				; CODE XREF: xxx_HandleMurphy+15F9j
-		mov	word ptr _levelmap[esi - 2], 3
-		mov	word ptr _levelmap[esi - 4], 8
-		sub	esi, 2
-		ret
-
-
-loc_3E071:
-		cmp	byte ptr _levelmap[esi], MAP_BOOM
-		jz	short loc_3E07E
-		mov	word ptr _levelmap[esi], MAP_SPACE
-
-loc_3E07E:
-		mov	word ptr _levelmap[esi + 2], MAP_MURPHY
-		mov	word ptr _levelmap[esi + 4], MAP_DISK_ORANGE
-		cmp	word ptr _levelmap[esi + 2 * MAP_WIDTH + 4], MAP_SPACE
-		jnz	short loc_3E09B
-		mov	byte ptr _levelmap[esi + 5], 20h
-		mov	byte ptr _levelmap[esi + 2 * MAP_WIDTH + 5], 8
-
-loc_3E09B:
-		add	esi, 2
-		ret
-
-
-loc_3E09F:
-		mov	word ptr _levelmap[esi], MAP_MURPHY
-		mov	byte ptr [RedDiskDetonateTimer], 2
-		dec	byte ptr [NumRedDisks]
-		;call	sub_3EC91
-		call	_SND_PlayObjectPushSound
-		ret
 
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
@@ -4710,8 +3875,8 @@ loc_3E18E:				; CODE XREF: CODE_SEG:7569j
 ; ллллллллллллллл S U B	R O U T	I N E ллллллллллллллллллллллллллллллллллллллл
 
 
-sub_3E190	proc near		; CODE XREF: xxx_HandleMurphy+142Bp
-					; xxx_HandleMurphy+1458p ...
+sub_3E190	proc near
+
 		mov	cl, byte ptr [byte_40327]
 		xor	ch, ch
 		cmp	cx, 0
@@ -5150,14 +4315,14 @@ loc_3E5BD:
 		ret
 
 loc_3E5C8:
-		cmp	word ptr _levelmap[esi - 2], 0
+		cmp	word ptr _levelmap[esi - 2], MAP_SPACE
 		jnz	short loc_3E5D5
 		mov	byte ptr _levelmap[esi + 1], 0Dh
 		ret
 
 
 loc_3E5D5:
-		cmp	byte ptr _levelmap[esi - 2], 3
+		cmp	byte ptr _levelmap[esi - 2], MAP_MURPHY
 		jnz	short loc_3E5E2
 		mov	byte ptr _levelmap[esi + 1], 0Dh
 		ret
@@ -5781,8 +4946,9 @@ ElectronHandlers label dword
 		dd 8 dup (ElectronHandler_5)
 		dd 8 dup (ElectronHandler_6)
 
-MapObjectHandlers		dd 0
-		dd handleZonk
+MapObjectHandlers label dword
+		dd 0
+		dd HandleZonk
 		dd 0
 		dd 0
 		dd handleInfotron
@@ -5823,9 +4989,9 @@ CurrentFrameNumber	dw 0F000h
 word_40C4F	dw 0
 word_40C51	dw 0
 byte_40C5A	db 0
-byte_40C5B	db 0
+TerminalsActivated	db 0
 word_40C60	dw 0
-word_40C64	dw 0
+PlayerCompletedLevel	dw 0
 TimeoutAfterWhichLeaveTheLevel	dw 0
 byte_40C6C	db 0
 

@@ -1360,7 +1360,7 @@ void reshape(int w, int h)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, w, h, 0, -100.0f, 100.0f);
+	glOrtho(0, MAP_WIDTH * 16, MAP_HEIGHT * 16 * 2 + 16, 0, -100.0f, 100.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -1378,7 +1378,7 @@ int main(int argc, char ** argv)
 		//104=yellow diskettes
 		//8=bugs
 		//29=electrons
-	int levelNumber = 2;//29;//61;//63;//15;//30;//11;//27;
+	int levelNumber = 29;//29;//61;//63;//15;//30;//11;//27;
 	fseek(f, levelNumber * 1536, SEEK_SET);
 	fread(OriginalLevelData, 1536, 1, f);
 	for (int i = 0; i < 1536; i++)
@@ -1404,8 +1404,8 @@ int main(int argc, char ** argv)
 		glBindTexture(GL_TEXTURE_2D, texFixed);
 		BMPClass bmp;
 		BMPLoad("fixed.bmp", bmp);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);
@@ -1418,8 +1418,8 @@ int main(int argc, char ** argv)
 		glBindTexture(GL_TEXTURE_2D, texMoving);
 		BMPClass bmp;
 		BMPLoad("moving.bmp", bmp);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);
@@ -1432,8 +1432,8 @@ int main(int argc, char ** argv)
 		glBindTexture(GL_TEXTURE_2D, texFont);
 		BMPClass bmp;
 		BMPLoad("font.bmp", bmp);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, bmp.width, bmp.height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp.bytes);

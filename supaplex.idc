@@ -2171,6 +2171,8 @@ static main()
 	MakeName(0x40C57, "VID_VgaMemStartAddress");
 	MakeComm(0x40C57, "Used to scroll the screen");
 
+	MakeName(0x40C64, "PlayerCompletedLevel");
+
 	MakeName(0x40C68, "TimeoutAfterWhichLeaveTheLevel");
 
 	MakeName(0x40C6A, "ExitTheProgram");
