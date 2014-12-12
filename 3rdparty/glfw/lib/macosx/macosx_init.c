@@ -163,7 +163,8 @@ int _glfwPlatformInit( void )
     // NOTE: KCHRPtr is declared globally, because we need it later on.
     KCHRPtr = (void *)GetScriptVariable( smCurrentScript, smKCHRCache );
     KeyTranslate( KCHRPtr, 0, &nullDummy );
-    UppercaseText( (char *)&nullDummy, 0, smSystemScript );
+    #warning FIXME Not supported on OSX 64-bit
+    //UppercaseText( (char *)&nullDummy, 0, smSystemScript );
 
     gettimeofday( &tv, NULL );
     _glfwLibrary.Timer.t0 = tv.tv_sec + (double) tv.tv_usec / 1000000.0;

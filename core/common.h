@@ -1,6 +1,8 @@
 #ifndef __CORE__COMMON_H__F8F2FCCB_BAB0_4BCF_9319_2A3869A05769__
 #define __CORE__COMMON_H__F8F2FCCB_BAB0_4BCF_9319_2A3869A05769__
 
+#include <wchar.h>
+
 /* Disable useless compiler warnings */
 
 #ifndef __DOXYGEN__

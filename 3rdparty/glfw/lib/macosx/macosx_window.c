@@ -30,6 +30,8 @@
 
 #include "internal.h"
 
+#define kEventWindowDrawContent 2
+
 static _GLFWmacwindowfunctions _glfwMacFSWindowFunctions =
 {
     _glfwMacFSOpenWindow,
@@ -132,7 +134,8 @@ void _glfwHandleMacKeyChange( UInt32 keyCode, int action )
             extern void *KCHRPtr;
             UInt32 state = 0;
             char charCode = (char)KeyTranslate( KCHRPtr, keyCode, &state );
-            UppercaseText( &charCode, 1, smSystemScript );
+            #warning FIXME Not supported on OSX 64-bit
+            //UppercaseText( &charCode, 1, smSystemScript );
             _glfwInputKey( (unsigned char)charCode, action );
         }
         break;
@@ -367,13 +370,13 @@ OSStatus _glfwMouseEventHandler( EventHandlerCallRef handlerCallRef,
                                    NULL,
                                    &axis) == noErr )
             {
-                long wheelDelta;
+                SInt32 wheelDelta;
                 if( axis == kEventMouseWheelAxisY &&
                     GetEventParameter( event,
                                        kEventParamMouseWheelDelta,
-                                       typeLongInteger,
+                                       typeSInt32,
                                        NULL,
-                                       sizeof( long ),
+                                       sizeof( SInt32 ),
                                        NULL,
                                        &wheelDelta ) == noErr )
                 {
@@ -668,8 +671,9 @@ int  _glfwPlatformOpenWindow( int width,
         AGLpixelFormatAttributes[numAGLAttrs++] = AGL_NONE;
 
         // create pixel format descriptor
-        AGLDevice mainMonitor = GetMainDevice();
-        AGLPixelFormat pixelFormat = aglChoosePixelFormat( &mainMonitor,
+        #warning FIXME Not supported on OSX 64-bit
+ //       AGLDevice mainMonitor = GetMainDevice();
+        AGLPixelFormat pixelFormat = aglChoosePixelFormat( NULL, // &mainMonitor,
                                                            1,
                                                            AGLpixelFormatAttributes );
         if( pixelFormat == NULL )
@@ -786,7 +790,8 @@ int  _glfwPlatformOpenWindow( int width,
                                 kWindowCenterOnMainScreen );
 
         if( !aglSetDrawable( _glfwWin.AGLContext,
-                             GetWindowPort( _glfwWin.MacWindow ) ) )
+                             #warning FIXME Not supported on OSX 64-bit
+                             /*GetWindowPort(*/ _glfwWin.MacWindow /*)*/ ) )
         {
             fprintf( stderr, "glfwOpenWindow failing because it can't draw to the window\n" );
             _glfwPlatformCloseWindow();
@@ -990,7 +995,8 @@ void _glfwPlatformCloseWindow( void )
 
         if( _glfwWin.MacWindow != NULL )
         {
-            ReleaseWindow( _glfwWin.MacWindow );
+            #warning FIXME Not supported on OSX 64-bit
+            //ReleaseWindow( _glfwWin.MacWindow );
             _glfwWin.MacWindow = NULL;
         }
 

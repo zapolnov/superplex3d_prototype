@@ -629,7 +629,8 @@ bool QLibrary::load()
 
 	return true;
 #else
-	#error Not implemented.
+	#warning Not implemented.
+	return false;
 #endif
 }
 
@@ -646,7 +647,8 @@ bool QLibrary::unload()
 	}
 	return true;
 #else
-	#error Not implemented
+	#warning Not implemented
+	return false;
 #endif
 }
 
@@ -670,7 +672,8 @@ void * QLibrary::resolve(const char * symbol)
 
 	return func;
 #else
-	#error Not implemented
+	#warning Not implemented
+	return NULL;
 #endif
 }
 
@@ -696,7 +699,7 @@ QThread::~QThread()
 		CloseHandle(m_Handle);
 #else
 	// pthread_detach?
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 
@@ -720,7 +723,7 @@ void QThread::start()
 		throw Exception(QString("Unable to start thread: %1").arg(QString::fromLocal8Bit(strerror(errno))));
 	}
 #else
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 
@@ -750,7 +753,7 @@ void QThread::wait()
 	}
 #else
 	// pthread_join
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 

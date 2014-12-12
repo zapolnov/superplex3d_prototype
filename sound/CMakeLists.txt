@@ -35,15 +35,6 @@ SET(pg_sound_SRC
 	${MOC_FILES}
 )
 
-ADD_LIBRARY(pg_sound SHARED EXCLUDE_FROM_ALL ${pg_sound_SRC})
-ADD_LIBRARY(pg_sound_static STATIC EXCLUDE_FROM_ALL ${pg_sound_SRC})
-
-SETUP_LIBRARY(pg_sound)
-TARGET_LINK_LIBRARIES(pg_sound pg_core vorbisfile libvorbis libogg)
-ADD_DEPENDENCIES(pg_sound pg_openal)
-SET_PROPERTY(TARGET pg_sound PROPERTY COMPILE_DEFINITIONS "SOUND_DLL" APPEND)
-
-TARGET_LINK_LIBRARIES(pg_sound_static pg_core_static vorbisfile libvorbis libogg)
-ADD_DEPENDENCIES(pg_sound_static pg_openal)
-SET_PROPERTY(TARGET pg_sound_static PROPERTY COMPILE_DEFINITIONS "SOUND_STATIC" APPEND)
-SET_PROPERTY(TARGET pg_sound_static PROPERTY COMPILE_DEFINITIONS "CORE_STATIC" APPEND)
+ADD_LIBRARY(pg_sound STATIC ${pg_sound_SRC})
+TARGET_LINK_LIBRARIES(pg_sound pg_core pg_vorbis pg_ogg)
+#ADD_DEPENDENCIES(pg_sound pg_openal)

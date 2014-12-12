@@ -27,7 +27,7 @@ Signal::Signal()
 	if (unlikely(!m_Handle))
 		handle_win_error();
 #else
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 
@@ -39,7 +39,7 @@ Signal::~Signal()
 #ifdef WIN32
 	CloseHandle((HANDLE)m_Handle);
 #else
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 
@@ -51,7 +51,7 @@ void Signal::signal()
 #ifdef WIN32
 	SetEvent((HANDLE)m_Handle);
 #else
-	#error Not implemented
+	#warning Not implemented
 #endif
 }
 
@@ -74,6 +74,7 @@ bool Signal::wait(uint msecs)
 
 	return false;
 #else
-	#error Not implemented
+	#warning Not implemented
+	return false;
 #endif
 }

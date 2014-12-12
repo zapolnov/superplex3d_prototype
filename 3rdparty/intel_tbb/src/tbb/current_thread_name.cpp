@@ -50,7 +50,7 @@ typedef struct tagTHREADNAME_INFO
 
 /* Private variables */
 
-#ifndef __linux__
+#if !defined(__linux__) && !defined(__APPLE__)
 static tbb::spin_mutex g_Mutex;						/**< Mutex for access to the map of threads. */
 static std::map<threadid_t, std::string> g_Names;	/**< Names of the threads. */
 #endif

@@ -4067,7 +4067,7 @@ typedef ptrdiff_t GLsizeiptrARB;
 #ifndef GL_ARB_shader_objects
 /* GL types for program/shader text and shader object handles */
 typedef char GLcharARB;
-typedef unsigned int GLhandleARB;
+typedef void* GLhandleARB;
 #endif
 
 /* GL type for "half" precision (s10e5) float data in host memory */
@@ -4318,8 +4318,8 @@ typedef void (APIENTRYP PFNGLMULTTRANSPOSEMATRIXDPROC) (const GLdouble *m);
 #define GL_VERSION_1_4 1
 #ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glBlendFuncSeparate (GLenum, GLenum, GLenum, GLenum);
-GLAPI void APIENTRY glMultiDrawArrays (GLenum, GLint *, GLsizei *, GLsizei);
-GLAPI void APIENTRY glMultiDrawElements (GLenum, const GLsizei *, GLenum, const GLvoid* *, GLsizei);
+GLAPI void APIENTRY glMultiDrawArrays (GLenum, const GLint *, const GLsizei *, GLsizei);
+GLAPI void APIENTRY glMultiDrawElements (GLenum, const GLsizei *, GLenum, const GLvoid* const *, GLsizei);
 GLAPI void APIENTRY glPointParameterf (GLenum, GLfloat);
 GLAPI void APIENTRY glPointParameterfv (GLenum, const GLfloat *);
 GLAPI void APIENTRY glPointParameteri (GLenum, GLint);
@@ -4497,7 +4497,7 @@ GLAPI void APIENTRY glGetVertexAttribPointerv (GLuint, GLenum, GLvoid* *);
 GLAPI GLboolean APIENTRY glIsProgram (GLuint);
 GLAPI GLboolean APIENTRY glIsShader (GLuint);
 GLAPI void APIENTRY glLinkProgram (GLuint);
-GLAPI void APIENTRY glShaderSource (GLuint, GLsizei, const GLchar* *, const GLint *);
+GLAPI void APIENTRY glShaderSource (GLuint, GLsizei, const GLchar* const*, const GLint *);
 GLAPI void APIENTRY glUseProgram (GLuint);
 GLAPI void APIENTRY glUniform1f (GLint, GLfloat);
 GLAPI void APIENTRY glUniform2f (GLint, GLfloat, GLfloat);

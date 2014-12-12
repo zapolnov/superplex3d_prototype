@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-ADD_LIBRARY(pg_opengl STATIC EXCLUDE_FROM_ALL
+ADD_LIBRARY(pg_opengl STATIC
 
 	context.h
 	display_list.h

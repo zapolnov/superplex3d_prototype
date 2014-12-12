@@ -72,8 +72,8 @@ ADD_LIBRARY(pg_casual STATIC EXCLUDE_FROM_ALL
 
 )
 
-TARGET_LINK_LIBRARIES(pg_casual glsl_compiler pg_image_static pg_sound_static pg_math_static pg_core_static pg_tbb)
-TARGET_LINK_LIBRARIES(pg_casual pg_opengl pg_mesh_static glfw tinyxml minizip zlib ${OPENGL_gl_LIBRARY})
+TARGET_LINK_LIBRARIES(pg_casual glsl_compiler pg_image pg_sound pg_math pg_core pg_tbb)
+TARGET_LINK_LIBRARIES(pg_casual pg_opengl pg_mesh glfw tinyxml pg_zlib ${OPENGL_gl_LIBRARY})
 TARGET_LINK_LIBRARIES(pg_casual ${OPENGL_glu_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
 SET_PROPERTY(TARGET pg_casual PROPERTY COMPILE_DEFINITIONS "ENGINE_STATIC" APPEND)

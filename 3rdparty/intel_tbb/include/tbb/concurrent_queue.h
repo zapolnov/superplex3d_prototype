@@ -105,14 +105,14 @@ public:
 
     //! Enqueue an item at tail of queue.
     void push( const T& source ) {
-        internal_push( &source );
+        this->internal_push( &source );
     }
 
     //! Attempt to dequeue an item from head of queue.
     /** Does not wait for item to become available.
         Returns true if successful; false otherwise. */
     bool try_pop( T& result ) {
-        return internal_try_pop( &result );
+        return this->internal_try_pop( &result );
     }
 
     //! Return the number of items in the queue; thread unsafe
@@ -149,7 +149,7 @@ template<typename T, class A>
 void concurrent_queue<T,A>::clear() {
     while( !empty() ) {
         T value;
-        internal_try_pop(&value);
+        this->internal_try_pop(&value);
     }
 }
 

@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-ADD_LIBRARY(tinyxml STATIC EXCLUDE_FROM_ALL
+ADD_LIBRARY(tinyxml STATIC
 	tinyxml.cpp
 	tinyxmlerror.cpp
 	tinyxmlparser.cpp

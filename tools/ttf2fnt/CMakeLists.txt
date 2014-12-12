@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(ttf2fnt)
 
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/common.cmake)
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/defines.cmake)
+INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
+INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
 
 INCLUDE_DIRECTORIES(
 	${freetype2_SOURCE_DIR}/include
@@ -24,10 +24,4 @@ ADD_EXECUTABLE(ttf2fnt
 
 )
 
-SETUP_TARGET(ttf2fnt)
-TARGET_LINK_LIBRARIES(ttf2fnt freetype2 pg_core)
-
-SET_TARGET_PROPERTIES(ttf2fnt PROPERTIES
-	OUTPUT_NAME "ttf2fnt"
-	SUFFIX ".exe"
-)
+TARGET_LINK_LIBRARIES(ttf2fnt pg_freetype2 pg_core)

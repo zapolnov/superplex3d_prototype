@@ -36,13 +36,5 @@ SET(pg_image_SRC
 	image_file.h
 )
 
-ADD_LIBRARY(pg_image SHARED EXCLUDE_FROM_ALL ${pg_image_SRC})
-ADD_LIBRARY(pg_image_static STATIC EXCLUDE_FROM_ALL ${pg_image_SRC})
-
-SETUP_LIBRARY(pg_image)
-SET_PROPERTY(TARGET pg_image PROPERTY COMPILE_DEFINITIONS "IMAGE_DLL" APPEND)
-TARGET_LINK_LIBRARIES(pg_image pg_core pg_tbb libjpeg libpng zlib)
-
-TARGET_LINK_LIBRARIES(pg_image_static pg_core_static pg_tbb libjpeg libpng zlib)
-SET_PROPERTY(TARGET pg_image_static PROPERTY COMPILE_DEFINITIONS "IMAGE_STATIC" APPEND)
-SET_PROPERTY(TARGET pg_image_static PROPERTY COMPILE_DEFINITIONS "CORE_STATIC" APPEND)
+ADD_LIBRARY(pg_image STATIC ${pg_image_SRC})
+TARGET_LINK_LIBRARIES(pg_image pg_core pg_tbb pg_jpeg pg_png pg_zlib)

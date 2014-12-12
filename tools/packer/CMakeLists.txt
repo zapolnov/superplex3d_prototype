@@ -17,10 +17,4 @@ ADD_EXECUTABLE(packer
 
 )
 
-SETUP_TARGET(packer)
-TARGET_LINK_LIBRARIES(packer minizip zlib)
-
-SET_TARGET_PROPERTIES(packer PROPERTIES
-	OUTPUT_NAME "packer"
-	SUFFIX ".exe"
-)
+TARGET_LINK_LIBRARIES(packer pg_zlib)

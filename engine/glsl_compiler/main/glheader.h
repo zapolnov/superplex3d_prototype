@@ -37,7 +37,7 @@
 #endif
 
 #define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#include <opengl/context.h>
 #include <opengl/glext.h>
 
 typedef struct __GLcontextRec __GLcontext;

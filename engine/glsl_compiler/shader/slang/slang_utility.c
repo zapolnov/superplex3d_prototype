@@ -31,6 +31,7 @@
 #include "main/imports.h"
 #include "slang_utility.h"
 #include "slang_mem.h"
+#include <assert.h>
 
 char *
 slang_string_concat (char *dst, const char *src)

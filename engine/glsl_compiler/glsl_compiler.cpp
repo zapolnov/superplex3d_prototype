@@ -103,8 +103,8 @@ void loadAndCompileShader(GLuint shader, const std::string & text)
 	GLint stat, length = text.length();
 	const GLchar * src = text.c_str();
 
-	_mesa_ShaderSourceARB(shader, 1, &src, &length);
-	_mesa_CompileShaderARB(shader);
+	_mesa_ShaderSourceARB((GLhandleARB)shader, 1, &src, &length);
+	_mesa_CompileShaderARB((GLhandleARB)shader);
 	_mesa_GetShaderiv(shader, GL_COMPILE_STATUS, &stat);
 
 	if (!stat)

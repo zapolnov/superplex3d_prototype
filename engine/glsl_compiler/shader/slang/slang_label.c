@@ -9,6 +9,7 @@
 
 #include "slang_label.h"
 #include "slang_mem.h"
+#include <assert.h>
 
 
 

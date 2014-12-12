@@ -25,6 +25,7 @@
 #ifndef SLANG_COMPILE_OPERATION_H
 #define SLANG_COMPILE_OPERATION_H
 
+#include <assert.h>
 
 /**
  * Types of slang operations.

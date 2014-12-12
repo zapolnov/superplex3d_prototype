@@ -5,7 +5,7 @@ PROJECT(pg_core)
 
 INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
 INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/pch.cmake)
+#INCLUDE(${cmake_SOURCE_DIR}/pch.cmake)
 
 INCLUDE(CheckCSourceCompiles)
 
@@ -81,12 +81,5 @@ SET(pg_core_SRC
 	${MOC_FILES}
 )
 
-ADD_LIBRARY(pg_core SHARED EXCLUDE_FROM_ALL ${pg_core_SRC})
-ADD_LIBRARY(pg_core_static STATIC EXCLUDE_FROM_ALL ${pg_core_SRC})
-
-SETUP_LIBRARY(pg_core)
-SET_PROPERTY(TARGET pg_core PROPERTY COMPILE_DEFINITIONS "CORE_DLL" APPEND)
+ADD_LIBRARY(pg_core STATIC ${pg_core_SRC})
 TARGET_LINK_LIBRARIES(pg_core pg_tbb ${QT_PG_QTCORE_LIBRARY})
-
-SET_PROPERTY(TARGET pg_core_static PROPERTY COMPILE_DEFINITIONS "CORE_STATIC" APPEND)
-TARGET_LINK_LIBRARIES(pg_core_static pg_tbb)
