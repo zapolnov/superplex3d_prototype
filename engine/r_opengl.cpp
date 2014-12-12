@@ -5,9 +5,9 @@
 
 /* Public variables. */
 
-GLint GL_MajorVer;
-GLint GL_MinorVer;
-GLint GL_Revision;
+//GLint GL_MajorVer;
+//GLint GL_MinorVer;
+//GLint GL_Revision;
 
 GLint GL_MaxClientAttribStackDepth;
 GLint GL_MaxAttribStackDepth;
@@ -206,12 +206,13 @@ void GL_GetInfo()
 {
 	logger << LOG_INFO << "\nOpenGL info\n-----------";
 
-	glfwGetGLVersion(&GL_MajorVer, &GL_MinorVer, &GL_Revision);
+	//glfwGetGLVersion(&GL_MajorVer, &GL_MinorVer, &GL_Revision);
 
 	logger << LOG_INFO << "Vendor: %s" << (const char *)glGetString(GL_VENDOR);
 	logger << LOG_INFO << "Renderer: %s" << (const char *)glGetString(GL_RENDERER);
-	logger << LOG_INFO << "Version: %s (parsed as %d.%d.%d)" <<
-		(const char *)glGetString(GL_VERSION) << GL_MajorVer << GL_MinorVer << GL_Revision;
+//	logger << LOG_INFO << "Version: %s (parsed as %d.%d.%d)" <<
+//		(const char *)glGetString(GL_VERSION) << GL_MajorVer << GL_MinorVer << GL_Revision;
+	logger << LOG_INFO << "Version: %s" << (const char *)glGetString(GL_VERSION);
 }
 
 //

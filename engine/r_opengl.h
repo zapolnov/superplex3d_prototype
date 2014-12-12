@@ -4,7 +4,7 @@
 /* Includes */
 
 #include <core/common.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <opengl/glext.h>
 
 

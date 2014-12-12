@@ -1,5 +1,5 @@
 #include <engine/input.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 /* Private variables */
 
@@ -15,7 +15,7 @@ static int g_Keys[] =				/**< Engine to GLFW key mapping. */
 	GLFW_KEY_DOWN,
 	GLFW_KEY_LEFT,
 	GLFW_KEY_RIGHT,
-	GLFW_KEY_ESC,
+	GLFW_KEY_ESCAPE,
 	GLFW_KEY_SPACE,
 };
 
@@ -43,11 +43,15 @@ void IN_Poll()
 {
 	memcpy(g_OldButtonState, g_ButtonState, sizeof(g_ButtonState));
 
-	glfwGetMousePos(&g_MouseX, &g_MouseY);
+	GLFWwindow* window = glfwGetCurrentContext();
+	double x = 0, y = 0;
+	glfwGetCursorPos(window, &x, &y);
+	g_MouseX = (int)x;
+	g_MouseY = (int)y;
 
-	g_ButtonState[0] = glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-	g_ButtonState[1] = glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-	g_ButtonState[2] = glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+	g_ButtonState[0] = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	g_ButtonState[1] = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+	g_ButtonState[2] = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
 }
 
 //
@@ -80,5 +84,5 @@ bool IN_IsMouseReleased(MouseButton button)
 bool IN_IsKeyPressed(KeyboardButton key)
 {
 	Q_ASSERT(key >= 0 && key < sizeof(g_Keys) / sizeof(g_Keys[0]));
-	return glfwGetKey(g_Keys[key]) == GLFW_PRESS;
+	return glfwGetKey(glfwGetCurrentContext(), g_Keys[key]) == GLFW_PRESS;
 }

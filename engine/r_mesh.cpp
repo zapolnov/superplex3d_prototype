@@ -2,7 +2,7 @@
 #include <core/exception.h>
 #include <core/logger.h>
 #include <mesh/mesh_file.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <engine/r_opengl.h>
 #include <map>
 #include <vector>

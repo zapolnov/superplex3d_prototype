@@ -25,7 +25,7 @@
 #include <engine/r_opengl.h>
 #include <engine/filesys.h>
 #include <map>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <opengl/glext.h>
 #include "../tools/ttf2fnt/fntfile.h"
 

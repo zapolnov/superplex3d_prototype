@@ -1,256 +1,308 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
+cmake_minimum_required(VERSION 2.8)
 
-PROJECT(glfw)
+PROJECT(glfw C CXX)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
+if (WIN32)
+    option(GLFW_USE_DWM_SWAP_INTERVAL "Set swap interval even when DWM compositing is enabled" OFF)
+    option(GLFW_USE_OPTIMUS_HPG "Force use of high-performance GPU on Optimus systems" OFF)
+endif()
 
-SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${OPENGL_gl_LIBRARY})
+if (APPLE)
+    option(GLFW_USE_CHDIR "Make glfwInit chdir to Contents/Resources" ON)
+    option(GLFW_USE_MENUBAR "Populate the menu bar on first window creation" ON)
+else()
+    option(GLFW_USE_EGL "Use EGL for context creation" OFF)
+endif()
 
-INCLUDE(CheckCSourceCompiles)
+if (GLFW_USE_EGL)
+    set(GLFW_CLIENT_LIBRARY "opengl" CACHE STRING
+        "The client library to use; one of opengl, glesv1 or glesv2")
 
-IF(UNIX)
+    if (${GLFW_CLIENT_LIBRARY} STREQUAL "opengl")
+        set(_GLFW_USE_OPENGL 1)
+    elseif (${GLFW_CLIENT_LIBRARY} STREQUAL "glesv1")
+        set(_GLFW_USE_GLESV1 1)
+    elseif (${GLFW_CLIENT_LIBRARY} STREQUAL "glesv2")
+        set(_GLFW_USE_GLESV2 1)
+    else()
+        message(FATAL_ERROR "Unsupported client library")
+    endif()
 
-	#################################################
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+    find_package(EGL REQUIRED)
+else()
+    set(_GLFW_USE_OPENGL 1)
+endif()
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <X11/Xlib.h>
-		#include <X11/extensions/Xrandr.h>
+if (_GLFW_USE_OPENGL)
+    find_package(OpenGL REQUIRED)
+elseif (_GLFW_USE_GLESV1)
+    find_package(GLESv1 REQUIRED)
+elseif (_GLFW_USE_GLESV2)
+    find_package(GLESv2 REQUIRED)
+endif()
 
-		int main() {; return 0;}
-	"
-		_GLFW_HAS_XRANDR
-	)
-	IF(_GLFW_HAS_XRANDR)
-		ADD_DEFINITIONS(-D_GLFW_HAS_XRANDR)
-		LINK_LIBRARIES(Xrandr)
-	ENDIF(_GLFW_HAS_XRANDR)
+find_package(Threads REQUIRED)
 
-	#################################################
+#--------------------------------------------------------------------
+# Set compiler specific flags
+#--------------------------------------------------------------------
+if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <X11/Xlib.h>
-		#include <X11/extensions/xf86vmode.h>
+#--------------------------------------------------------------------
+# Detect and select backend APIs
+#--------------------------------------------------------------------
+if (WIN32)
+    set(_GLFW_WIN32 1)
+    message(STATUS "Using Win32 for window creation") 
 
-		#if defined(__APPLE_CC__)
-		#error Not supported under Mac OS X
-		#endif
+    if (GLFW_USE_EGL)
+        set(_GLFW_EGL 1)
+        message(STATUS "Using EGL for context creation")
+    else()
+        set(_GLFW_WGL 1)
+        message(STATUS "Using WGL for context creation")
+    endif()
+elseif (APPLE)
+    set(_GLFW_COCOA 1)
+    message(STATUS "Using Cocoa for window creation")
+    set(_GLFW_NSGL 1)
+    message(STATUS "Using NSGL for context creation")
+elseif (UNIX)
+    set(_GLFW_X11 1)
+    message(STATUS "Using X11 for window creation") 
 
-		int main() {; return 0;}
-	"
-		_GLFW_HAS_XF86VIDMODE
-	)
-	IF(_GLFW_HAS_XF86VIDMODE)
-		ADD_DEFINITIONS(-D_GLFW_HAS_XF86VIDMODE)
-		LINK_LIBRARIES(Xxf86vm)
-	ENDIF(_GLFW_HAS_XF86VIDMODE)
+    if (GLFW_USE_EGL)
+        set(_GLFW_EGL 1)
+        message(STATUS "Using EGL for context creation")
+    else()
+        set(_GLFW_GLX 1)
+        message(STATUS "Using GLX for context creation")
+    endif()
+else()
+    message(FATAL_ERROR "No supported platform was detected")
+endif()
 
-	#################################################
+#--------------------------------------------------------------------
+# Use Win32 for window creation
+#--------------------------------------------------------------------
+if (_GLFW_WIN32)
+    if (GLFW_USE_DWM_SWAP_INTERVAL)
+        set(_GLFW_USE_DWM_SWAP_INTERVAL 1)
+    endif()
+    if (GLFW_USE_OPTIMUS_HPG)
+        set(_GLFW_USE_OPTIMUS_HPG 1)
+    endif()
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <X11/Xlib.h>
-		#include <GL/glx.h>
-		#include <GL/gl.h>
-		int main(int argc, char **argv) {void *ptr=(void*)glXGetProcAddress(argv[0]); return 0;}
-	"
-		_GLFW_HAS_GLXGETPROCADDRESS
-	)
-	IF(_GLFW_HAS_GLXGETPROCADDRESS)
-		ADD_DEFINITIONS(-D_GLFW_HAS_GLXGETPROCADDRESS)
-	ENDIF(_GLFW_HAS_GLXGETPROCADDRESS)
+    # HACK: When building on MinGW, WINVER and UNICODE need to be defined before
+    # the inclusion of stddef.h (by glfw3.h), which is itself included before
+    # win32_platform.h.  We define them here until a saner solution can be found
+    # NOTE: MinGW-w64 and Visual C++ do /not/ need this hack.
+    add_definitions(-DUNICODE)
+    add_definitions(-DWINVER=0x0501)
+endif()
 
-	#################################################
+#--------------------------------------------------------------------
+# Use WGL for context creation
+#--------------------------------------------------------------------
+if (_GLFW_WGL)
+    list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+    list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
+endif()
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <X11/Xlib.h>
-		#include <GL/glx.h>
-		#include <GL/gl.h>
-		int main(int argc, char **argv) {void *ptr=(void*)glXGetProcAddressARB(argv[0]); return 0;}
-	"
-		_GLFW_HAS_GLXGETPROCADDRESSARB
-	)
-	IF(_GLFW_HAS_GLXGETPROCADDRESSARB)
-		ADD_DEFINITIONS(-D_GLFW_HAS_GLXGETPROCADDRESSARB)
-	ENDIF(_GLFW_HAS_GLXGETPROCADDRESSARB)
+#--------------------------------------------------------------------
+# Use X11 for window creation
+#--------------------------------------------------------------------
+if (_GLFW_X11)
 
-	#################################################
+    find_package(X11 REQUIRED)
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <X11/Xlib.h>
-		#include <GL/glx.h>
-		#include <GL/gl.h>
-		int main(int argc, char **argv) {void *ptr=(void*)glXGetProcAddressEXT(argv[0]); return 0;}
-	"
-		_GLFW_HAS_GLXGETPROCADDRESSEXT
-	)
-	IF(_GLFW_HAS_GLXGETPROCADDRESSEXT)
-		ADD_DEFINITIONS(-D_GLFW_HAS_GLXGETPROCADDRESSEXT)
-	ENDIF(_GLFW_HAS_GLXGETPROCADDRESSEXT)
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} x11")
 
-	#################################################
+    # Set up library and include paths
+    list(APPEND glfw_INCLUDE_DIRS ${X11_X11_INCLUDE_PATH})
+    list(APPEND glfw_LIBRARIES ${X11_X11_LIB} ${CMAKE_THREAD_LIBS_INIT})
+    if (UNIX AND NOT APPLE)
+        list(APPEND glfw_LIBRARIES ${RT_LIBRARY})
+    endif()
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <dlfcn.h>
-		int main(int argc, char **argv) {void *l=dlopen(argv[0],RTLD_LAZY|RTLD_GLOBAL); return 0;}
-	"
-		_GLFW_HAS_DLOPEN
-	)
-	IF(_GLFW_HAS_DLOPEN)
-		ADD_DEFINITIONS(-D_GLFW_HAS_DLOPEN)
-	ENDIF(_GLFW_HAS_DLOPEN)
+    # Check for XRandR (modern resolution switching and gamma control)
+    if (NOT X11_Xrandr_FOUND)
+        message(FATAL_ERROR "The RandR library and headers were not found")
+    endif()
 
-	#################################################
+    list(APPEND glfw_INCLUDE_DIRS ${X11_Xrandr_INCLUDE_PATH})
+    list(APPEND glfw_LIBRARIES ${X11_Xrandr_LIB})
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xrandr")
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <unistd.h>
-		#ifndef _SC_NPROCESSORS_ONLN
-		#ifndef _SC_NPROC_ONLN
-		#error Neither _SC_NPROCESSORS_ONLN nor _SC_NPROC_ONLN available
-		#endif
-		#endif
-		int main() {long x=sysconf(_SC_ARG_MAX); return 0; }
-	"
-		_GLFW_HAS_SYSCONF
-	)
-	IF(_GLFW_HAS_SYSCONF)
-		ADD_DEFINITIONS(-D_GLFW_HAS_SYSCONF)
-	ENDIF(_GLFW_HAS_SYSCONF)
+    # Check for XInput (high-resolution cursor motion)
+    if (NOT X11_Xinput_FOUND)
+        message(FATAL_ERROR "The XInput library and headers were not found")
+    endif()
 
-	#################################################
+    list(APPEND glfw_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
 
-	CHECK_C_SOURCE_COMPILES(
-	"
-		#include <sys/types.h>
-		#include <sys/sysctl.h>
-		#ifdef CTL_HW
-		#ifdef HW_NCPU
-		  yes;
-		#endif
-		#endif
-		int main() { return 0; }
-	"
-		_GLFW_HAS_SYSCTL
-	)
-	IF(_GLFW_HAS_SYSCTL)
-		ADD_DEFINITIONS(-D_GLFW_HAS_SYSCTL)
-	ENDIF(_GLFW_HAS_SYSCTL)
+    if (X11_Xinput_LIB)
+        list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
+    else()
+        # Backwards compatibility (bug in CMake 2.8.7)
+        list(APPEND glfw_LIBRARIES Xi)
+    endif()
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xi")
 
-ENDIF(UNIX)
+    # Check for Xf86VidMode (fallback gamma control)
+    if (NOT X11_xf86vmode_FOUND)
+        message(FATAL_ERROR "The Xf86VidMode library and headers were not found")
+    endif()
 
-#################################################
+    list(APPEND glfw_INCLUDE_DIRS ${X11_xf86vmode_INCLUDE_PATH})
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xxf86vm")
 
-CHECK_C_SOURCE_COMPILES(
-"
-	#include <pthread.h>
-	int main() {pthread_t posixID; posixID=pthread_self(); return 0;}
-"
-	_GLFW_HAS_PTHREAD
-)
-IF(_GLFW_HAS_PTHREAD)
-	ADD_DEFINITIONS(-D_GLFW_HAS_PTHREAD)
-ENDIF(_GLFW_HAS_PTHREAD)
+    if (X11_Xxf86vm_LIB)
+        list(APPEND glfw_LIBRARIES ${X11_Xxf86vm_LIB})
+    else()
+        # Backwards compatibility (see CMake bug 0006976)
+        list(APPEND glfw_LIBRARIES Xxf86vm)
+    endif()
 
-#################################################
+    # Check for Xkb (X keyboard extension)
+    if (NOT X11_Xkb_FOUND)
+        message(FATAL_ERROR "The X keyboard extension headers were not found")
+    endif() 
 
-CHECK_C_SOURCE_COMPILES(
-"
-	#include <pthread.h>
-	int main() {sched_yield(); return 0;}
-"
-	_GLFW_HAS_SCHED_YIELD
-)
-IF(_GLFW_HAS_SCHED_YIELD)
-	ADD_DEFINITIONS(-D_GLFW_HAS_SCHED_YIELD)
-ENDIF(_GLFW_HAS_SCHED_YIELD)
+    list(APPEND glfw_INCLUDE_DIR ${X11_Xkb_INCLUDE_PATH})
 
-#################################################
+    find_library(RT_LIBRARY rt)
+    mark_as_advanced(RT_LIBRARY)
+    if (RT_LIBRARY)
+        list(APPEND glfw_LIBRARIES ${RT_LIBRARY})
+    endif()
 
-SET(PLATFORM_FILES )
+    find_library(MATH_LIBRARY m)
+    mark_as_advanced(MATH_LIBRARY)
+    if (MATH_LIBRARY)
+        list(APPEND glfw_LIBRARIES ${MATH_LIBRARY})
+    endif()
 
-IF(WIN32)
+endif()
 
-	INCLUDE_DIRECTORIES(lib/win32)
-	SET(PLATFORM_FILES
-		lib/win32/platform.h
-		lib/win32/win32_dllmain.c
-		lib/win32/win32_enable.c
-		lib/win32/win32_fullscreen.c
-		lib/win32/win32_glext.c
-		lib/win32/win32_init.c
-		lib/win32/win32_joystick.c
-		lib/win32/win32_thread.c
-		lib/win32/win32_time.c
-		lib/win32/win32_window.c
-	)
+#--------------------------------------------------------------------
+# Use GLX for context creation
+#--------------------------------------------------------------------
+if (_GLFW_GLX)
 
-ELSEIF(APPLE)
+    list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+    list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
 
-	INCLUDE_DIRECTORIES(lib/macosx)
-	SET(PLATFORM_FILES
-		lib/macosx/macosx_enable.c
-		lib/macosx/macosx_fullscreen.c
-		lib/macosx/macosx_glext.c
-		lib/macosx/macosx_init.c
-		lib/macosx/macosx_joystick.c
-		lib/macosx/macosx_thread.c
-		lib/macosx/macosx_time.c
-		lib/macosx/macosx_window.c
-		lib/macosx/platform.h
-	)
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
 
-ELSEIF(UNIX)
+    include(CheckFunctionExists)
 
-	INCLUDE_DIRECTORIES(lib/x11)
-	SET(PLATFORM_FILES
-		lib/x11/platform.h
-		lib/x11/x11_enable.c
-		lib/x11/x11_fullscreen.c
-		lib/x11/x11_glext.c
-		lib/x11/x11_init.c
-		lib/x11/x11_joystick.c
-		lib/x11/x11_keysym2unicode.c
-		lib/x11/x11_thread.c
-		lib/x11/x11_time.c
-		lib/x11/x11_window.c
-	)
+    set(CMAKE_REQUIRED_LIBRARIES ${OPENGL_gl_LIBRARY})
+    check_function_exists(glXGetProcAddress _GLFW_HAS_GLXGETPROCADDRESS)
+    check_function_exists(glXGetProcAddressARB _GLFW_HAS_GLXGETPROCADDRESSARB)
+    check_function_exists(glXGetProcAddressEXT _GLFW_HAS_GLXGETPROCADDRESSEXT)
 
-ENDIF(WIN32)
+    if (NOT _GLFW_HAS_GLXGETPROCADDRESS AND
+        NOT _GLFW_HAS_GLXGETPROCADDRESSARB AND
+        NOT _GLFW_HAS_GLXGETPROCADDRESSEXT)
+        message(WARNING "No glXGetProcAddressXXX variant found")
 
-INCLUDE_DIRECTORIES(lib include)
+        # Check for dlopen support as a fallback
 
-ADD_LIBRARY(glfw STATIC
+        set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_DL_LIBS})
+        check_function_exists(dlopen _GLFW_HAS_DLOPEN)
+        if (NOT _GLFW_HAS_DLOPEN)
+            message(FATAL_ERROR "No entry point retrieval mechanism found")
+        endif()
 
-	include/GL/glfw.h
-	lib/enable.c
-	lib/fullscreen.c
-	lib/glext.c
-	lib/image.c
-	lib/init.c
-	lib/input.c
-	lib/internal.h
-	lib/joystick.c
-	lib/stream.c
-	lib/tga.c
-	lib/time.c
-	lib/window.c
+        if (CMAKE_DL_LIBS)
+            list(APPEND glfw_LIBRARIES ${CMAKE_DL_LIBS})
+        endif()
+    endif()
 
-	${PLATFORM_FILES}
+endif()
 
-)
+#--------------------------------------------------------------------
+# Use EGL for context creation
+#--------------------------------------------------------------------
+if (_GLFW_EGL)
 
-IF(APPLE)
-	FIND_LIBRARY(Carbon Carbon)
-	FIND_LIBRARY(AGL AGL)
-	FIND_LIBRARY(AppKit AppKit)
-	FIND_LIBRARY(ApplicationServices ApplicationServices)
-	FIND_LIBRARY(CoreServices CoreServices)
-	TARGET_LINK_LIBRARIES(glfw ${Carbon} ${AGL} ${AppKit} ${ApplicationServices} ${CoreServices})
-ENDIF()
+    list(APPEND glfw_INCLUDE_DIRS ${EGL_INCLUDE_DIR})
+    list(APPEND glfw_LIBRARIES ${EGL_LIBRARY})
+
+    if (UNIX)
+        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} egl")
+    endif()
+
+    if (_GLFW_USE_OPENGL)
+        list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
+        list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
+    elseif (_GLFW_USE_GLESV1)
+        list(APPEND glfw_LIBRARIES ${GLESv1_LIBRARY})
+        list(APPEND glfw_INCLUDE_DIRS ${GLESv1_INCLUDE_DIR})
+        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv1_cm")
+    elseif (_GLFW_USE_GLESV2)
+        list(APPEND glfw_LIBRARIES ${GLESv2_LIBRARY})
+        list(APPEND glfw_INCLUDE_DIRS ${GLESv2_INCLUDE_DIR})
+        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv2")
+    endif()
+
+endif()
+
+#--------------------------------------------------------------------
+# Use Cocoa for window creation and NSOpenGL for context creation
+#--------------------------------------------------------------------
+if (_GLFW_COCOA AND _GLFW_NSGL)
+        
+    if (GLFW_USE_MENUBAR)
+        set(_GLFW_USE_MENUBAR 1)
+    endif()
+
+    if (GLFW_USE_CHDIR)
+        set(_GLFW_USE_CHDIR 1)
+    endif()
+
+    # Set up library and include paths
+    find_library(COCOA_FRAMEWORK Cocoa)
+    find_library(IOKIT_FRAMEWORK IOKit)
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(CORE_VIDEO_FRAMEWORK CoreVideo)
+    list(APPEND glfw_LIBRARIES ${COCOA_FRAMEWORK}
+                               ${OPENGL_gl_LIBRARY}
+                               ${IOKIT_FRAMEWORK}
+                               ${CORE_FOUNDATION_FRAMEWORK}
+                               ${CORE_VIDEO_FRAMEWORK})
+
+    set(GLFW_PKG_DEPS "")
+    list(APPEND glfw_LIBRARIES "-framework Cocoa")
+    list(APPEND glfw_LIBRARIES "-framework OpenGL")
+    list(APPEND glfw_LIBRARIES "-framework IOKit")
+    list(APPEND glfw_LIBRARIES "-framework CoreFoundation")
+    list(APPEND glfw_LIBRARIES "-framework CoreVideo")
+endif()
+
+#--------------------------------------------------------------------
+# Export GLFW library dependencies
+#--------------------------------------------------------------------
+set(GLFW_LIBRARIES ${glfw_LIBRARIES} CACHE STRING "Dependencies of GLFW")
+
+#--------------------------------------------------------------------
+# Choose library output name
+#--------------------------------------------------------------------
+set(GLFW_LIB_NAME glfw)
+
+#--------------------------------------------------------------------
+# Create generated files
+#--------------------------------------------------------------------
+configure_file(${GLFW_SOURCE_DIR}/src/glfw_config.h.in 
+               ${GLFW_BINARY_DIR}/src/glfw_config.h @ONLY)
+
+#--------------------------------------------------------------------
+# Add subdirectories
+#--------------------------------------------------------------------
+add_subdirectory(src)

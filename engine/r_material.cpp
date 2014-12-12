@@ -5,7 +5,7 @@
 #include <math/vector4.h>
 #include <interfaces/file_system.h>
 #include <tinyxml.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 /* Structures */
 

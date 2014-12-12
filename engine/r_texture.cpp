@@ -5,7 +5,7 @@
 #include <image/image_file.h>
 #include <opengl/texture.h>
 #include <map>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <opengl/glext.h>
 
 /* Structures */

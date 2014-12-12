@@ -2,7 +2,7 @@
 #include <engine/system.h>
 #include <engine/r_opengl.h>
 #include <core/logger.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <limits>
 
 /* Private functions */
@@ -63,8 +63,11 @@ Vector3 unproject(float winx, float winy, float winz, const QSize & viewport, co
 //
 void R_Init() throw(std::exception)
 {
-	if (unlikely(!glfwOpenWindow(640, 480, 8, 8, 8, 8, 24, 0, GLFW_WINDOW)))
-		throw std::runtime_error("glfwOpenWindow() failed.");
+	GLFWwindow* window = glfwCreateWindow(640, 480, "", NULL, GL_FALSE);
+	if (unlikely(!window))
+		throw std::runtime_error("glfwCreateWindow() failed.");
+
+	glfwMakeContextCurrent(window);
 
 	GL_GetInfo();
 	GL_InitExtensions();
@@ -88,7 +91,7 @@ void R_Shutdown()
 	R_ClearTextureCache();
 	R_ClearMeshCache();
 
-	glfwCloseWindow();
+	glfwDestroyWindow(glfwGetCurrentContext());
 }
 
 //
@@ -121,7 +124,7 @@ void R_EndFrame()
 void R_Set2D()
 {
 	int width, height;
-	glfwGetWindowSize(&width, &height);
+	glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
 
 	glViewport(0, 0, width, height);
 
@@ -168,7 +171,7 @@ void R_Set2D()
 void R_Set3D(const CameraPtr & camera)
 {
 	QSize size;
-	glfwGetWindowSize(&size.width(), &size.height());
+	glfwGetWindowSize(glfwGetCurrentContext(), &size.width(), &size.height());
 
 	glViewport(0, 0, size.width(), size.height());
 
@@ -189,8 +192,9 @@ void R_Set3D(const CameraPtr & camera)
 //
 bool R_SwapBuffers()
 {
-	glfwSwapBuffers();
-	return glfwGetWindowParam(GLFW_OPENED) != 0;
+	GLFWwindow* window = glfwGetCurrentContext();
+	glfwSwapBuffers(window);
+	return glfwWindowShouldClose(window);
 }
 
 //
@@ -199,7 +203,7 @@ bool R_SwapBuffers()
 Vector3 R_UnprojectPoint(const CameraPtr & camera, const QPoint & p)
 {
 	int width, height;
-	glfwGetWindowSize(&width, &height);
+	glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
 	QSize viewport(width, height);
 
 	int mouseX = p.x();

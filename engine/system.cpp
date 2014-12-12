@@ -1,6 +1,6 @@
 #include <engine/system.h>
 #include <time.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <core/logger.h>
 #include <core/clock.h>
 #include <stdlib.h>
