@@ -194,7 +194,8 @@ bool R_SwapBuffers()
 {
 	GLFWwindow* window = glfwGetCurrentContext();
 	glfwSwapBuffers(window);
-	return glfwWindowShouldClose(window);
+	glfwPollEvents();
+	return !glfwWindowShouldClose(window);
 }
 
 //

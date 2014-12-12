@@ -178,6 +178,9 @@ public:
 	PFNALCGETPROCADDRESS alcGetProcAddress;
 	PFNALCGETENUMVALUE alcGetEnumValue;
 
+	/** Constructor. */
+	OpenALContext();
+
 	/**
 	 * Constructor.
 	 * @param name Name of the library.

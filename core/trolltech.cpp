@@ -10,6 +10,8 @@
 #ifdef WIN32
  #include <windows.h>
  #include <process.h>
+#else
+ #include <dlfcn.h>
 #endif
 
 
@@ -629,8 +631,19 @@ bool QLibrary::load()
 
 	return true;
 #else
-	#warning Not implemented.
-	return false;
+	if (m_Handle)
+		return true;
+
+	m_Handle = dlopen(m_Name.toLocal8Bit().constData(), RTLD_GLOBAL);
+	if (unlikely(!m_Handle))
+	{
+		std::string msg = dlerror();
+		m_ErrorString = QString("Unable to load library \"%1\": %2")
+			.arg(m_Name).arg(QString::fromLocal8Bit(msg.c_str()));
+		return false;
+	}
+
+	return true;
 #endif
 }
 
@@ -647,8 +660,12 @@ bool QLibrary::unload()
 	}
 	return true;
 #else
-	#warning Not implemented
-	return false;
+	if (m_Handle)
+	{
+		dlclose(m_Handle);
+		m_Handle = NULL;
+	}
+	return true;
 #endif
 }
 
@@ -672,8 +689,16 @@ void * QLibrary::resolve(const char * symbol)
 
 	return func;
 #else
-	#warning Not implemented
-	return NULL;
+	Q_ASSERT(m_Handle);
+
+	void * func = dlsym(m_Handle, symbol);
+	if (unlikely(!func))
+	{
+		m_ErrorString = QString("Symbol %2 was not found in library \"%1\".")
+			.arg(m_Name).arg(QString::fromLatin1(symbol));
+	}
+
+	return func;
 #endif
 }
 

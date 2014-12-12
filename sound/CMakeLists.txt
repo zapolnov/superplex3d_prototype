@@ -37,4 +37,9 @@ SET(pg_sound_SRC
 
 ADD_LIBRARY(pg_sound STATIC ${pg_sound_SRC})
 TARGET_LINK_LIBRARIES(pg_sound pg_core pg_vorbis pg_ogg)
-#ADD_DEPENDENCIES(pg_sound pg_openal)
+ADD_DEPENDENCIES(pg_sound pg_openal)
+
+IF(APPLE)
+	FIND_LIBRARY(OpenAL OpenAL)
+	TARGET_LINK_LIBRARIES(pg_sound ${OpenAL})
+ENDIF()

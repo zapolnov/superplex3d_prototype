@@ -65,7 +65,7 @@ EXTERN_C_END
 
 /* Constants */
 
-const uint g_CompilerHeapSize = 1048576 * 20;
+const uint g_CompilerHeapSize = 1048576 * 40;
 
 
 /* Function prototypes */

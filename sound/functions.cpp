@@ -16,6 +16,7 @@ static SoundThread * g_Thread;			/**< Pointer to the sound thread. */
 //
 void SND_Init()
 {
+  #ifndef __APPLE__
 	static const char * dlls[] = { "openal32", "openal", "pg_openal", NULL };
 
 	for (int i = 0; dlls[i]; i++)
@@ -34,6 +35,15 @@ void SND_Init()
 			logger << LOG_ERROR << "%s" << QString::fromLocal8Bit(e.what());
 			delete context;
 		}
+	}
+  #endif
+
+	if (!g_Context)
+	{
+		g_Context = new OpenALContext();
+	  #ifdef __APPLE__
+		g_Context->initDevice(NULL);
+	  #endif
 	}
 
 	g_Thread = new SoundThread;
