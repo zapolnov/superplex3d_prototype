@@ -723,8 +723,11 @@ QThread::~QThread()
 	if (m_Handle)
 		CloseHandle(m_Handle);
 #else
-	// pthread_detach?
-	#warning Not implemented
+	if (m_Handle)
+	{
+		pthread_detach(*(pthread_t*)m_Handle);
+		delete (pthread_t*)m_Handle;
+	}
 #endif
 }
 
@@ -748,7 +751,24 @@ void QThread::start()
 		throw Exception(QString("Unable to start thread: %1").arg(QString::fromLocal8Bit(strerror(errno))));
 	}
 #else
-	#warning Not implemented
+	if (m_Running)
+		return;
+
+	if (m_Handle)
+	{
+		pthread_detach(*(pthread_t*)m_Handle);
+		delete (pthread_t*)m_Handle;
+	}
+
+	m_Handle = new pthread_t;
+	m_Running = true;
+	int err = pthread_create((pthread_t*)m_Handle, NULL, threadEntry, this);
+	if (unlikely(err != 0))
+	{
+		m_Running = false;
+		delete (pthread_t*)m_Handle;
+		throw Exception(QString("Unable to start thread: %1").arg(QString::fromLocal8Bit(strerror(errno))));
+	}
 #endif
 }
 
@@ -777,8 +797,19 @@ void QThread::wait()
 			<< QString::fromLocal8Bit(decode_win_error(GetLastError()).c_str());
 	}
 #else
-	// pthread_join
-	#warning Not implemented
+	if (!m_Running)
+		return;
+
+	int err = pthread_join(*(pthread_t*)m_Handle, NULL);
+	if (err != 0)
+	{
+		logger << LOG_ERROR << "pthread_join: %s" << QString::fromLocal8Bit(strerror(errno));
+		return;
+	}
+
+	m_Running = false;
+	delete (pthread_t*)m_Handle;
+	m_Handle = NULL;
 #endif
 }
 
