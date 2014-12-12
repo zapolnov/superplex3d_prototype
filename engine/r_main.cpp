@@ -63,7 +63,7 @@ Vector3 unproject(float winx, float winy, float winz, const QSize & viewport, co
 //
 void R_Init() throw(std::exception)
 {
-	GLFWwindow* window = glfwCreateWindow(640, 480, "", NULL, GL_FALSE);
+	GLFWwindow* window = glfwCreateWindow(1024, 768, "", NULL, GL_FALSE);
 	if (unlikely(!window))
 		throw std::runtime_error("glfwCreateWindow() failed.");
 
