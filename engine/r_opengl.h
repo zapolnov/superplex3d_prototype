@@ -1,0 +1,202 @@
+#ifndef __ENGINE__R_OPENGL_H__
+#define __ENGINE__R_OPENGL_H__
+
+/* Includes */
+
+#include <core/common.h>
+#include <GL/glfw.h>
+#include <opengl/glext.h>
+
+
+/* Variables */
+
+extern GLint GL_MajorVer;
+extern GLint GL_MinorVer;
+extern GLint GL_Revision;
+
+extern GLint GL_MaxClientAttribStackDepth;
+extern GLint GL_MaxAttribStackDepth;
+extern GLint GL_MaxClipPlanes;
+extern GLint GL_MaxElementIndices;
+extern GLint GL_MaxElementVertices;
+extern GLint GL_MaxLights;
+extern GLint GL_MaxModelViewStackDepth;
+extern GLint GL_MaxProjectionStackDepth;
+extern GLint GL_MaxTextureSize;
+
+extern GLint GL_MaxElementsVertices;
+extern GLint GL_MaxElementsIndices;
+
+extern bool SGIS_generate_mipmap;
+
+extern bool EXT_draw_range_elements;
+extern PFNGLDRAWRANGEELEMENTSEXTPROC pglDrawRangeElements;
+
+extern bool EXT_packed_depth_stencil;
+
+extern bool EXT_packed_float;
+
+extern bool EXT_texture_integer;
+
+extern bool EXT_texture_shared_exponent;
+
+extern bool EXT_texture_edge_clamp;
+
+extern bool EXT_texture_filter_anisotropic;
+extern GLint GL_MaxTextureAnisotropy;
+
+extern bool EXT_texture_compression_s3tc;
+
+extern bool EXT_texture_compression_rgtc;
+
+extern bool ARB_texture_cube_map;
+extern GLint GL_MaxCubeMapSize;
+
+extern bool ARB_texture_rg;
+
+extern bool ARB_texture_float;
+
+extern bool ARB_depth_texture;
+
+extern bool ARB_depth_buffer_float;
+
+extern bool ARB_half_float_pixel;
+
+extern bool ARB_multitexture;
+extern GLint GL_MaxTextureUnits;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC pglClientActiveTexture;
+ENGINEAPI extern PFNGLACTIVETEXTUREARBPROC pglActiveTexture;
+extern PFNGLMULTITEXCOORD1SARBPROC pglMultiTexCoord1s;
+extern PFNGLMULTITEXCOORD1IARBPROC pglMultiTexCoord1i;
+extern PFNGLMULTITEXCOORD1FARBPROC pglMultiTexCoord1f;
+extern PFNGLMULTITEXCOORD1DARBPROC pglMultiTexCoord1d;
+extern PFNGLMULTITEXCOORD2SARBPROC pglMultiTexCoord2s;
+extern PFNGLMULTITEXCOORD2IARBPROC pglMultiTexCoord2i;
+extern PFNGLMULTITEXCOORD2FARBPROC pglMultiTexCoord2f;
+extern PFNGLMULTITEXCOORD2DARBPROC pglMultiTexCoord2d;
+extern PFNGLMULTITEXCOORD3SARBPROC pglMultiTexCoord3s;
+extern PFNGLMULTITEXCOORD3IARBPROC pglMultiTexCoord3i;
+extern PFNGLMULTITEXCOORD3FARBPROC pglMultiTexCoord3f;
+extern PFNGLMULTITEXCOORD3DARBPROC pglMultiTexCoord3d;
+extern PFNGLMULTITEXCOORD4SARBPROC pglMultiTexCoord4s;
+extern PFNGLMULTITEXCOORD4IARBPROC pglMultiTexCoord4i;
+extern PFNGLMULTITEXCOORD4FARBPROC pglMultiTexCoord4f;
+extern PFNGLMULTITEXCOORD4DARBPROC pglMultiTexCoord4d;
+extern PFNGLMULTITEXCOORD1SVARBPROC pglMultiTexCoord1sv;
+extern PFNGLMULTITEXCOORD1IVARBPROC pglMultiTexCoord1iv;
+extern PFNGLMULTITEXCOORD1FVARBPROC pglMultiTexCoord1fv;
+extern PFNGLMULTITEXCOORD1DVARBPROC pglMultiTexCoord1dv;
+extern PFNGLMULTITEXCOORD2SVARBPROC pglMultiTexCoord2sv;
+extern PFNGLMULTITEXCOORD2IVARBPROC pglMultiTexCoord2iv;
+extern PFNGLMULTITEXCOORD2FVARBPROC pglMultiTexCoord2fv;
+extern PFNGLMULTITEXCOORD2DVARBPROC pglMultiTexCoord2dv;
+extern PFNGLMULTITEXCOORD3SVARBPROC pglMultiTexCoord3sv;
+extern PFNGLMULTITEXCOORD3IVARBPROC pglMultiTexCoord3iv;
+extern PFNGLMULTITEXCOORD3FVARBPROC pglMultiTexCoord3fv;
+extern PFNGLMULTITEXCOORD3DVARBPROC pglMultiTexCoord3dv;
+extern PFNGLMULTITEXCOORD4SVARBPROC pglMultiTexCoord4sv;
+extern PFNGLMULTITEXCOORD4IVARBPROC pglMultiTexCoord4iv;
+extern PFNGLMULTITEXCOORD4FVARBPROC pglMultiTexCoord4fv;
+extern PFNGLMULTITEXCOORD4DVARBPROC pglMultiTexCoord4dv;
+
+extern bool EXT_texture3D;
+extern GLint GL_MaxTextureSize3D;
+extern PFNGLTEXIMAGE3DEXTPROC pglTexImage3D;
+
+extern bool ARB_vertex_buffer_object;
+extern PFNGLBINDBUFFERARBPROC pglBindBuffer;
+extern PFNGLDELETEBUFFERSARBPROC pglDeleteBuffers;
+extern PFNGLGENBUFFERSARBPROC pglGenBuffers;
+extern PFNGLISBUFFERARBPROC pglIsBuffer;
+extern PFNGLBUFFERDATAARBPROC pglBufferData;
+extern PFNGLBUFFERSUBDATAARBPROC pglBufferSubData;
+extern PFNGLGETBUFFERSUBDATAARBPROC pglGetBufferSubData;
+extern PFNGLMAPBUFFERARBPROC pglMapBuffer;
+extern PFNGLUNMAPBUFFERARBPROC pglUnmapBuffer;
+extern PFNGLGETBUFFERPARAMETERIVARBPROC pglGetBufferParameteriv;
+extern PFNGLGETBUFFERPOINTERVARBPROC pglGetBufferPointer;
+
+extern bool EXT_compiled_vertex_array;
+extern PFNGLLOCKARRAYSEXTPROC pglLockArrays;
+extern PFNGLUNLOCKARRAYSEXTPROC pglUnlockArrays;
+
+extern bool ARB_vertex_program;
+extern bool ARB_fragment_program;
+extern GLint GL_MaxVertexTemporaries;
+extern GLint GL_MaxFragmentTemporaries;
+extern PFNGLVERTEXATTRIB1SARBPROC pglVertexAttrib1s;
+extern PFNGLVERTEXATTRIB1FARBPROC pglVertexAttrib1f;
+extern PFNGLVERTEXATTRIB1DARBPROC pglVertexAttrib1d;
+extern PFNGLVERTEXATTRIB2SARBPROC pglVertexAttrib2s;
+extern PFNGLVERTEXATTRIB2FARBPROC pglVertexAttrib2f;
+extern PFNGLVERTEXATTRIB2DARBPROC pglVertexAttrib2d;
+extern PFNGLVERTEXATTRIB3SARBPROC pglVertexAttrib3s;
+extern PFNGLVERTEXATTRIB3FARBPROC pglVertexAttrib3f;
+extern PFNGLVERTEXATTRIB3DARBPROC pglVertexAttrib3d;
+extern PFNGLVERTEXATTRIB4SARBPROC pglVertexAttrib4s;
+extern PFNGLVERTEXATTRIB4FARBPROC pglVertexAttrib4f;
+extern PFNGLVERTEXATTRIB4DARBPROC pglVertexAttrib4d;
+extern PFNGLVERTEXATTRIB4NUBARBPROC pglVertexAttrib4Nub;
+extern PFNGLVERTEXATTRIB1SVARBPROC pglVertexAttrib1sv;
+extern PFNGLVERTEXATTRIB1FVARBPROC pglVertexAttrib1fv;
+extern PFNGLVERTEXATTRIB1DVARBPROC pglVertexAttrib1dv;
+extern PFNGLVERTEXATTRIB2SVARBPROC pglVertexAttrib2sv;
+extern PFNGLVERTEXATTRIB2FVARBPROC pglVertexAttrib2fv;
+extern PFNGLVERTEXATTRIB2DVARBPROC pglVertexAttrib2dv;
+extern PFNGLVERTEXATTRIB3SVARBPROC pglVertexAttrib3sv;
+extern PFNGLVERTEXATTRIB3FVARBPROC pglVertexAttrib3fv;
+extern PFNGLVERTEXATTRIB3DVARBPROC pglVertexAttrib3dv;
+extern PFNGLVERTEXATTRIB4BVARBPROC pglVertexAttrib4bv;
+extern PFNGLVERTEXATTRIB4SVARBPROC pglVertexAttrib4sv;
+extern PFNGLVERTEXATTRIB4IVARBPROC pglVertexAttrib4iv;
+extern PFNGLVERTEXATTRIB4UBVARBPROC pglVertexAttrib4ubv;
+extern PFNGLVERTEXATTRIB4USVARBPROC pglVertexAttrib4usv;
+extern PFNGLVERTEXATTRIB4UIVARBPROC pglVertexAttrib4uiv;
+extern PFNGLVERTEXATTRIB4FVARBPROC pglVertexAttrib4fv;
+extern PFNGLVERTEXATTRIB4DVARBPROC pglVertexAttrib4dv;
+extern PFNGLVERTEXATTRIB4NBVARBPROC pglVertexAttrib4Nbv;
+extern PFNGLVERTEXATTRIB4NSVARBPROC pglVertexAttrib4Nsv;
+extern PFNGLVERTEXATTRIB4NIVARBPROC pglVertexAttrib4Niv;
+extern PFNGLVERTEXATTRIB4NUBVARBPROC pglVertexAttrib4Nubv;
+extern PFNGLVERTEXATTRIB4NUSVARBPROC pglVertexAttrib4Nusv;
+extern PFNGLVERTEXATTRIB4NUIVARBPROC pglVertexAttrib4Nuiv;
+extern PFNGLVERTEXATTRIBPOINTERARBPROC pglVertexAttribPointer;
+extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC pglEnableVertexAttribArray;
+extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC pglDisableVertexAttribArray;
+extern PFNGLPROGRAMSTRINGARBPROC pglProgramString;
+extern PFNGLBINDPROGRAMARBPROC pglBindProgram;
+extern PFNGLDELETEPROGRAMSARBPROC pglDeletePrograms;
+extern PFNGLGENPROGRAMSARBPROC pglGenPrograms;
+extern PFNGLPROGRAMENVPARAMETER4DARBPROC pglProgramEnvParameter4d;
+extern PFNGLPROGRAMENVPARAMETER4DVARBPROC pglProgramEnvParameter4dv;
+extern PFNGLPROGRAMENVPARAMETER4FARBPROC pglProgramEnvParameter4f;
+extern PFNGLPROGRAMENVPARAMETER4FVARBPROC pglProgramEnvParameter4fv;
+extern PFNGLPROGRAMLOCALPARAMETER4DARBPROC pglProgramLocalParameter4d;
+extern PFNGLPROGRAMLOCALPARAMETER4DVARBPROC pglProgramLocalParameter4dv;
+extern PFNGLPROGRAMLOCALPARAMETER4FARBPROC pglProgramLocalParameter4f;
+extern PFNGLPROGRAMLOCALPARAMETER4FVARBPROC pglProgramLocalParameter4fv;
+extern PFNGLGETPROGRAMENVPARAMETERDVARBPROC pglGetProgramEnvParameterdv;
+extern PFNGLGETPROGRAMENVPARAMETERFVARBPROC pglGetProgramEnvParameterfv;
+extern PFNGLGETPROGRAMLOCALPARAMETERDVARBPROC pglGetProgramLocalParameterdv;
+extern PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC pglGetProgramLocalParameterfv;
+extern PFNGLGETPROGRAMIVARBPROC pglGetProgramiv;
+extern PFNGLGETPROGRAMSTRINGARBPROC pglGetProgramString;
+extern PFNGLGETVERTEXATTRIBDVARBPROC pglGetVertexAttribdv;
+extern PFNGLGETVERTEXATTRIBFVARBPROC pglGetVertexAttribfv;
+extern PFNGLGETVERTEXATTRIBIVARBPROC pglGetVertexAttribiv;
+extern PFNGLGETVERTEXATTRIBPOINTERVARBPROC pglGetVertexAttribPointerv;
+extern PFNGLISPROGRAMARBPROC pglIsProgram;
+
+
+/* Functions */
+
+/** Collects global OpenGL info. */
+void GL_GetInfo();
+
+/** Initializes OpenGL extensions. */
+void GL_InitExtensions();
+
+/** Collects OpenGL limits. */
+void GL_CollectLimits();
+
+#endif // __ENGINE__R_OPENGL_H__

@@ -1,0 +1,8 @@
+
+uniform sampler2D texUnit0;
+uniform float xOffset;
+
+void main()
+{
+	gl_FragColor = texture2D(texUnit0, vec2(gl_TexCoord[0].x + xOffset, gl_TexCoord[0].y));
+}

@@ -1,0 +1,6 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+
+#cmakedefine HAVE_ALLOCA_H 1
+
+#endif // __CONFIG_H__

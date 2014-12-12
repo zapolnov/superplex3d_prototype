@@ -1,0 +1,2 @@
+
+#cmakedefine HAVE_MODFL 1

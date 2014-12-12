@@ -1,0 +1,88 @@
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
+
+PROJECT(libjpeg)
+
+ADD_DEFINITIONS("-D_CRT_SECURE_NO_DEPRECATE=1")
+ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS=1")
+ADD_DEFINITIONS("-D_SCL_SECURE_NO_DEPRECATE=1")
+ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE=1")
+
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	ADD_DEFINITIONS("-D_DEBUG")
+ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	ADD_DEFINITIONS("-D_SECURE_SCL=0")
+	ADD_DEFINITIONS("-D_HAS_ITERATOR_DEBUGGING=0")
+	ADD_DEFINITIONS("-DNDEBUG")
+ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+ADD_DEFINITIONS("-DLIBJPEG_DLL")
+
+ADD_LIBRARY(pg_jpeg SHARED
+
+	jaricom.c
+	jcapimin.c
+	jcapistd.c
+	jcarith.c
+	jccoefct.c
+	jccolor.c
+	jcdctmgr.c
+	jchuff.c
+	jcinit.c
+	jcmainct.c
+	jcmarker.c
+	jcmaster.c
+	jcomapi.c
+	jconfig.h
+	jcparam.c
+	jcprepct.c
+	jcsample.c
+	jctrans.c
+	jdapimin.c
+	jdapistd.c
+	jdarith.c
+	jdatadst.c
+	jdatasrc.c
+	jdcoefct.c
+	jdcolor.c
+	jdct.h
+	jddctmgr.c
+	jdhuff.c
+	jdinput.c
+	jdmainct.c
+	jdmarker.c
+	jdmaster.c
+	jdmerge.c
+	jdpostct.c
+	jdsample.c
+	jdtrans.c
+	jerror.c
+	jerror.h
+	jfdctflt.c
+	jfdctfst.c
+	jfdctint.c
+	jidctflt.c
+	jidctfst.c
+	jidctint.c
+	jinclude.h
+	jmemansi.c
+	jmemmgr.c
+	jmemsys.h
+	jmorecfg.h
+	jpegint.h
+	jpeglib.h
+	jquant1.c
+	jquant2.c
+	jutils.c
+	jversion.h
+
+)
+
+SET_TARGET_PROPERTIES(pg_jpeg PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+IF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+ SET_TARGET_PROPERTIES(pg_jpeg PROPERTIES COMPILE_FLAGS "-fvisibility=default -w")
+ENDIF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
