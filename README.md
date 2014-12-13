@@ -18,6 +18,9 @@ Please use CMake (http://www.cmake.org/) to build the project. I have
 only tested the build in OSX Yosemite. But I believe it should build
 under Windows and Linux with minimum efforts.
 
+I have also provided OSX Yosemite binary in the `bin` directory for
+your convenience.
+
 Engine
 ======
 
