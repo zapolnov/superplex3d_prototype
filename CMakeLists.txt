@@ -1,95 +1,10 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
-##
-## Disable compiler warnings. This is a very bad practice, dont do this at home.
-## This is a legacy code and it causes a lot of deprecation and other useless warnings.
-##
-
-INCLUDE(CheckCCompilerFlag)
-CHECK_C_COMPILER_FLAG("-w" HAVE_NO_WARNINGS)
-IF(HAVE_NO_WARNINGS)
-	ADD_DEFINITIONS(-w)
-ENDIF()
-
-IF(MSVC)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244 /wd4005 /wd4305")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4005 /wd4305")
-ENDIF(MSVC)
-
-##
-## Find necessary libraries
-##
-
-FIND_PACKAGE(Threads REQUIRED)
-FIND_PACKAGE(OpenGL REQUIRED)
-
-##
-## Include useful macros
-##
-
-INCLUDE(engine/cmake/GeneratePackedData.cmake)
-
-##
-## Specify preprocessor definitions
-##
-
-IF(MSVC)
-	ADD_DEFINITIONS("-D_CRT_SECURE_NO_DEPRECATE=1")
-	ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS=1")
-	ADD_DEFINITIONS("-D_SCL_SECURE_NO_DEPRECATE=1")
-	ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE=1")
-ENDIF()
-
-ADD_DEFINITIONS("-D__TBB_NO_IMPLICIT_LINKAGE=1")
-ADD_DEFINITIONS("-DTBB_NO_LEGACY=1")
-
-IF(WIN32)
-	ADD_DEFINITIONS("-DDIRECTINPUT_VERSION=0x800")
-ENDIF()
-
-ADD_DEFINITIONS("-DFT_CONFIG_OPTION_SYSTEM_ZLIB=1")
-
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	ADD_DEFINITIONS("-D_DEBUG")
-	ADD_DEFINITIONS("-DTBB_DO_ASSERT")
-ELSE()
-	ADD_DEFINITIONS("-DNDEBUG")
-	IF(MSVC)
-		ADD_DEFINITIONS("-D_SECURE_SCL=0")
-		ADD_DEFINITIONS("-D_HAS_ITERATOR_DEBUGGING=0")
-	ENDIF()
-ENDIF()
-
-##
-## Specify additional header search paths
-##
-
-INCLUDE_DIRECTORIES("engine/3rdparty/tinyxml")
-INCLUDE_DIRECTORIES("engine/3rdparty/zlib")
-INCLUDE_DIRECTORIES("engine/3rdparty/libjpeg")
-INCLUDE_DIRECTORIES("engine/3rdparty/libpng")
-INCLUDE_DIRECTORIES("engine/3rdparty/freetype2/include")
-INCLUDE_DIRECTORIES("engine/3rdparty/intel_tbb/include")
-INCLUDE_DIRECTORIES("engine/3rdparty/openal_soft/include")
-INCLUDE_DIRECTORIES("engine/3rdparty/libogg/include")
-INCLUDE_DIRECTORIES("engine/3rdparty/libvorbis/include")
-INCLUDE_DIRECTORIES("engine/3rdparty/glfw/include")
-INCLUDE_DIRECTORIES("engine/engine")
-INCLUDE_DIRECTORIES("engine")
-IF(OPENGL_INCLUDE_DIR)
-	INCLUDE_DIRECTORIES("${OPENGL_INCLUDE_DIR}")
-ENDIF()
-
-##
-## Build the engine
-##
-
 ADD_SUBDIRECTORY(engine)
 
-##
-##
-##
+INCLUDE(engine/cmake/Common.cmake)
+INCLUDE(engine/cmake/GeneratePackedData.cmake)
 
 GENERATE_PACKED_DATA(PACKED_FILE
 	shaders/terminal.ps
