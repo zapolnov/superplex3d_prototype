@@ -15,10 +15,35 @@
  }
 #endif
 
+#ifdef __APPLE__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #include <GL/glut.h>
-#include <GL/gl.h>
 #include <time.h>
 #include "BMPLoader.h"
+
+#ifndef _WIN32
+enum {
+	VK_SPACE = 0,
+	VK_F1,
+	VK_F2,
+	VK_F3,
+	VK_F4,
+	VK_LEFT,
+	VK_RIGHT,
+	VK_UP,
+	VK_DOWN
+};
+static bool keystate[9];
+static int GetAsyncKeyState(int key)
+{
+	bool state = keystate[key];
+	keystate[key] = false;
+	return (state ? 0x8000 : 0);
+}
+#endif
 
 enum PlayerAnim
 {
@@ -136,10 +161,17 @@ static unsigned long long getTime()
 {
 #ifdef WIN32
 	return timeGetTime();
+#elif defined(__APPLE__)
+	clock_serv_t cclock;
+	mach_timespec_t mts;
+	host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+	clock_get_time(cclock, &mts);
+	mach_port_deallocate(mach_task_self(), cclock);
+	return (unsigned long long)mts.tv_nsec * 1000000000ULL + (unsigned long long)mts.tv_sec;
 #else
 	struct timespec tv;
-	clock_gettime(CLOCK_REALTIME, &tv);
-	return (unsigned long long)tv.tv_nsec * 1000000ULL + (unsigned long long)tv.tv_sec;
+	clock_gettime(CLOCK_MONOTONIC, &tv);
+	return (unsigned long long)tv.tv_nsec * 1000000000ULL + (unsigned long long)tv.tv_sec;
 #endif
 }
 
@@ -997,9 +1029,9 @@ void paintGameField()
 			}
 		}
 
-		static byte prevMurphyMode = 0;
+		static unsigned char prevMurphyMode = 0;
 
-		byte origMode = murphy_mode;
+		unsigned char origMode = murphy_mode;
 		if (!murphy_mode && (prevMurphyMode == 0x0E || prevMurphyMode == 0x0F ||
 				prevMurphyMode == 0x28 || prevMurphyMode == 0x29 ||
 				prevMurphyMode == 0x24 || prevMurphyMode == 0x27 ||
@@ -1368,6 +1400,24 @@ void reshape(int w, int h)
 	glutPostRedisplay();
 }
 
+#ifndef _WIN32
+static void keyboard(unsigned char key, int, int)
+{
+	switch (key)
+	{
+	case GLUT_KEY_LEFT: keystate[VK_LEFT] = true; break;
+	case GLUT_KEY_DOWN: keystate[VK_DOWN] = true; break;
+	case GLUT_KEY_RIGHT: keystate[VK_RIGHT] = true; break;
+	case GLUT_KEY_UP: keystate[VK_UP] = true; break;
+	case ' ': keystate[VK_SPACE] = true; break;
+	case GLUT_KEY_F1: keystate[VK_F1] = true; break;
+	case GLUT_KEY_F2: keystate[VK_F2] = true; break;
+	case GLUT_KEY_F3: keystate[VK_F3] = true; break;
+	case GLUT_KEY_F4: keystate[VK_F4] = true; break;
+	}
+}
+#endif
+
 int main(int argc, char ** argv)
 {
 	FILE * f = fopen("levels.dat", "rb");
@@ -1398,6 +1448,9 @@ int main(int argc, char ** argv)
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutIdleFunc(idle);
+#ifndef _WIN32
+	glutKeyboardFunc(keyboard);
+#endif
 
 	{
 		glGenTextures(1, &texFixed);
