@@ -3,23 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_sound)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-
-INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_SOURCE_DIR}/..
-	${openal_soft_SOURCE_DIR}/include
-	${libogg_SOURCE_DIR}/include
-	${libvorbis_SOURCE_DIR}/include
-)
-
-QT4_WRAP_CPP(MOC_FILES
-	ogg_stream.h
-	openal_context.h
-	thread.h
-)
-
-SET(pg_sound_SRC
+ADD_LIBRARY(pg_sound STATIC
 	functions.cpp
 	functions.h
 	ogg_stream.cpp
@@ -32,14 +16,13 @@ SET(pg_sound_SRC
 	sound_file.h
 	thread.cpp
 	thread.h
-	${MOC_FILES}
 )
 
-ADD_LIBRARY(pg_sound STATIC ${pg_sound_SRC})
 TARGET_LINK_LIBRARIES(pg_sound pg_core pg_vorbis pg_ogg)
-ADD_DEPENDENCIES(pg_sound pg_openal)
 
-IF(APPLE)
+IF(WIN32)
+	ADD_DEPENDENCIES(pg_sound pg_openal)
+ELSEIF(APPLE)
 	FIND_LIBRARY(OpenAL OpenAL)
 	TARGET_LINK_LIBRARIES(pg_sound ${OpenAL})
 ENDIF()

@@ -8,22 +8,6 @@
 #ifndef __DOXYGEN__
 #ifdef _MSC_VER
 
- #ifndef _DEBUG
-  #ifndef _SECURE_SCL
-   #define _SECURE_SCL				0
-  #endif
-  #define _HAS_ITERATOR_DEBUGGING	0
- #endif
- #ifndef _CRT_SECURE_NO_DEPRECATE
-  #define _CRT_SECURE_NO_DEPRECATE	1
- #endif
- #ifndef _CRT_SECURE_NO_WARNINGS
-  #define _CRT_SECURE_NO_WARNINGS	1
- #endif
- #ifndef _SCL_SECURE_NO_DEPRECATE
-  #define _SCL_SECURE_NO_DEPRECATE	1
- #endif
-
  #pragma warning(disable:4190)		// Function has C-linkage specified but returns type which is incompatible with C
  #pragma warning(disable:4251)		// Class needs to have dll-interface to be used
  #pragma warning(disable:4275)		// Non dll-interface class used as base for dll-interface class
@@ -165,104 +149,23 @@
 #define assert(x) Q_ASSERT(x)
 
 
-/* Includes */
-
-#ifdef _PG_ENABLE_QT4
- #include <Qt/qglobal.h>
-#endif
-
-
 /* Internal macros */
 
 #ifndef __DOXYGEN__
 
- #if (!defined WIN32) && (defined __GNUC__)
-  #define DLLEXPORT __attribute__((visibility("default")))
-  #define DLLIMPORT __attribute__((visibility("default")))
-  #define GCC_PUBLIC __attribute__((visibility("default")))
- #else
-  #define DLLEXPORT __declspec(dllexport)
-  #define DLLIMPORT __declspec(dllimport)
-  #define GCC_PUBLIC
- #endif
+ #define DLLEXPORT
+ #define DLLIMPORT
+ #define GCC_PUBLIC
 
- #ifdef CORE_STATIC
-  #define COREAPI
- #elif defined CORE_DLL
-  #define COREAPI DLLEXPORT
- #else
-  #define COREAPI DLLIMPORT
- #endif
-
- #ifdef MATH_STATIC
-  #define MATHAPI
- #elif defined MATH_DLL
-  #define MATHAPI DLLEXPORT
- #else
-  #define MATHAPI DLLIMPORT
- #endif
-
- #ifdef ENGINE_STATIC
-  #define ENGINEAPI
- #elif defined ENGINE_DLL
-  #define ENGINEAPI DLLEXPORT
- #else
-  #define ENGINEAPI DLLIMPORT
- #endif
-
- #ifdef TOOLS_DLL
-  #define TOOLSAPI DLLEXPORT
- #else
-  #define TOOLSAPI DLLIMPORT
- #endif
-
- #ifdef IMAGE_STATIC
-  #define IMAGEAPI
- #elif defined IMAGE_DLL
-  #define IMAGEAPI DLLEXPORT
- #else
-  #define IMAGEAPI DLLIMPORT
- #endif
-
- #ifdef MESH_STATIC
-  #define MESHAPI
- #elif defined MESH_DLL
-  #define MESHAPI DLLEXPORT
- #else
-  #define MESHAPI DLLIMPORT
- #endif
-
- #ifdef SOUND_STATIC
-  #define SOUNDAPI
- #elif defined SOUND_DLL
-  #define SOUNDAPI DLLEXPORT
- #else
-  #define SOUNDAPI DLLIMPORT
- #endif
-
- #ifdef GUI_STATIC
-  #define GUIAPI
- #elif defined GUI_DLL
-  #define GUIAPI DLLEXPORT
- #else
-  #define GUIAPI DLLIMPORT
- #endif
-
- #ifdef INTEGRATION_DLL
-  #define INTEGRATIONAPI DLLEXPORT
- #else
-  #define INTEGRATIONAPI DLLIMPORT
- #endif
+ #define COREAPI
+ #define MATHAPI
+ #define ENGINEAPI
+ #define IMAGEAPI
+ #define MESHAPI
+ #define SOUNDAPI
+ #define GUIAPI
 
  #ifdef __cplusplus
-
-  #ifdef _MSC_VER
-   #define SEH_TRY		__try
-   #define SEH_CATCH	__except(EXCEPTION_EXECUTE_HANDLER)
-  #else
-   #define SEH_TRY		try
-   #define SEH_CATCH	catch(...)
-  #endif
 
   #define NAMESPACE_INTERNAL_BEGIN	namespace Internal {
   #define NAMESPACE_INTERNAL_END	}

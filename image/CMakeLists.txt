@@ -3,18 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_image)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-
-INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_SOURCE_DIR}/..
-	${CMAKE_CURRENT_BINARY_DIR}
-	${libpng_SOURCE_DIR}
-	${libjpeg_SOURCE_DIR}
-	${zlib_SOURCE_DIR}
-)
-
-SET(pg_image_SRC
+ADD_LIBRARY(pg_image STATIC
 	formats/dds/dds_plugin.cpp
 	formats/dds/dds_plugin.h
 	formats/dds/dds_reader.cpp
@@ -36,5 +25,4 @@ SET(pg_image_SRC
 	image_file.h
 )
 
-ADD_LIBRARY(pg_image STATIC ${pg_image_SRC})
 TARGET_LINK_LIBRARIES(pg_image pg_core pg_tbb pg_jpeg pg_png pg_zlib)

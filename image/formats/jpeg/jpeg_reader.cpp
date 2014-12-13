@@ -11,24 +11,19 @@
 class JPEGError : public jpeg_error_mgr
 {
 public:
+	jmp_buf jumpBuffer;		/**< Buffer for setjmp/longjmp. */
+
 	/**
 	 * Constructor.
 	 * @param ctx Pointer to the JPEG context.
-	 * @param file Pointer to the memory file.
 	 */
-	inline JPEGError(j_decompress_ptr ctx, MemoryFile * file)
+	inline JPEGError(j_decompress_ptr ctx)
 	{
 		ctx->err = jpeg_std_error(this);
 		error_exit = JPEGError::handle;
-
-		if (unlikely(setjmp(m_JumpBuffer)))
-			throw Exception(QString("Invalid JPEG file: \"%1\".").arg(file->fileName()));
-		// FIXME: This crashes!
 	}
 
 private:
-	jmp_buf m_JumpBuffer;		/**< Buffer for setjmp/longjmp. */
-
 	/**
 	 * Handles the JPEG error.
 	 * @param ctx Pointer to the JPEG context.
@@ -36,7 +31,7 @@ private:
 	static void handle(j_common_ptr ctx)
 	{
 		JPEGError * self = static_cast<JPEGError *>(ctx->err);
-		longjmp(self->m_JumpBuffer, 1);
+		longjmp(self->jumpBuffer, 1);
 	}
 };
 
@@ -149,7 +144,9 @@ void JPEGReader::read(ImageFile * image)
 	try
 	{
 		// Initialize the error handler
-		JPEGError jerror(&cinfo, &m_File);
+		JPEGError jerror(&cinfo);
+		if (unlikely(setjmp(jerror.jumpBuffer)))
+			throw Exception(QString("Invalid JPEG file: \"%1\".").arg(m_File.fileName()));
 
 		// Initialize decompressor
 		cinfo.src = NULL;

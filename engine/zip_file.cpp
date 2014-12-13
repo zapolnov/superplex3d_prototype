@@ -36,10 +36,6 @@ ZipFile::ZipFile(const QString & path)
 		unzClose(m_ZipFile);
 		throw;
 	}	
-
-#ifdef _PG_ENABLE_QT4
-	setOpenMode(QIODevice::ReadOnly);
-#endif
 }
 
 //
@@ -56,9 +52,6 @@ ZipFile::~ZipFile()
 void ZipFile::close()
 {
 	unzCloseCurrentFile(m_ZipFile);
-#ifdef _PG_ENABLE_QT4
-	setOpenMode(QIODevice::NotOpen);
-#endif
 }
 
 //

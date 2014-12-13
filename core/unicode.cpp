@@ -919,6 +919,4 @@ std::string convertWCHARtoLocal8Bit(const wchar_t * data, unsigned long length)
 #else
 	return convertWCHARtoUTF8(data, length);		// FIXME?
 #endif
-
-	return std::string();
 }

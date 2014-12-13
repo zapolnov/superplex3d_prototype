@@ -5,21 +5,6 @@
 
 #include <core/common.h>
 
-#ifdef _PG_ENABLE_QT4
- #include <QtCore/QObject>
- #include <QtCore/QPoint>
- #include <QtCore/QSize>
- #include <QtCore/QRect>
- #include <QtCore/QByteArray>
- #include <QtCore/QString>
- #include <QtCore/QBuffer>
- #include <QtCore/QVariant>
- #include <QtCore/QDir>
- #include <QtCore/QFile>
- #include <QtCore/QLibrary>
- #include <QtCore/QThread>
-#else // _PG_ENABLE_QT4
-
 #include <core/variant.h>
 #include <core/unicode.h>
 #include <vector>
@@ -376,7 +361,7 @@ public:
 	inline void append(const char * str)
 	{
 		while (*str)
-			std::wstring::push_back((wchar_t)*(unsigned char *)str++);
+			std::wstring::push_back((wchar_t)(unsigned char)*str++);
 	}
 
 	/**
@@ -895,7 +880,5 @@ private:
 	 */
 	static void * CALLBACK threadEntry(void * param);
 };
-
-#endif // _PG_ENABLE_QT4
 
 #endif // __CORE__TROLLTECH_H__F8F2FCCB_BAB0_4BCF_9319_2A3869A05769__

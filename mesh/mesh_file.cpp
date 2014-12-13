@@ -1,6 +1,3 @@
-#ifdef _PG_ENABLE_QT4
- #include <core/application.h>
-#endif
 #include <core/exception.h>
 #include <mesh/mesh_file.h>
 #include <mesh/formats/wavefront_obj/obj_plugin.h>

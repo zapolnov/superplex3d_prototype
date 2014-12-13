@@ -1,8 +1,5 @@
 #include <core/trolltech.h>
 #include <core/exception.h>
-
-#ifndef _PG_ENABLE_QT4
-
 #include <core/logger.h>
 #include <interfaces/file_system.h>
 #include <errno.h>
@@ -38,7 +35,7 @@ QString::QString(const char * str)
 {
 	std::wstring::iterator it = begin();
 	while (*str)
-		*it++ = *(unsigned char *)str++;
+		*it++ = (unsigned char)*str++;
 }
 
 //
@@ -50,7 +47,7 @@ QString::QString(const std::string & str)
 	std::string::const_iterator it = str.begin();
 	std::wstring::iterator jt = begin();
 	while (it != str.end())
-		*jt++ = *it++;
+		*jt++ = (unsigned char)*it++;
 }
 
 //
@@ -837,5 +834,3 @@ void * CALLBACK QThread::threadEntry(void * param)
 
 	return NULL;
 }
-
-#endif // _PG_ENABLE_QT4

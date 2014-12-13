@@ -10,12 +10,7 @@
 static
 std::string toLocal8Bit(const QString & message)
 {
-#ifdef _PG_ENABLE_QT4
-	QByteArray arr = message.toLocal8Bit();
-	return std::string(arr.constData(), arr.length());
-#else
 	return convertWCHARtoLocal8Bit(message);
-#endif
 }
 
 

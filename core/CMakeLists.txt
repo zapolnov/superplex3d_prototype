@@ -3,10 +3,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_core)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-#INCLUDE(${cmake_SOURCE_DIR}/pch.cmake)
-
 INCLUDE(CheckCSourceCompiles)
 
 CHECK_C_SOURCE_COMPILES(
@@ -23,25 +19,12 @@ CHECK_C_SOURCE_COMPILES(
 )
 
 CONFIGURE_FILE(cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h)
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}")
 
-INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_SOURCE_DIR}/..
-	${CMAKE_CURRENT_BINARY_DIR}
-)
-
-QT4_WRAP_CPP(MOC_FILES
-	clock.h
-	logger.h
-)
-
-SET(pg_core_SRC
+ADD_LIBRARY(pg_core STATIC
 	../interfaces/file_system.cpp
 	../interfaces/file_system.h
 	../interfaces/loadable.h
-	atom.h
-	atom_table.cpp
-	atom_table.h
-	bit_array.h
 	clock.cpp
 	clock.h
 	common.cpp
@@ -50,7 +33,6 @@ SET(pg_core_SRC
 	exception.h
 	ext_io_device.cpp
 	ext_io_device.h
-	fixed_pool.h
 	heap_manager.cpp
 	heap_manager.h
 	logger.cpp
@@ -72,14 +54,10 @@ SET(pg_core_SRC
 	trolltech.h
 	unicode.cpp
 	unicode.h
-	unique_id.cpp
-	unique_id.h
 	utility.cpp
 	utility.h
 	variant.cpp
 	variant.h
-	${MOC_FILES}
 )
 
-ADD_LIBRARY(pg_core STATIC ${pg_core_SRC})
-TARGET_LINK_LIBRARIES(pg_core pg_tbb ${QT_PG_QTCORE_LIBRARY})
+TARGET_LINK_LIBRARIES(pg_core pg_tbb)

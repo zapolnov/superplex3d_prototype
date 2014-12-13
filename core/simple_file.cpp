@@ -14,10 +14,6 @@ SimpleFile::SimpleFile(const QString & path)
 		throw Exception(QString("Unable to open file \"%1\": %2")
 			.arg(path).arg(m_File.errorString()));
 	}
-
-#ifdef _PG_ENABLE_QT4
-	setOpenMode(QIODevice::ReadOnly);
-#endif
 }
 
 //
@@ -33,9 +29,6 @@ SimpleFile::~SimpleFile()
 void SimpleFile::close()
 {
 	m_File.close();
-#ifdef _PG_ENABLE_QT4
-	setOpenMode(QIODevice::NotOpen);
-#endif
 }
 
 //

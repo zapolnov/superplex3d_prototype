@@ -3,9 +3,6 @@
 /* Author: Evan Hart														*/
 /* Email: sdkfeedback@nvidia.com											*/
 /****************************************************************************/
-#ifdef _PG_ENABLE_QT4
- #include <core/application.h>
-#endif
 #include <image/image_file.h>
 #include <core/exception.h>
 #include <core/memory_file.h>
@@ -16,11 +13,6 @@
 #include <image/formats/png/png_plugin.h>
 #include <string.h>
 #include <algorithm>
-
-#ifdef _PG_ENABLE_QT4
- #include <QtCore/QFileInfo>
- #include <QtCore/QFile>
-#endif
 
 /* ImageFile variables */
 

@@ -1,13 +1,8 @@
 #include <core/logger.h>
 #include <core/stack_trace.h>
-#include <core/atom.h>
 #include <core/utility.h>
 #include <ctype.h>
 #include <string.h>
-
-#ifdef _PG_ENABLE_QT4
- #include <QtCore/QStringList>
-#endif
 
 #ifdef WIN32
  #include <windows.h>
@@ -291,33 +286,7 @@ void LoggerFormatter::writeMessage()
 //
 LoggerFormatter & LoggerFormatter::operator<< (const StackTrace & value)
 {
-#ifdef _PG_ENABLE_QT4
-	append(value.toByteArray());
-#else
 	append(value.toStdString());
-#endif
-	return *this;
-}
-
-#ifdef _PG_ENABLE_QT4
-
-//
-// Pushes value to the formatter
-//
-LoggerFormatter & LoggerFormatter::operator<< (const QStringList & value)
-{
-	append(value.join("\n"));
-	return *this;
-}
-
-#endif // _PG_ENABLE_QT4
-
-//
-// Pushes value to the formatter
-//
-LoggerFormatter & LoggerFormatter::operator<< (const Atom & value)
-{
-	append(value.toString());
 	return *this;
 }
 
@@ -326,16 +295,12 @@ NAMESPACE_INTERNAL_END
 
 /* Logger methods */
 
-#ifndef _PG_ENABLE_QT4
-
 //
 // Emitted with each write to the log
 //
 void Logger::logMessageWritten(int level, const QByteArray & message)
 {
 }
-
-#endif
 
 //
 // Initializes the logger

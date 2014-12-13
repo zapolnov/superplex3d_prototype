@@ -75,48 +75,6 @@ bool StackTrace::extractNames()
 #endif // _MSC_VER
 }
 
-#ifdef _PG_ENABLE_QT4
-
-//
-// Converts this stack trace to the string
-//
-QString StackTrace::toString() const
-{
-	QString result, endl("\n");
-	char buf[64];
-
-	for (uint i = 0; i < m_Symbols.size(); i++)
-	{
-		snprintf(buf, sizeof(buf), "%016LX: ", (uint64)m_Symbols[i].address);
-		result += QString::fromLatin1(buf) + m_Symbols[i].name;
-		if (i < m_Symbols.size() - 1)
-			result.append(endl);
-	}
-
-	return result;
-}
-
-//
-// Converts this stack trace to the byte array
-//
-QByteArray StackTrace::toByteArray() const
-{
-	QByteArray result, endl("\n");
-	char buf[64];
-
-	for (uint i = 0; i < m_Symbols.size(); i++)
-	{
-		snprintf(buf, sizeof(buf), "%016LX: ", (uint64)m_Symbols[i].address);
-		result += QByteArray(buf) + m_Symbols[i].name;
-		if (i < m_Symbols.size() - 1)
-			result.append(endl);
-	}
-
-	return result;
-}
-
-#endif // _PG_ENABLE_QT4
-
 //
 // Converts this stack trace to the STL string
 //

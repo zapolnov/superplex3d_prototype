@@ -389,29 +389,6 @@ extern "C++" ENGINEAPI MaterialPtr R_LoadMaterial(const std::string & file);
  */
 ENGINEAPI void R_SetMaterial(const MaterialPtr & material);
 
-// r_terrain
-
-/**
- * Loads the specified height map.
- * @param map Path to the height map.
- */
-ENGINEAPI void R_LoadHeightMap(const std::string & map);
-
-/** Destroys any currently loaded height map. */
-ENGINEAPI void R_FreeHeightMap();
-
-/**
- * Renders the height map.
- * @param camera Position of the camera.
- */
-ENGINEAPI void R_RenderHeightMap(const CameraPtr & camera);
-
-/**
- * Sets the rendering mode of the terrain.
- * @param mode Rendering mode.
- */
-ENGINEAPI void R_SetHeightMapRenderMode(HeightMapRenderMode mode);
-
 // r_lightning
 
 /**

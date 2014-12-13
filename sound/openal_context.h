@@ -445,6 +445,9 @@ private:
 	 * @param name Name of the function.
 	 */
 	void * getProcAddress(const char * name);
+
+	/** Resets OpenAL entry points to NULL. */
+	void resetEntryPointsToNull();
 };
 
 #endif // __SOUND__OPENAL_CONTEXT_H__F8F2FCCB_BAB0_4BCF_9319_2A3869A05769__

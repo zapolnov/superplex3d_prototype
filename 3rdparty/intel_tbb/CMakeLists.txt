@@ -1,29 +1,12 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
-PROJECT(intel_tbb)
-
-#INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-#INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-
-ADD_DEFINITIONS("-D_CRT_SECURE_NO_DEPRECATE=1")
-ADD_DEFINITIONS("-D_CRT_SECURE_NO_WARNINGS=1")
-ADD_DEFINITIONS("-D_SCL_SECURE_NO_DEPRECATE=1")
-ADD_DEFINITIONS("-D_CRT_NONSTDC_NO_DEPRECATE=1")
+PROJECT(pg_tbb)
 
 ADD_DEFINITIONS("-D__TBB_BUILD=1")
 ADD_DEFINITIONS("-D__TBB_EXCEPTIONS=1")
 ADD_DEFINITIONS("-D__TBB_NO_IMPLICIT_LINKAGE=1")
 ADD_DEFINITIONS("-DTBB_NO_LEGACY=1")
-
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	ADD_DEFINITIONS("-D_DEBUG")
-	ADD_DEFINITIONS("-DTBB_DO_ASSERT")
-ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	ADD_DEFINITIONS("-D_SECURE_SCL=0")
-	ADD_DEFINITIONS("-D_HAS_ITERATOR_DEBUGGING=0")
-	ADD_DEFINITIONS("-DNDEBUG")
-ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 SET(PLATFORM_FILES )
 
@@ -53,29 +36,23 @@ IF(WIN32)
 			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/ia32-masm/lock_byte.asm
 		)
 	ENDIF(CMAKE_CL_64)
-
 	ADD_DEFINITIONS(-DUSE_WINTHREAD -D_WIN32_WINNT=0x0400 -DDO_ITT_NOTIFY -DUNICODE)
-
 ELSEIF(APPLE)
-
-	INCLUDE(FindThreads)
 	ADD_DEFINITIONS(-DUSE_PTHREAD)
-
 ELSEIF(UNIX)
-
-	INCLUDE(FindThreads)
 	ADD_DEFINITIONS(-DUSE_PTHREAD -DDO_ITT_NOTIFY)
-
 ENDIF(WIN32)
 
 
-INCLUDE_DIRECTORIES(
-	include
-	src
-)
+INCLUDE_DIRECTORIES(src)
 
-ADD_LIBRARY(pg_tbb STATIC
+IF(WIN32)
+	SET(STATIC_OR_SHARED SHARED)
+ELSE()
+	SET(STATIC_OR_SHARED STATIC)
+ENDIF()
 
+ADD_LIBRARY(pg_tbb ${STATIC_OR_SHARED}
 	include/tbb/compat/ppl.h
 	include/tbb/machine/ibm_aix51.h
 	include/tbb/machine/linux_common.h
@@ -132,7 +109,6 @@ ADD_LIBRARY(pg_tbb STATIC
 	include/tbb/tbb_thread.h
 	include/tbb/tbbmalloc_proxy.h
 	include/tbb/tick_count.h
-
 	src/tbb/cache_aligned_allocator.cpp
 	src/tbb/concurrent_hash_map.cpp
 	src/tbb/concurrent_queue.cpp
@@ -159,23 +135,7 @@ ADD_LIBRARY(pg_tbb STATIC
 	src/tbb/tbb_thread.cpp
 	src/tbb/tbb_version.h
 	src/tbb/tls.h
-
 	${PLATFORM_FILES}
-
-)
-
-ADD_LIBRARY(pg_tbbmalloc STATIC
-
-	src/tbbmalloc/Customize.h
-	src/tbbmalloc/LifoQueue.h
-	src/tbbmalloc/MapMemory.h
-	src/tbbmalloc/MemoryAllocator.cpp
-	src/tbbmalloc/Statistics.h
-	src/tbbmalloc/TypeDefinitions.h
-	src/tbbmalloc/tbbmalloc.cpp
-	src/tbbmalloc/tbbmalloc.rc
-
 )
 
 TARGET_LINK_LIBRARIES(pg_tbb ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-TARGET_LINK_LIBRARIES(pg_tbbmalloc pg_tbb)

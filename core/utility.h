@@ -17,11 +17,7 @@ NAMESPACE_INTERNAL_BEGIN
 
 /* Macros */
 
-#ifdef _PG_ENABLE_QT4
- #define PG_UNICODE(x) (x)->unicode()
-#else
- #define PG_UNICODE(x) (*(x))
-#endif
+#define PG_UNICODE(x) (*(x))
 
 
 /* Constants */
@@ -432,11 +428,7 @@ template <class TGT, class CHAR, class FLT, class TWC, TWC toLower(TWC), size_t 
 	}
 
 	// Number
-#ifdef _PG_ENABLE_QT4
-	target.append(QString::fromWCharArray(tmp));
-#else
 	target.append(tmp);
-#endif
 
 	// Right padding
 	while (fieldWidth-- > 0)

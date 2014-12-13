@@ -299,8 +299,8 @@ set(GLFW_LIB_NAME glfw)
 #--------------------------------------------------------------------
 # Create generated files
 #--------------------------------------------------------------------
-configure_file(${GLFW_SOURCE_DIR}/src/glfw_config.h.in 
-               ${GLFW_BINARY_DIR}/src/glfw_config.h @ONLY)
+configure_file(${glfw_SOURCE_DIR}/src/glfw_config.h.in 
+               ${glfw_BINARY_DIR}/src/glfw_config.h @ONLY)
 
 #--------------------------------------------------------------------
 # Add subdirectories

@@ -3,17 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_mesh)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-
-INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_SOURCE_DIR}/..
-	${CMAKE_CURRENT_BINARY_DIR}
-)
-
-QT4_WRAP_CPP(MOC_FILES mesh_material.h)
-
-SET(pg_mesh_SRC
+ADD_LIBRARY(pg_mesh STATIC
 	formats/wavefront_obj/obj_loader.cpp
 	formats/wavefront_obj/obj_loader.h
 	formats/wavefront_obj/obj_plugin.cpp
@@ -38,5 +28,4 @@ SET(pg_mesh_SRC
 	${MOC_FILES}
 )
 
-ADD_LIBRARY(pg_mesh STATIC ${pg_mesh_SRC})
 TARGET_LINK_LIBRARIES(pg_mesh pg_core pg_tbb)

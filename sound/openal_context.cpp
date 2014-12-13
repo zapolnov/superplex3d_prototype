@@ -15,7 +15,10 @@ OpenALContext * OpenALContext::m_Instance;
 OpenALContext::OpenALContext()
 	: QLibrary(""), m_Device(NULL), m_Context(NULL)
 {
-  #ifdef __APPLE__
+  #ifndef __APPLE__
+	resetEntryPointsToNull();
+  #else
+	// On APPLE we use the native OpenAL library and link to it statically
 	alEnable = ::alEnable;
 	alDisable = ::alDisable;
 	alIsEnabled = ::alIsEnabled;
@@ -81,72 +84,6 @@ OpenALContext::OpenALContext()
 	alcIsExtensionPresent = ::alcIsExtensionPresent;
 	alcGetProcAddress = ::alcGetProcAddress;
 	alcGetEnumValue = ::alcGetEnumValue;
-  #else
-	alEnable = NULL;
-	alDisable = NULL;
-	alIsEnabled = NULL;
-	alGetBoolean = NULL;
-	alGetInteger = NULL;
-	alGetFloat = NULL;
-	alGetDouble = NULL;
-	alGetBooleanv = NULL;
-	alGetIntegerv = NULL;
-	alGetFloatv = NULL;
-	alGetDoublev = NULL;
-	alGetString = NULL;
-	alGetError = NULL;
-	alIsExtensionPresent = NULL;
-	alGetProcAddress = NULL;
-	alGetEnumValue = NULL;
-	alListeneri = NULL;
-	alListenerf = NULL;
-	alListener3f = NULL;
-	alListenerfv = NULL;
-	alGetListeneri = NULL;
-	alGetListenerf = NULL;
-	alGetListener3f = NULL;
-	alGetListenerfv = NULL;
-	alGenSources = NULL;
-	alDeleteSources = NULL;
-	alIsSource = NULL;
-	alSourcei = NULL;
-	alSourcef = NULL;
-	alSource3f = NULL;
-	alSourcefv = NULL;
-	alGetSourcei = NULL;
-	alGetSourcef = NULL;
-	alGetSourcefv = NULL;
-	alSourcePlayv = NULL;
-	alSourceStopv = NULL;
-	alSourcePlay = NULL;
-	alSourcePause = NULL;
-	alSourceStop = NULL;
-	alGenBuffers = NULL;
-	alDeleteBuffers = NULL;
-	alIsBuffer = NULL;
-	alBufferData = NULL;
-	alGetBufferi = NULL;
-	alGetBufferf = NULL;
-	alSourceQueueBuffers = NULL;
-	alSourceUnqueueBuffers = NULL;
-	alDistanceModel = NULL;
-	alDopplerFactor = NULL;
-	alDopplerVelocity = NULL;
-	alcGetString = NULL;
-	alcGetIntegerv = NULL;
-	alcOpenDevice = NULL;
-	alcCloseDevice = NULL;
-	alcCreateContext = NULL;
-	alcMakeContextCurrent = NULL;
-	alcProcessContext = NULL;
-	alcGetCurrentContext = NULL;
-	alcGetContextsDevice = NULL;
-	alcSuspendContext = NULL;
-	alcDestroyContext = NULL;
-	alcGetError = NULL;
-	alcIsExtensionPresent = NULL;
-	alcGetProcAddress = NULL;
-	alcGetEnumValue = NULL;
   #endif
 
 	m_Instance = this;
@@ -160,71 +97,7 @@ OpenALContext::OpenALContext(const QString & name)
 {
 	Q_ASSERT(!m_Instance);
 
-	alEnable = NULL;
-	alDisable = NULL;
-	alIsEnabled = NULL;
-	alGetBoolean = NULL;
-	alGetInteger = NULL;
-	alGetFloat = NULL;
-	alGetDouble = NULL;
-	alGetBooleanv = NULL;
-	alGetIntegerv = NULL;
-	alGetFloatv = NULL;
-	alGetDoublev = NULL;
-	alGetString = NULL;
-	alGetError = NULL;
-	alIsExtensionPresent = NULL;
-	alGetProcAddress = NULL;
-	alGetEnumValue = NULL;
-	alListeneri = NULL;
-	alListenerf = NULL;
-	alListener3f = NULL;
-	alListenerfv = NULL;
-	alGetListeneri = NULL;
-	alGetListenerf = NULL;
-	alGetListener3f = NULL;
-	alGetListenerfv = NULL;
-	alGenSources = NULL;
-	alDeleteSources = NULL;
-	alIsSource = NULL;
-	alSourcei = NULL;
-	alSourcef = NULL;
-	alSource3f = NULL;
-	alSourcefv = NULL;
-	alGetSourcei = NULL;
-	alGetSourcef = NULL;
-	alGetSourcefv = NULL;
-	alSourcePlayv = NULL;
-	alSourceStopv = NULL;
-	alSourcePlay = NULL;
-	alSourcePause = NULL;
-	alSourceStop = NULL;
-	alGenBuffers = NULL;
-	alDeleteBuffers = NULL;
-	alIsBuffer = NULL;
-	alBufferData = NULL;
-	alGetBufferi = NULL;
-	alGetBufferf = NULL;
-	alSourceQueueBuffers = NULL;
-	alSourceUnqueueBuffers = NULL;
-	alDistanceModel = NULL;
-	alDopplerFactor = NULL;
-	alDopplerVelocity = NULL;
-	alcGetString = NULL;
-	alcGetIntegerv = NULL;
-	alcOpenDevice = NULL;
-	alcCloseDevice = NULL;
-	alcCreateContext = NULL;
-	alcMakeContextCurrent = NULL;
-	alcProcessContext = NULL;
-	alcGetCurrentContext = NULL;
-	alcGetContextsDevice = NULL;
-	alcSuspendContext = NULL;
-	alcDestroyContext = NULL;
-	alcGetError = NULL;
-	alcIsExtensionPresent = NULL;
-	alcGetProcAddress = NULL;
-	alcGetEnumValue = NULL;
+	resetEntryPointsToNull();
 
 	if (unlikely(!load()))
 	{
@@ -320,41 +193,6 @@ OpenALContext::~OpenALContext()
 
 	shutdownDevice();
 }
-
-//
-// Returns list of installed devices
-//
-/*QVector<ISoundPlugin::DeviceInfo> OpenALContext::enumerateDevices() const
-{
-	QVector<ISoundPlugin::DeviceInfo> list;
-	const ALCchar * devices = NULL;
-
-	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
-		devices = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
-	else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
-		devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-
-	ISoundPlugin::DeviceInfo info;
-	if (likely(devices && *devices))
-	{
-		while (*devices)
-		{
-			info.deviceID = devices;
-			info.deviceDescription = QString::fromLocal8Bit(devices);
-			list.append(info);
-
-			devices += strlen(devices) + 1;
-		}
-	}
-	else
-	{
-		info.deviceID = QByteArray();
-		info.deviceDescription = tr("Default device");
-		list.append(info);
-	}
-
-	return list;
-}*/
 
 //
 // Returns name of the default sound device
@@ -496,4 +334,76 @@ void * OpenALContext::getProcAddress(const char * name)
 		throw Exception(tr("Symbol '%1' was not found in library '%2'.").arg(name).arg(fileName()));
 
 	return addr;
+}
+
+//
+// Resets OpenAL entry points to NULL
+//
+void OpenALContext::resetEntryPointsToNull()
+{
+	alEnable = NULL;
+	alDisable = NULL;
+	alIsEnabled = NULL;
+	alGetBoolean = NULL;
+	alGetInteger = NULL;
+	alGetFloat = NULL;
+	alGetDouble = NULL;
+	alGetBooleanv = NULL;
+	alGetIntegerv = NULL;
+	alGetFloatv = NULL;
+	alGetDoublev = NULL;
+	alGetString = NULL;
+	alGetError = NULL;
+	alIsExtensionPresent = NULL;
+	alGetProcAddress = NULL;
+	alGetEnumValue = NULL;
+	alListeneri = NULL;
+	alListenerf = NULL;
+	alListener3f = NULL;
+	alListenerfv = NULL;
+	alGetListeneri = NULL;
+	alGetListenerf = NULL;
+	alGetListener3f = NULL;
+	alGetListenerfv = NULL;
+	alGenSources = NULL;
+	alDeleteSources = NULL;
+	alIsSource = NULL;
+	alSourcei = NULL;
+	alSourcef = NULL;
+	alSource3f = NULL;
+	alSourcefv = NULL;
+	alGetSourcei = NULL;
+	alGetSourcef = NULL;
+	alGetSourcefv = NULL;
+	alSourcePlayv = NULL;
+	alSourceStopv = NULL;
+	alSourcePlay = NULL;
+	alSourcePause = NULL;
+	alSourceStop = NULL;
+	alGenBuffers = NULL;
+	alDeleteBuffers = NULL;
+	alIsBuffer = NULL;
+	alBufferData = NULL;
+	alGetBufferi = NULL;
+	alGetBufferf = NULL;
+	alSourceQueueBuffers = NULL;
+	alSourceUnqueueBuffers = NULL;
+	alDistanceModel = NULL;
+	alDopplerFactor = NULL;
+	alDopplerVelocity = NULL;
+	alcGetString = NULL;
+	alcGetIntegerv = NULL;
+	alcOpenDevice = NULL;
+	alcCloseDevice = NULL;
+	alcCreateContext = NULL;
+	alcMakeContextCurrent = NULL;
+	alcProcessContext = NULL;
+	alcGetCurrentContext = NULL;
+	alcGetContextsDevice = NULL;
+	alcSuspendContext = NULL;
+	alcDestroyContext = NULL;
+	alcGetError = NULL;
+	alcIsExtensionPresent = NULL;
+	alcGetProcAddress = NULL;
+	alcGetEnumValue = NULL;
 }

@@ -2,9 +2,7 @@
 
 /* Clock variables */
 
-#ifndef _PG_ENABLE_QT4
 Clock * Clock::m_Instance;
-#endif
 
 
 /* Clock methods */
@@ -15,10 +13,8 @@ Clock * Clock::m_Instance;
 Clock::Clock()
 	: m_FrameDurationHistoryOffset(0), m_FrameDurationHistoryLength(1), m_CurrentTime(0), m_FrameTime(0.0f)
 {
-#ifndef _PG_ENABLE_QT4
 	Q_ASSERT(!m_Instance);
 	m_Instance = this;
-#endif
 
 	m_FrameDurationHistory[0] = 0.03;
 	m_FrameTime = getPredictedFrameDuration();
@@ -29,10 +25,8 @@ Clock::Clock()
 //
 Clock::~Clock()
 {
-#ifndef _PG_ENABLE_QT4
 	Q_ASSERT(m_Instance);
 	m_Instance = NULL;
-#endif
 }
 
 //

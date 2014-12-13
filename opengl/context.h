@@ -5,9 +5,7 @@
 
 #include <core/common.h>
 
-#ifdef _PG_ENABLE_QT4
- #include <QtOpenGL/QGLContext>
-#elif defined __APPLE__
+#if defined __APPLE__
  #include <OpenGL/gl.h>
  #include <OpenGL/glu.h>
 #elif defined WIN32
@@ -16,8 +14,8 @@
 #endif
 
 #ifndef __APPLE__
-#include <GL/gl.h>
-#include <GL/glu.h>
+ #include <GL/gl.h>
+ #include <GL/glu.h>
 #endif
 
 #include <opengl/glext.h>

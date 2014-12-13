@@ -9,13 +9,8 @@
 
 /* Macros */
 
-#ifdef _PG_ENABLE_QT4
- /** Returns pointer to the instance of the clock. */
- #define clock() (Application::clock())
-#else
- /** Returns pointer to the instance of the clock. */
- #define clock() (Clock::instance())
-#endif
+/** Returns pointer to the instance of the clock. */
+#define clock() (Clock::instance())
 
 
 /* Classes */
@@ -58,8 +53,6 @@ public:
 	 */
 	COREAPI void update(double delta);
 
-#ifndef _PG_ENABLE_QT4
-
 	/** Returns pointer to the instance of the clock. */
 	static inline Clock * instance()
 	{
@@ -68,8 +61,6 @@ public:
 
 protected:
 	COREAPI static Clock * m_Instance;					/**< Pointer to the instance of the clock. */
-
-#endif
 
 private:
 	static const uint m_FilteringWindow = 100;			/**< Number of frames to use in filtering of the clock drift. */

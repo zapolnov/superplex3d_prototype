@@ -86,16 +86,6 @@ QString SimpleFileSystem::normalizePath(const QString & path) const
 //
 QByteArray SimpleFileSystem::getFileContents(const QString & path)
 {
-#ifdef _PG_ENABLE_QT4
-
-	QFile file(path);
-	if (!file.open(QFile::ReadOnly))
-		throw Exception(QObject::tr("Unable to open file \"%1\": %2").arg(path).arg(file.errorString()));
-
-	return file.readAll();
-
-#else // _PG_ENABLE_QT4
-
 	QString fullPath = m_BasePath + path;
 
 	// Open the file
@@ -142,8 +132,6 @@ QByteArray SimpleFileSystem::getFileContents(const QString & path)
 	fclose(f);
 
 	return result;
-
-#endif // _PG_ENABLE_QT4
 }
 
 //

@@ -3,18 +3,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(glsl_compiler)
 
-INCLUDE(${cmake_SOURCE_DIR}/common.cmake)
-INCLUDE(${cmake_SOURCE_DIR}/defines.cmake)
-
-FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/library)
+FILE(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/library")
 
 INCLUDE_DIRECTORIES(
-	${common_SOURCE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}/library
-	${CMAKE_CURRENT_SOURCE_DIR}/../..
-	${pg_casual_SOURCE_DIR}/..
-	${glfw_SOURCE_DIR}/include
+	"${CMAKE_CURRENT_BINARY_DIR}"
+	"${CMAKE_CURRENT_BINARY_DIR}/library"
+	"${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 ADD_EXECUTABLE(syn_to_c
@@ -25,14 +19,14 @@ ADD_EXECUTABLE(gc_to_bin
    	shader/slang/library/gc_to_bin.c
 	shader/grammar/grammar.h
 	shader/grammar/grammar_crt.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h"
 )
 
 FUNCTION(SYN_TO_C inFile outFile)
 	ADD_CUSTOM_COMMAND(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}
-		COMMAND syn_to_c ${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile} > ${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}
-		MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		COMMAND syn_to_c "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" > "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}"
 		DEPENDS syn_to_c
 		COMMENT "Generating library/${outFile}"
 	)
@@ -40,9 +34,9 @@ ENDFUNCTION(SYN_TO_C)
 
 FUNCTION(GC_TO_BIN shaderType inFile outFile)
 	ADD_CUSTOM_COMMAND(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}
-		COMMAND gc_to_bin ${shaderType} ${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile} ${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}
-		MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		COMMAND gc_to_bin ${shaderType} "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}"
 		DEPENDS gc_to_bin
 		COMMENT "Generating library/${outFile}"
 	)
@@ -65,14 +59,11 @@ GC_TO_BIN(1 slang_120_core.gc slang_120_core_gc.h)
 GC_TO_BIN(1 slang_fragment_builtin.gc slang_fragment_builtin_gc.h)
 GC_TO_BIN(2 slang_vertex_builtin.gc slang_vertex_builtin_gc.h)
 
-ADD_LIBRARY(glsl_compiler STATIC EXCLUDE_FROM_ALL
-
+ADD_LIBRARY(glsl_compiler STATIC
 	glsl_compiler.cpp
 	glsl_compiler.h
-
 	glapi/glapi.c
 	glapi/glapi.h
-
 	main/compiler.h
 	main/config.h
 	main/glheader.h
@@ -87,7 +78,6 @@ ADD_LIBRARY(glsl_compiler STATIC EXCLUDE_FROM_ALL
 	main/shaders.c
 	main/shared.h
 	main/shared.c
-
 	shader/prog_instruction.c
 	shader/prog_instruction.h
 	shader/prog_optimize.c
@@ -104,11 +94,9 @@ ADD_LIBRARY(glsl_compiler STATIC EXCLUDE_FROM_ALL
 	shader/programopt.h
 	shader/shader_api.c
 	shader/shader_api.h
-
 	shader/grammar/grammar.h
 	shader/grammar/grammar_mesa.c
 	shader/grammar/grammar_mesa.h
-
 	shader/slang/slang_builtin.c
 	shader/slang/slang_builtin.h
 	shader/slang/slang_codegen.c
@@ -147,19 +135,16 @@ ADD_LIBRARY(glsl_compiler STATIC EXCLUDE_FROM_ALL
 	shader/slang/slang_utility.h
 	shader/slang/slang_vartable.c
 	shader/slang/slang_vartable.h
-
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_core_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_120_core_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_builtin_120_fragment_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_common_builtin_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_fragment_builtin_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_expression_syn.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_version_syn.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_vertex_builtin_gc.h
-	${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_directives_syn.h
-
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_core_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_120_core_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_builtin_120_fragment_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_common_builtin_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_fragment_builtin_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_expression_syn.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_version_syn.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_vertex_builtin_gc.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_pp_directives_syn.h"
 )
 
 TARGET_LINK_LIBRARIES(glsl_compiler ${OPENGL_gl_LIBRARY})
-SET_PROPERTY(TARGET glsl_compiler PROPERTY COMPILE_DEFINITIONS "CORE_STATIC" APPEND)

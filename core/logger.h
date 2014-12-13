@@ -30,7 +30,6 @@
 /* Classes */
 
 class StackTrace;
-class Atom;
 
 NAMESPACE_INTERNAL_BEGIN
 
@@ -263,11 +262,7 @@ public:
 	 */
 	inline LoggerFormatter & operator<< (const wchar * value)
 	{
-	#ifdef _PG_ENABLE_QT4
-		append(QString::fromWCharArray(value));
-	#else
 		append(value);
-	#endif
 		return *this;
 	}
 
@@ -277,11 +272,7 @@ public:
 	 */
 	inline LoggerFormatter & operator<< (const std::string & value)
 	{
-	#ifdef _PG_ENABLE_QT4
-		append(QByteArray(value.c_str(), value.length()));
-	#else
 		append(value);
-	#endif
 		return *this;
 	}
 
@@ -291,11 +282,7 @@ public:
 	 */
 	inline LoggerFormatter & operator<< (const std::wstring & value)
 	{
-	#ifdef _PG_ENABLE_QT4
-		append(QString::fromStdWString(value));
-	#else
 		append(value);
-	#endif
 		return *this;
 	}
 
@@ -314,52 +301,6 @@ public:
 	 * @param value Value.
 	 */
 	COREAPI LoggerFormatter & operator<< (const StackTrace & value);
-
-#ifdef _PG_ENABLE_QT4
-
-	/**
-	 * Writes value into the formatter.
-	 * @param value Value to write.
-	 */
-	inline LoggerFormatter & operator<< (const QByteArray & value)
-	{
-		append(value);
-		return *this;
-	}
-
-	/**
-	 * Writes value into the formatter.
-	 * @param value Value to write.
-	 */
-	inline LoggerFormatter & operator<< (const QString & value)
-	{
-		append(value);
-		return *this;
-	}
-
-	/**
-	 * Pushes value to the formatter.
-	 * @param value Value.
-	 */
-	inline LoggerFormatter & operator<< (const QLatin1String & value)
-	{
-		append(QString(value));
-		return *this;
-	}
-
-	/**
-	 * Pushes value to the formatter.
-	 * @param value Value.
-	 */
-	COREAPI LoggerFormatter & operator<< (const QStringList & value);
-
-#endif // _PG_ENABLE_QT4
-
-	/**
-	 * Pushes value to the formatter.
-	 * @param value Value.
-	 */
-	COREAPI LoggerFormatter & operator<< (const Atom & value);
 
 private:
 	Pointer<StringFormatter> m_Formatter;	/**< Pointer to the associated string formatter. */

@@ -54,16 +54,6 @@ public:
 		return m_Symbols[idx].address;
 	}
 
-#ifdef _PG_ENABLE_QT4
-
-	/** Converts this stack trace to the string. */
-	COREAPI QString toString() const;
-
-	/** Converts this stack trace to the byte array. */
-	COREAPI QByteArray toByteArray() const;
-
-#endif // _PG_ENABLE_QT4
-
 	/** Converts this stack trace to the STL string. */
 	COREAPI std::string toStdString() const;
 

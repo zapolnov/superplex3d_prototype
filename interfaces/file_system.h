@@ -5,22 +5,12 @@
 
 #include <core/common.h>
 #include <core/trolltech.h>
-
-#ifdef _PG_ENABLE_QT4
- #include <core/application.h>
-#endif
-
 #include <core/ext_io_device.h>
 
 
 /* Macros */
 
-#ifdef _PG_ENABLE_QT4
- /** Returns pointer to the instance of the filesystem. */
- #define fileSystem() (Application::fileSystem())
-#else
- #define fileSystem() (IFileSystem::instance())
-#endif
+#define fileSystem() (IFileSystem::instance())
 
 
 /* Classes */
@@ -51,8 +41,6 @@ public:
 	 */
 	virtual FilePtr openFile(const QString & path) = 0;
 
-#ifndef _PG_ENABLE_QT4
-
 	/** Returns pointer to the instance of the filesystem. */
 	static inline IFileSystem * instance()
 	{
@@ -68,8 +56,6 @@ protected:
 		Q_ASSERT(!m_Instance);
 		m_Instance = this;
 	}
-
-#endif
 
 protected:
 	/** Destructor. */
