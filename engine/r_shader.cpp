@@ -1,6 +1,6 @@
 #include <engine/render.h>
 #include <engine/r_opengl.h>
-#include <engine/glsl_compiler/glsl_compiler.h>
+#include <3rdparty/glsl_compiler/glsl_compiler.h>
 #include <engine/filesys.h>
 #include <core/logger.h>
 #include <map>

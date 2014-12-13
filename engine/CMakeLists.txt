@@ -1,8 +1,6 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
-ADD_SUBDIRECTORY(glsl_compiler)
-
 PROJECT(pg_casual)
 
 SET(machine undefined)
