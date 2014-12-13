@@ -91,6 +91,10 @@ SuperplexGame::SuperplexGame()
 
 	int level = 1;
 	FILE * f = fopen((Sys_GetAppPath() + "/level.cfg").toLocal8Bit().constData(), "r");
+  #ifdef __APPLE__
+	if (!f)
+		f = fopen((Sys_GetAppPath() + "/../../../level.cfg").toLocal8Bit().constData(), "r");
+  #endif
 	if (f)
 	{
 		fscanf(f, "%d", &level);

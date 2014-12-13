@@ -2,6 +2,10 @@
 #include <core/logger.h>
 #include <errno.h>
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 /* Private variables */
 
 static QString g_AppPath;		/**< Path to the application. */
@@ -15,20 +19,28 @@ static QString g_AppFile;		/**< Name of the executable file. */
 //
 void Sys_InitOS()
 {
+  #ifdef __APPLE__
+	char buf[4096];
+	uint32_t size = sizeof(buf);
+	if (_NSGetExecutablePath(buf, &size) != 0)
+	{
+		logger << LOG_ERROR << "_NSGetExecutablePath() failed.";
+  #else
 	char link[256], buf[2048];
-
-	// Get path to the executable file
 	snprintf(link, sizeof(link), "/proc/%d/exe", getpid());
 	ssize_t len = readlink(link, buf, sizeof(buf) - 1);
 	if (unlikely(len < 0))
 	{
 		logger << LOG_ERROR << "readlink('%s') failed: %s" << link << strerror(errno);
+  #endif
 		g_AppPath = ".";
 		g_AppFile = "_unknown_";
 	}
 	else
 	{
+	  #ifndef __APPLE__
 		buf[len] = 0;
+	  #endif
 		g_AppFile = QString::fromLocal8Bit(buf);
 
 		// Split the filename
