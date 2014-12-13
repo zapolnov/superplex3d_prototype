@@ -1,5 +1,5 @@
 
-This repository contains a C++ code of a supaplex clone. It has a
+This repository contains a C++ code of a Supaplex clone. It has a
 brand new 3D art, but it's game logic was recovered from an original
 Supaplex executable via disassembly.
 
@@ -43,10 +43,28 @@ The code is far from ideal: it has `goto`s, crypting variable names like
 `byte_403C3` and all that stuff. But it is of very good quality for a disassembly.
 
 In the `disassembly` directory you will find some scripts and tools I have used
-to disassemble the Supaplex executable. Unfortunately, I do not remember the exact
-meaning/usage of all this stuff. If you are curious, I have used subversion repository
-during the original disassembly process, so I have preserved an original history. Feel
-free to navigate through history to see how the disassembly evolved (use the "follow
+to disassemble the Supaplex executable.
+
+The `disassembly/decomp.c` file contains a decompressor
+for the original, compressed executable - it is very interesting as it contains
+(an incomplete) 8086 CPU emulator which runs decompressor instruction-by-instruction,
+until a final decompressed executable is produced, then dumps it into a file.
+
+The `disassembly/supaplex.idc` is a script for the Interactive Disassembler Pro
+(https://www.hex-rays.com/products/ida/index.shtml). It sets human-readable
+names for some symbols and adds useful comments to the code.
+
+The `diassembly/supaplex_debugger.asm` was used to debug the Supaplex code. It
+runs the original Supaplex executable and reports when various positions in the
+code are hit. I don't remember exactly, but I believe that I have used this tool
+to clarify purpose of some parts of the code.
+
+The `disassembly/refactor` subdirectory contains an intermediate C++ code
+I have built during the disassembly.
+
+During the original disassembly process I have used a subversion repository.
+I have preserved an original history using the svn-to-git import. Feel free to
+navigate through history to see how the disassembly evolved (use the "follow
 renames" option if you don't see the full history).
 
 Legal information
@@ -60,7 +78,7 @@ Artwork
 job. He was paid for this job and copyright is owned by me (I have all the
 necessary legal documents).
 
-So all the models and textures are  
+So all the models and textures are
 Copyright (c) 2009-2014 Nikolay Zapolnov (zapolnov@gmail.com).
 Feel free to use them under the terms of the
 Creative Commons Attribution-NonCommercial-ShareAlike 4.0 License
@@ -77,9 +95,10 @@ I hereby release all my code in this repository to the public domain.
 Feel free to use it for any purpose. Should you need a more legalese
 document, please use this one: https://creativecommons.org/publicdomain/zero/1.0
 
-3rdparty libraries, artwork, sounds and other stuff that was not created by me
-are still copyrighted by their authors and are distributed under the corresponding
-licenses. Please see comments at the top of source files for more information.
+3rdparty libraries, sounds and other stuff that was not created (and are not owned)
+by me are still copyrighted by their authors and are distributed under the
+corresponding licenses. Please see comments at the top of source files for more
+information.
 
 Supaplex game logic
 -------------------
@@ -90,10 +109,10 @@ The Supaplex game logic and disassembly scripts are provided
 Unfortunately, I didn't find a way to contact the original copyright
 holder (the Digital Integration company) for a permission. But Maarten Egmond
 did contact them long time ago and have received permission to redistribute
-the original Supaplex for free (see
-http://www.elmerproductions.com/sp/faq.html#q_license for more information).
-This fact, and also the fact that there are already a lot of Supaplex clones
-available in the wild, makes me believe that I am not doing nothing bad for nobody.
+the original Supaplex for free (see http://www.elmerproductions.com/sp/faq.html#q_license
+for more information). This fact, and also the fact that there are already a
+lot of Supaplex clones available in the wild, makes me believe that I am not
+doing nothing bad for nobody.
 
 **If you are a copyright holder for the Supaplex and you believe that I infinge
 your rights, please contact me immediately via e-mail zapolnov@gmail.com.**
