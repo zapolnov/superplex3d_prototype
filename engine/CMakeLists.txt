@@ -4,6 +4,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 PROJECT(engine)
 
 INCLUDE(cmake/Common.cmake)
+INCLUDE(cmake/DisableWarnings.cmake)
 
 ADD_SUBDIRECTORY(3rdparty)
 ADD_SUBDIRECTORY(core)

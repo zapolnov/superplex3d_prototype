@@ -108,6 +108,10 @@ void SoundThread::run()
 				playMusicTrack(cmd.path);
 				break;
 
+			case CMD_StopMusic:
+				// FIXME: not implemented
+				break;
+
 			case CMD_LoadSound:
 				loadSoundSample(cmd.path);
 				break;
@@ -126,6 +130,9 @@ void SoundThread::run()
 
 			switch (track.playMode)
 			{
+			case NormalPlay:
+				break;
+
 			case FadeIn:
 				track.volume += 0.2f;
 				if (track.volume >= 1.0f)

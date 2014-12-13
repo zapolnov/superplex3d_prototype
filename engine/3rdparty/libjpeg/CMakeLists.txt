@@ -3,6 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_jpeg)
 
+DISABLE_WARNINGS()
+
 ADD_LIBRARY(pg_jpeg STATIC
 	jaricom.c
 	jcapimin.c

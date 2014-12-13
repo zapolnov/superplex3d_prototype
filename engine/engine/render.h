@@ -132,8 +132,6 @@ typedef Pointer<Lightning> LightningPtr;
 
 /* Functions */
 
-EXTERN_C_BEGIN
-
 // r_main.cpp
 
 /** Initializes the renderer. */
@@ -148,7 +146,7 @@ void R_Shutdown();
  * @param g Green component of a color.
  * @param b Blue component of a color.
  */
-ENGINEAPI void R_SetClearColor(float r, float g, float b);
+void R_SetClearColor(float r, float g, float b);
 
 /** Begins rendering a frame. */
 void R_BeginFrame();
@@ -163,7 +161,7 @@ void R_Set2D();
  * Switches to the 3D rendering mode.
  * @param cam Camera to use.
  */
-ENGINEAPI void R_Set3D(const CameraPtr & camera);
+void R_Set3D(const CameraPtr & camera);
 
 /** Swaps the front and back buffers. */
 bool R_SwapBuffers();
@@ -173,7 +171,7 @@ bool R_SwapBuffers();
  * @param camera Current camera.
  * @param p Point to unproject.
  */
-extern "C++" ENGINEAPI Vector3 R_UnprojectPoint(const CameraPtr & camera, const QPoint & p);
+Vector3 R_UnprojectPoint(const CameraPtr & camera, const QPoint & p);
 
 // r_texture
 
@@ -181,7 +179,7 @@ extern "C++" ENGINEAPI Vector3 R_UnprojectPoint(const CameraPtr & camera, const 
  * Loads the specified texture.
  * @param name Name of the texture file.
  */
-extern "C++" ENGINEAPI TexturePtr R_LoadTexture(const std::string & name) throw(std::exception);
+TexturePtr R_LoadTexture(const std::string & name) throw(std::exception);
 
 /**
  * Binds texture to the specified texture unit.
@@ -189,10 +187,10 @@ extern "C++" ENGINEAPI TexturePtr R_LoadTexture(const std::string & name) throw(
  * @param texture Texture to bind.
  * @param env Texture environment mode.
  */
-ENGINEAPI void R_BindTexture(uint unit, const TexturePtr & texture, GLenum env = GL_MODULATE);
+void R_BindTexture(uint unit, const TexturePtr & texture, GLenum env = GL_MODULATE);
 
 /** Clears the texture cache. */
-ENGINEAPI void R_ClearTextureCache();
+void R_ClearTextureCache();
 
 /**
  * Renders the specified texture at the specified position.
@@ -200,46 +198,46 @@ ENGINEAPI void R_ClearTextureCache();
  * @param y Y coordinate.
  * @param tex Texture to render.
  */
-ENGINEAPI void R_RenderTexture2D(float x, float y, const TexturePtr & tex, GLenum env = GL_MODULATE);
+void R_RenderTexture2D(float x, float y, const TexturePtr & tex, GLenum env = GL_MODULATE);
 
 /**
  * Returns size of the texture.
  * @param tex Texture to render.
  */
-ENGINEAPI QSize R_GetTextureSize(const TexturePtr & tex);
+QSize R_GetTextureSize(const TexturePtr & tex);
 
 // r_buffer
 
 /** Creates the dynamic vertex buffer object. */
-extern "C++" ENGINEAPI BufferObjectPtr R_CreateVertexBufferObject();
+BufferObjectPtr R_CreateVertexBufferObject();
 
 /** Creates the dynamic index buffer object. */
-extern "C++" ENGINEAPI BufferObjectPtr R_CreateIndexBufferObject();
+BufferObjectPtr R_CreateIndexBufferObject();
 
 /**
  * Locks the specified buffer object.
  * @param obj Pointer to the buffer object.
  * @param access Access mode.
  */
-ENGINEAPI void * R_LockBufferObject(const BufferObjectPtr & ptr, AccessMode access);
+void * R_LockBufferObject(const BufferObjectPtr & ptr, AccessMode access);
 
 /**
  * Unlocks the specified buffer object.
  * @param obj Pointer to the buffer object.
  */
-ENGINEAPI void R_UnlockBufferObject(const BufferObjectPtr & ptr);
+void R_UnlockBufferObject(const BufferObjectPtr & ptr);
 
 /**
  * Binds the specified buffer object.
  * @param obj Pointer to the buffer object.
  */
-ENGINEAPI void * R_BindBufferObject(const BufferObjectPtr & ptr);
+void * R_BindBufferObject(const BufferObjectPtr & ptr);
 
 /**
  * Unbinds the specified buffer object.
  * @param obj Pointer to the buffer object.
  */
-ENGINEAPI void R_UnbindBufferObject(const BufferObjectPtr & ptr);
+void R_UnbindBufferObject(const BufferObjectPtr & ptr);
 
 /**
  * Uploads data to the buffer object.
@@ -248,7 +246,7 @@ ENGINEAPI void R_UnbindBufferObject(const BufferObjectPtr & ptr);
  * @param size Size of the data.
  * @param usage Buffer object usage.
  */
-ENGINEAPI void R_SetBufferObjectData(const BufferObjectPtr & ptr, const void * data, size_t size, UsageMode usage);
+void R_SetBufferObjectData(const BufferObjectPtr & ptr, const void * data, size_t size, UsageMode usage);
 
 // r_mesh
 
@@ -256,49 +254,49 @@ ENGINEAPI void R_SetBufferObjectData(const BufferObjectPtr & ptr, const void * d
  * Returns size of a single vertex for the specified vertex format.
  * @param format Vertex format (@sa VertexComponent).
  */
-ENGINEAPI int R_CalcVertexSize(int format);
+int R_CalcVertexSize(int format);
 
 /**
  * Creates the box mesh.
  * @param material Pointer to the material.
  * @param format Vertex format (@sa VertexComponent).
  */
-extern "C++" ENGINEAPI MeshPtr R_CreateBoxMesh(const MaterialPtr & material = MaterialPtr(), int format = VF_Position | VF_Normal);
+MeshPtr R_CreateBoxMesh(const MaterialPtr & material = MaterialPtr(), int format = VF_Position | VF_Normal);
 
 /**
  * Loads mesh from the specified file.
  * @param name Name of the mesh file.
  */
-extern "C++" ENGINEAPI MeshPtr R_LoadMesh(const std::string & name);
+MeshPtr R_LoadMesh(const std::string & name);
 
 /**
  * Renders the specified mesh.
  * @param mesh Pointer to the mesh.
  */
-ENGINEAPI void R_RenderMesh(const MeshPtr & mesh);
+void R_RenderMesh(const MeshPtr & mesh);
 
 /**
  * Renders the specified mesh without applying the material.
  * @param mesh Pointer to the mesh.
  */
-ENGINEAPI void R_RenderMeshWithoutMaterial(const MeshPtr & mesh);
+void R_RenderMeshWithoutMaterial(const MeshPtr & mesh);
 
 /** Clears the cache of meshes. */
-ENGINEAPI void R_ClearMeshCache();
+void R_ClearMeshCache();
 
 /**
  * Overrides vertex shader for the mesh.
  * @param mesh Pointer to the mesh.
  * @param shader Vertex shader.
  */
-ENGINEAPI void R_SetMeshVertexShader(MeshPtr mesh, const ShaderPtr & shader);
+void R_SetMeshVertexShader(MeshPtr mesh, const ShaderPtr & shader);
 
 /**
  * Overrides fragment shader for the mesh.
  * @param mesh Pointer to the mesh.
  * @param shader Fragment shader.
  */
-ENGINEAPI void R_SetMeshFragmentShader(MeshPtr mesh, const ShaderPtr & shader);
+void R_SetMeshFragmentShader(MeshPtr mesh, const ShaderPtr & shader);
 
 // r_font
 
@@ -306,7 +304,7 @@ ENGINEAPI void R_SetMeshFragmentShader(MeshPtr mesh, const ShaderPtr & shader);
  * Loads the specified font file.
  * @param name Name of the font file.
  */
-extern "C++" ENGINEAPI FontPtr R_LoadFont(const std::string & name) throw(std::exception);
+FontPtr R_LoadFont(const std::string & name) throw(std::exception);
 
 /**
  * Draws string using the specified font.
@@ -317,14 +315,14 @@ extern "C++" ENGINEAPI FontPtr R_LoadFont(const std::string & name) throw(std::e
  * @param argb Color to use.
  * @returns width and height of the text string.
  */
-ENGINEAPI QSize R_DrawString(const FontPtr & font, int posX, int posY, const std::wstring & str, ulong argb = 0xFFFFFFFFUL);
+QSize R_DrawString(const FontPtr & font, int posX, int posY, const std::wstring & str, ulong argb = 0xFFFFFFFFUL);
 
 /**
  * Calculates width and height of the specified text string.
  * @param font Pointer to the font to use.
  * @param str String to calculate metrics of.
  */
-ENGINEAPI QSize R_CalcStringMetrics(const FontPtr & font, const std::wstring & str);
+QSize R_CalcStringMetrics(const FontPtr & font, const std::wstring & str);
 
 // r_shader
 
@@ -332,37 +330,37 @@ ENGINEAPI QSize R_CalcStringMetrics(const FontPtr & font, const std::wstring & s
  * Creates a new vertex shader.
  * @param file Name of the file.
  */
-extern "C++" ENGINEAPI ShaderPtr R_CompileVertexShader(const std::string & file);
+ShaderPtr R_CompileVertexShader(const std::string & file);
 
 /**
  * Creates a new fragment shader.
  * @param file Name of the file.
  */
-extern "C++" ENGINEAPI ShaderPtr R_CompileFragmentShader(const std::string & file);
+ShaderPtr R_CompileFragmentShader(const std::string & file);
 
 /**
  * Binds the specified vertex shader.
  * @param shader Shader to bind.
  */
-ENGINEAPI void R_BindVertexShader(const ShaderPtr & shader);
+void R_BindVertexShader(const ShaderPtr & shader);
 
 /**
  * Binds the specified fragment shader.
  * @param shader Shader to bind.
  */
-ENGINEAPI void R_BindFragmentShader(const ShaderPtr & shader);
+void R_BindFragmentShader(const ShaderPtr & shader);
 
 /** Unbinds any currently bound vertex shader. */
-ENGINEAPI void R_UnbindVertexShader();
+void R_UnbindVertexShader();
 
 /** Unbinds any currently bound fragment shader. */
-ENGINEAPI void R_UnbindFragmentShader();
+void R_UnbindFragmentShader();
 
 /** Clears the cache of vertex shaders. */
-ENGINEAPI void R_ClearVertexShaderCache();
+void R_ClearVertexShaderCache();
 
 /** Clears the cache of fragment shaders. */
-ENGINEAPI void R_ClearFragmentShaderCache();
+void R_ClearFragmentShaderCache();
 
 /**
  * Sets value of the specified uniform variable.
@@ -370,24 +368,24 @@ ENGINEAPI void R_ClearFragmentShaderCache();
  * @param idx Index of the uniform.
  * @param value Value to set.
  */
-ENGINEAPI void R_SetShaderUniform(ShaderPtr shader, uint idx, float value);
+void R_SetShaderUniform(ShaderPtr shader, uint idx, float value);
 
 // r_material
 
 /** Creates new material. */
-extern "C++" ENGINEAPI MaterialPtr R_CreateMaterial();
+MaterialPtr R_CreateMaterial();
 
 /** 
  * Loads material from the specified file.
  * @param file XML file with material definition.
  */
-extern "C++" ENGINEAPI MaterialPtr R_LoadMaterial(const std::string & file);
+MaterialPtr R_LoadMaterial(const std::string & file);
 
 /**
  * Binds the specified material.
  * @param material Pointer to the material.
  */
-ENGINEAPI void R_SetMaterial(const MaterialPtr & material);
+void R_SetMaterial(const MaterialPtr & material);
 
 // r_lightning
 
@@ -399,7 +397,7 @@ ENGINEAPI void R_SetMaterial(const MaterialPtr & material);
  * @param fracDec Fractalisation decrease.
  * @param maxFracDepth Maximum depth of fractalisation.
  */
-extern "C++" ENGINEAPI LightningPtr R_CreateLightning(const Vector3 & from,
+LightningPtr R_CreateLightning(const Vector3 & from,
 	const Vector3 & to, float fracLevel, float fracDec, uint maxFracDepth);
 
 /**
@@ -408,15 +406,13 @@ extern "C++" ENGINEAPI LightningPtr R_CreateLightning(const Vector3 & from,
  * @param width Width of the lightning.
  * @param is3d If true, render lightning in three dimensions.
  */
-ENGINEAPI void R_RenderLightning(const LightningPtr & ptr, float width, bool is3d = true);
+void R_RenderLightning(const LightningPtr & ptr, float width, bool is3d = true);
 
 /**
  * Updates the lightning.
  * @param ptr Pointer to the lightning
  */
-ENGINEAPI void R_UpdateLightning(LightningPtr ptr);
-
-EXTERN_C_END
+void R_UpdateLightning(LightningPtr ptr);
 
 
 /* Classes */

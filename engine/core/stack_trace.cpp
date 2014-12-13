@@ -85,7 +85,7 @@ std::string StackTrace::toStdString() const
 
 	for (uint i = 0; i < m_Symbols.size(); i++)
 	{
-		snprintf(buf, sizeof(buf), "%016LX: ", (uint64)((uintptr_t)m_Symbols[i].address));
+		snprintf(buf, sizeof(buf), "%016llX: ", (unsigned long long)((uintptr_t)m_Symbols[i].address));
 		result.append(buf);
 		result.append(m_Symbols[i].name.constData(), m_Symbols[i].name.length());
 		if (i < m_Symbols.size() - 1)

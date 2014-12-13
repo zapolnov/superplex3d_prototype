@@ -24,10 +24,6 @@
  #define PNG_NO_MODULEDEF
 #endif
 
-#ifndef PNG_BUILD_DLL
- #define PNG_USE_DLL
-#endif
-
 #define PNG_1_2_X
 
 /*

@@ -19,8 +19,6 @@
 
 /* Functions */
 
-EXTERN_C_BEGIN
-
 /** Initializes the filesystem. */
 void FS_Init() throw(std::exception);
 
@@ -32,14 +30,12 @@ void FS_Shutdown();
  * @param ptr Pointer to the data.
  * @param len Length of the data.
  */
-ENGINEAPI void FS_InitZIP(const unsigned char * ptr, unsigned long len);
+void FS_InitZIP(const unsigned char * ptr, unsigned long len);
 
 /**
  * Reads contents of the specified file into the memory.
  * @param name Name of the file.
  */
-ENGINEAPI std::string FS_GetFileContents(const std::string & name) throw(std::exception);
-
-EXTERN_C_END
+std::string FS_GetFileContents(const std::string & name) throw(std::exception);
 
 #endif // __ENGINE__FILESYS_H__

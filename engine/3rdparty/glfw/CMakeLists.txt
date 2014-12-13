@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(glfw C CXX)
 
+DISABLE_WARNINGS()
+
 if (WIN32)
     option(GLFW_USE_DWM_SWAP_INTERVAL "Set swap interval even when DWM compositing is enabled" OFF)
     option(GLFW_USE_OPTIMUS_HPG "Force use of high-performance GPU on Optimus systems" OFF)

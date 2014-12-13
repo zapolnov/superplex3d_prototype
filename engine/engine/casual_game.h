@@ -42,14 +42,14 @@
 /* Classes */
 
 /** Base class for casual games. */
-class GCC_PUBLIC CasualGame
+class CasualGame
 {
 public:
 	/** Constructor. */
-	ENGINEAPI CasualGame();
+	CasualGame();
 
 	/** Destructor. */
-	ENGINEAPI virtual ~CasualGame();
+	virtual ~CasualGame();
 
 	/** Renders a single frame. */
 	virtual void renderFrame() = 0;
@@ -69,7 +69,7 @@ public:
 	 * @param argv Array of command-line arguments.
 	 * @param constructor Pointer to the constructor of the game class.
 	 */
-	ENGINEAPI static int main(int argc, char ** argv, CasualGame * (* constructor)(void));
+	static int main(int argc, char ** argv, CasualGame * (* constructor)(void));
 
 private:
 	/** Displays the startup dialog. */

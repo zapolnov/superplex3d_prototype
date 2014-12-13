@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
 	}
 
 	fprintf(f, "\n");
-	fprintf(f, "unsigned long zipDataLength = %d;\n", result.length());
+	fprintf(f, "unsigned long zipDataLength = %ld;\n", (long)result.length());
 	fprintf(f, "unsigned char zipData[] =\n");
 	fprintf(f, "{\n");
 	for (size_t i = 0; i < result.length(); i++)

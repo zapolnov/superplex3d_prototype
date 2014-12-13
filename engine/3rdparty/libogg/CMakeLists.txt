@@ -3,6 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
 PROJECT(pg_ogg)
 
+DISABLE_WARNINGS()
+
 ADD_LIBRARY(pg_ogg STATIC
 	src/bitwise.c
 	src/framing.c

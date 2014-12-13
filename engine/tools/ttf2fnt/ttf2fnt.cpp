@@ -525,7 +525,7 @@ int main(int argc, char ** argv)
 			g_CharToGlyph[j] = glyph;
 		}
 	}
-	printf("%s: loaded %d glyphs for %d characters\n", inFile, g_Glyphs.size(), g_CharToGlyph.size());
+	printf("%s: loaded %d glyphs for %d characters\n", inFile, (int)g_Glyphs.size(), (int)g_CharToGlyph.size());
 
 	// Separate glyphs by height
 	for (std::map<int, FTGlyph *>::iterator it = g_Glyphs.begin(); it != g_Glyphs.end(); ++it)

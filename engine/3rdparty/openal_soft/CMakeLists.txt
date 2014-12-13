@@ -12,6 +12,8 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 PROJECT(pg_openal C)
 
+DISABLE_WARNINGS()
+
 INCLUDE(CheckFunctionExists)
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
