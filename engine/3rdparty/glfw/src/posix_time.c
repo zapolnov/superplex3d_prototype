@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.1 Win32 - www.glfw.org
+// GLFW 3.1 POSIX - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
@@ -27,19 +27,29 @@
 
 #include "internal.h"
 
+#include <sys/time.h>
+#include <time.h>
 
 // Return raw time
 //
-static unsigned __int64 getRawTime(void)
+static uint64_t getRawTime(void)
 {
-    if (_glfw.win32_time.hasPC)
+#if defined(CLOCK_MONOTONIC)
+    if (_glfw.posix_time.monotonic)
     {
-        unsigned __int64 time;
-        QueryPerformanceCounter((LARGE_INTEGER*) &time);
-        return time;
+        struct timespec ts;
+
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return (uint64_t) ts.tv_sec * (uint64_t) 1000000000 + (uint64_t) ts.tv_nsec;
     }
     else
-        return (unsigned __int64) _glfw_timeGetTime();
+#endif
+    {
+        struct timeval tv;
+
+        gettimeofday(&tv, NULL);
+        return (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
+    }
 }
 
 
@@ -51,20 +61,21 @@ static unsigned __int64 getRawTime(void)
 //
 void _glfwInitTimer(void)
 {
-    unsigned __int64 frequency;
+#if defined(CLOCK_MONOTONIC)
+    struct timespec ts;
 
-    if (QueryPerformanceFrequency((LARGE_INTEGER*) &frequency))
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
     {
-        _glfw.win32_time.hasPC = GL_TRUE;
-        _glfw.win32_time.resolution = 1.0 / (double) frequency;
+        _glfw.posix_time.monotonic = GL_TRUE;
+        _glfw.posix_time.resolution = 1e-9;
     }
     else
+#endif
     {
-        _glfw.win32_time.hasPC = GL_FALSE;
-        _glfw.win32_time.resolution = 0.001; // winmm resolution is 1 ms
+        _glfw.posix_time.resolution = 1e-6;
     }
 
-    _glfw.win32_time.base = getRawTime();
+    _glfw.posix_time.base = getRawTime();
 }
 
 
@@ -74,13 +85,13 @@ void _glfwInitTimer(void)
 
 double _glfwPlatformGetTime(void)
 {
-    return (double) (getRawTime() - _glfw.win32_time.base) *
-        _glfw.win32_time.resolution;
+    return (double) (getRawTime() - _glfw.posix_time.base) *
+        _glfw.posix_time.resolution;
 }
 
 void _glfwPlatformSetTime(double time)
 {
-    _glfw.win32_time.base = getRawTime() -
-        (unsigned __int64) (time / _glfw.win32_time.resolution);
+    _glfw.posix_time.base = getRawTime() -
+        (uint64_t) (time / _glfw.posix_time.resolution);
 }
 

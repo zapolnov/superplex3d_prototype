@@ -1,8 +1,7 @@
 //========================================================================
-// GLFW 3.1 Win32 - www.glfw.org
+// GLFW 3.1 OS X - www.glfw.org
 //------------------------------------------------------------------------
-// Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
+// Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -27,19 +26,14 @@
 
 #include "internal.h"
 
+#include <mach/mach_time.h>
+
 
 // Return raw time
 //
-static unsigned __int64 getRawTime(void)
+static uint64_t getRawTime(void)
 {
-    if (_glfw.win32_time.hasPC)
-    {
-        unsigned __int64 time;
-        QueryPerformanceCounter((LARGE_INTEGER*) &time);
-        return time;
-    }
-    else
-        return (unsigned __int64) _glfw_timeGetTime();
+    return mach_absolute_time();
 }
 
 
@@ -51,20 +45,11 @@ static unsigned __int64 getRawTime(void)
 //
 void _glfwInitTimer(void)
 {
-    unsigned __int64 frequency;
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
 
-    if (QueryPerformanceFrequency((LARGE_INTEGER*) &frequency))
-    {
-        _glfw.win32_time.hasPC = GL_TRUE;
-        _glfw.win32_time.resolution = 1.0 / (double) frequency;
-    }
-    else
-    {
-        _glfw.win32_time.hasPC = GL_FALSE;
-        _glfw.win32_time.resolution = 0.001; // winmm resolution is 1 ms
-    }
-
-    _glfw.win32_time.base = getRawTime();
+    _glfw.ns_time.resolution = (double) info.numer / (info.denom * 1.0e9);
+    _glfw.ns_time.base = getRawTime();
 }
 
 
@@ -74,13 +59,13 @@ void _glfwInitTimer(void)
 
 double _glfwPlatformGetTime(void)
 {
-    return (double) (getRawTime() - _glfw.win32_time.base) *
-        _glfw.win32_time.resolution;
+    return (double) (getRawTime() - _glfw.ns_time.base) *
+        _glfw.ns_time.resolution;
 }
 
 void _glfwPlatformSetTime(double time)
 {
-    _glfw.win32_time.base = getRawTime() -
-        (unsigned __int64) (time / _glfw.win32_time.resolution);
+    _glfw.ns_time.base = getRawTime() -
+        (uint64_t) (time / _glfw.ns_time.resolution);
 }
 

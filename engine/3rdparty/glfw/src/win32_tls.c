@@ -28,43 +28,33 @@
 #include "internal.h"
 
 
-// Return raw time
-//
-static unsigned __int64 getRawTime(void)
-{
-    if (_glfw.win32_time.hasPC)
-    {
-        unsigned __int64 time;
-        QueryPerformanceCounter((LARGE_INTEGER*) &time);
-        return time;
-    }
-    else
-        return (unsigned __int64) _glfw_timeGetTime();
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-// Initialise timer
-//
-void _glfwInitTimer(void)
+int _glfwInitTLS(void)
 {
-    unsigned __int64 frequency;
-
-    if (QueryPerformanceFrequency((LARGE_INTEGER*) &frequency))
+    _glfw.win32_tls.context = TlsAlloc();
+    if (_glfw.win32_tls.context == TLS_OUT_OF_INDEXES)
     {
-        _glfw.win32_time.hasPC = GL_TRUE;
-        _glfw.win32_time.resolution = 1.0 / (double) frequency;
-    }
-    else
-    {
-        _glfw.win32_time.hasPC = GL_FALSE;
-        _glfw.win32_time.resolution = 0.001; // winmm resolution is 1 ms
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Win32: Failed to allocate TLS index");
+        return GL_FALSE;
     }
 
-    _glfw.win32_time.base = getRawTime();
+    _glfw.win32_tls.allocated = GL_TRUE;
+    return GL_TRUE;
+}
+
+void _glfwTerminateTLS(void)
+{
+    if (_glfw.win32_tls.allocated)
+        TlsFree(_glfw.win32_tls.context);
+}
+
+void _glfwSetCurrentContext(_GLFWwindow* context)
+{
+    TlsSetValue(_glfw.win32_tls.context, context);
 }
 
 
@@ -72,15 +62,8 @@ void _glfwInitTimer(void)
 //////                       GLFW platform API                      //////
 //////////////////////////////////////////////////////////////////////////
 
-double _glfwPlatformGetTime(void)
+_GLFWwindow* _glfwPlatformGetCurrentContext(void)
 {
-    return (double) (getRawTime() - _glfw.win32_time.base) *
-        _glfw.win32_time.resolution;
-}
-
-void _glfwPlatformSetTime(double time)
-{
-    _glfw.win32_time.base = getRawTime() -
-        (unsigned __int64) (time / _glfw.win32_time.resolution);
+    return TlsGetValue(_glfw.win32_tls.context);
 }
 
