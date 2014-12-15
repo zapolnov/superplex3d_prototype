@@ -1,6 +1,6 @@
 
 This repository contains a C++ code of a Supaplex clone. It has a
-brand new 3D art, but it's game logic was recovered from an original
+brand new 3D art, but its game logic was recovered from an original
 Supaplex executable via disassembly.
 
 **Please read the Legal Information at the end of this document.
