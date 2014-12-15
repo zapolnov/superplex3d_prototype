@@ -14,9 +14,31 @@ the executable file.
 Building
 ========
 
-Please use CMake (http://www.cmake.org/) to build the project. I have
-only tested the build in OSX Yosemite. But I believe it should build
-under Windows and Linux with minimum efforts.
+Please use CMake (http://www.cmake.org/) to build the project.
+
+I have tested build in the following environments:
+
+  * Apple OSX Yosemite with Xcode 6.1.1.
+  * Ubuntu Linux 14.10 (Utopic Unicorn) with GCC 4.9.1.
+
+If you are using another system, your mileage may vary. Anyway,
+the code is quite portable so it should build and run with very little efforts.
+Feel free to contact me via e-mail zapolnov@gmail.com if you have any
+problems.
+
+On Ubuntu Linux you may use the following command to install required packages:
+
+    sudo apt-get install \
+        build-essential \
+        cmake \
+        libgl1-mesa-dev \
+        libglu1-mesa-dev \
+        libx11-dev \
+        libxrandr-dev \
+        libxcursor-dev \
+        libxi-dev \
+        libxinerama-dev \
+        libxxf86vm-dev
 
 I have also provided OSX Yosemite binary in the `bin` directory for
 your convenience.
@@ -24,10 +46,10 @@ your convenience.
 Engine
 ======
 
-The code is using the 3D engine I was writing at the time. Originally
-engine code was using the Qt library. Then I have decided to make it more
-lightweight and have replaced Qt classes with self-written implementations
-(you may find them in the `engine/core/trolltech.h` file).
+The code uses 3D engine I was writing at that time. Originally engine code used
+the Qt library. Later I have decided to make it more lightweight and have replaced
+Qt classes with self-written implementations (you may find them in the
+`engine/core/trolltech.h` file).
 
 At the time when I was writing the engine, GLSL shaders were not
 available on all platforms. So, I have included the GLSL compiler from
@@ -91,7 +113,7 @@ Most of the engine code (everything in the `engine` subdirectory,
 except contents of the `3rdparty` directory and some other files)
 was written by me and was Copyright (c) 2009 Nikolay Zapolnov.
 
-I hereby release all my code in this repository to the public domain.
+I hereby release all **my** code in this repository to the public domain.
 Feel free to use it for any purpose. Should you need a more legalese
 document, please use this one: https://creativecommons.org/publicdomain/zero/1.0
 
@@ -103,8 +125,10 @@ information.
 Supaplex game logic
 -------------------
 
-The Supaplex game logic and disassembly scripts are provided
-**only for educational purposes**.
+**I believe, that you are not allowed to use the provided Supaplex game logic code
+and disassembly scripts in any way, be that a commercial, free or
+open-source project. Probably you are even not allowed to download and/or read
+those files.**
 
 Unfortunately, I didn't find a way to contact the original copyright
 holder (the Digital Integration company) for a permission. But Maarten Egmond

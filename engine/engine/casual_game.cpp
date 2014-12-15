@@ -5,6 +5,13 @@
 #include <engine/input.h>
 #include <sound/functions.h>
 #include <core/logger.h>
+#include <stdio.h>
+#include <GLFW/glfw3.h>
+
+static void errorCallback(int, const char* description)
+{
+	logger << LOG_ERROR << "GLFW error: %s" << description;
+}
 
 /* CasualGame methods */
 
@@ -28,6 +35,10 @@ CasualGame::~CasualGame()
 int CasualGame::main(int argc, char ** argv, CasualGame * (* constructor)(void))
 {
 	CasualGame * ptr = NULL;
+
+	if (!glfwInit())
+		return 1;
+	glfwSetErrorCallback(errorCallback);
 
 	try
 	{
@@ -76,8 +87,12 @@ int CasualGame::main(int argc, char ** argv, CasualGame * (* constructor)(void))
 		FS_Shutdown();
 		Sys_Shutdown();
 
+		glfwTerminate();
+
 		return 255;
 	}
+
+	glfwTerminate();
 
 	return 0;
 }
