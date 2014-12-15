@@ -42,7 +42,7 @@ before building:
         libxinerama-dev \
         libxxf86vm-dev
 
-I have also provided OSX Yosemite binary in the `bin` directory for
+I have also provided Win32 and OSX Yosemite binaries in the `bin` directory for
 your convenience.
 
 Engine
