@@ -2,6 +2,7 @@
 #include <tbb/current_thread_name.h>
 #include <map>
 #include <string.h>
+#include <stdio.h>
 #include <errno.h>
 
 #if (defined _WIN32) || (defined _WIN64)

@@ -5,6 +5,8 @@
 #include <opengl/context.h>
 #include <sound/functions.h>
 #include "superplex_game.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 GAME_MAIN(SuperplexGame)
 

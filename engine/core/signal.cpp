@@ -4,6 +4,7 @@
 //
 #include <core/signal.h>
 #include <core/exception.h>
+#include <errno.h>
 
 #ifdef _WIN32
  #include <windows.h>

@@ -3,6 +3,7 @@
 #include <sound/functions.h>
 #include "supaplex_game.h"
 #include "supaplex_def.h"
+#include <stdlib.h>
 
 #ifdef WIN32
  #define WIN32_LEAN_AND_MEAN

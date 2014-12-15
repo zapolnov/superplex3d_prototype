@@ -3,6 +3,7 @@
 #include <zlib.h>
 #include <contrib/minizip/ioapi.h>
 #include <contrib/minizip/unzip.h>
+#include <string.h>
 
 /* Structures */
 

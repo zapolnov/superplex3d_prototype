@@ -3,7 +3,14 @@
  #include <execinfo.h>
  #include <cxxabi.h>
 #endif
+#include <stdio.h>
 #include <stdlib.h>
+
+#ifndef _MSC_VER
+ #include <stdint.h>
+#else
+ typedef unsigned long long uintptr_t;
+#endif
 
 /* StackTrace methods */
 

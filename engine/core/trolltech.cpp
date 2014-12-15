@@ -3,6 +3,7 @@
 #include <core/logger.h>
 #include <interfaces/file_system.h>
 #include <errno.h>
+#include <stdio.h>
 
 #ifdef WIN32
  #include <windows.h>

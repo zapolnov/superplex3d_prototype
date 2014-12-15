@@ -1,6 +1,7 @@
 #include <engine/system.h>
 #include <core/logger.h>
 #include <errno.h>
+#include <stdio.h>
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>

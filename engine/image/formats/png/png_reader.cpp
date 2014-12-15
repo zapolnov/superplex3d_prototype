@@ -3,6 +3,7 @@
 #include <core/memory_file.h>
 #include <png.h>
 #include "png_reader.h"
+#include <stdlib.h>
 
 /* Private functions */
 

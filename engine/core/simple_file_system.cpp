@@ -3,6 +3,7 @@
 #include <core/simple_file_system.h>
 #include <core/simple_file.h>
 #include <core/trolltech.h>
+#include <stdio.h>
 
 /* SimpleFileSystem methods */
 

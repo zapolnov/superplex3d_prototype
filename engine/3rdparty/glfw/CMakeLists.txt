@@ -122,7 +122,7 @@ if (_GLFW_X11)
 
     find_package(X11 REQUIRED)
 
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} x11")
+    set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} X11)
 
     # Set up library and include paths
     list(APPEND glfw_INCLUDE_DIRS ${X11_X11_INCLUDE_PATH})
@@ -138,7 +138,7 @@ if (_GLFW_X11)
 
     list(APPEND glfw_INCLUDE_DIRS ${X11_Xrandr_INCLUDE_PATH})
     list(APPEND glfw_LIBRARIES ${X11_Xrandr_LIB})
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xrandr")
+    set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} Xrandr)
 
     # Check for XInput (high-resolution cursor motion)
     if (NOT X11_Xinput_FOUND)
@@ -153,7 +153,7 @@ if (_GLFW_X11)
         # Backwards compatibility (bug in CMake 2.8.7)
         list(APPEND glfw_LIBRARIES Xi)
     endif()
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xi")
+    set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} Xi)
 
     # Check for Xf86VidMode (fallback gamma control)
     if (NOT X11_xf86vmode_FOUND)
@@ -161,7 +161,7 @@ if (_GLFW_X11)
     endif()
 
     list(APPEND glfw_INCLUDE_DIRS ${X11_xf86vmode_INCLUDE_PATH})
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xxf86vm")
+    set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} Xxf86vm)
 
     if (X11_Xxf86vm_LIB)
         list(APPEND glfw_LIBRARIES ${X11_Xxf86vm_LIB})
@@ -199,7 +199,7 @@ if (_GLFW_GLX)
     list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
     list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
 
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
+    set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} GL)
 
     include(CheckFunctionExists)
 
@@ -237,21 +237,21 @@ if (_GLFW_EGL)
     list(APPEND glfw_LIBRARIES ${EGL_LIBRARY})
 
     if (UNIX)
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} egl")
+        set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} EGL)
     endif()
 
     if (_GLFW_USE_OPENGL)
         list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
         list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
+        set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} GL)
     elseif (_GLFW_USE_GLESV1)
         list(APPEND glfw_LIBRARIES ${GLESv1_LIBRARY})
         list(APPEND glfw_INCLUDE_DIRS ${GLESv1_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv1_cm")
+        set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} GLESv1_CM)
     elseif (_GLFW_USE_GLESV2)
         list(APPEND glfw_LIBRARIES ${GLESv2_LIBRARY})
         list(APPEND glfw_INCLUDE_DIRS ${GLESv2_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv2")
+        set(GLFW_PKG_DEPS ${GLFW_PKG_DEPS} GLESv2)
     endif()
 
 endif()
@@ -280,7 +280,7 @@ if (_GLFW_COCOA AND _GLFW_NSGL)
                                ${CORE_FOUNDATION_FRAMEWORK}
                                ${CORE_VIDEO_FRAMEWORK})
 
-    set(GLFW_PKG_DEPS "")
+    set(GLFW_PKG_DEPS )
     list(APPEND glfw_LIBRARIES "-framework Cocoa")
     list(APPEND glfw_LIBRARIES "-framework OpenGL")
     list(APPEND glfw_LIBRARIES "-framework IOKit")

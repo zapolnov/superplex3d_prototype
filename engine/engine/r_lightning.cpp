@@ -1,4 +1,5 @@
 #include <engine/render.h>
+#include <stdlib.h>
 
 /* Structures */
 

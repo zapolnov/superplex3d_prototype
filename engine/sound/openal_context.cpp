@@ -1,6 +1,7 @@
 #include <core/exception.h>
 #include <core/logger.h>
 #include "openal_context.h"
+#include <stdio.h>
 
 /* OpenALContext variables */
 
