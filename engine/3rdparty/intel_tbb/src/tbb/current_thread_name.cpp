@@ -17,7 +17,7 @@
 
 /* Constants */
 
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
  #define MS_VC_EXCEPTION 0x406D1388
 #endif
 
@@ -34,7 +34,7 @@ typedef DWORD threadid_t;
 
 /* Structures */
 
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
 
 #pragma pack(push, 8)
 typedef struct tagTHREADNAME_INFO
@@ -59,7 +59,7 @@ static std::map<threadid_t, std::string> g_Names;	/**< Names of the threads. */
 
 /* Private functions */
 
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
 
 //
 // Sets name of the thread in the Visual Studio
@@ -86,7 +86,7 @@ void msvc_set_thread_name(THREADNAME_INFO * info)
 //
 void set_current_thread_name(const char * name)
 {
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
 	{
 		tbb::spin_mutex::scoped_lock lock(g_Mutex);
 		g_Names[GetCurrentThreadId()] = name;
@@ -127,7 +127,7 @@ void set_current_thread_name(const char * name)
 //
 std::string get_current_thread_name()
 {
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
 	tbb::spin_mutex::scoped_lock lock(g_Mutex);
 	return g_Names[GetCurrentThreadId()];
 #endif
@@ -143,7 +143,7 @@ std::string get_current_thread_name()
  */
 std::string get_thread_name(long id)
 {
-#if (defined _WIN32) || (defined _WIN64)
+#if defined(_MSC_VER) && ((defined _WIN32) || (defined _WIN64))
 	tbb::spin_mutex::scoped_lock lock(g_Mutex);
 	return g_Names[(threadid_t)id];
 #endif

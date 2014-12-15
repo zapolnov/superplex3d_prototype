@@ -14,29 +14,33 @@ SET(PLATFORM_FILES )
 
 IF(WIN32)
 
-	SET(PLATFORM_FILES ${PLATFORM_FILES} ${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj)
-	SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj PROPERTIES EXTERNAL_OBJECT 1)
-
     IF(CMAKE_CL_64)
-		SET(PLATFORM_FILES ${PLATFORM_FILES} src/tbb/win64-tbb-export.def)
+		SET(PLATFORM_FILES
+			${PLATFORM_FILES}
+			"${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
+			src/tbb/win64-tbb-export.def
+		)
+		SET_SOURCE_FILES_PROPERTIES("${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
+			PROPERTIES EXTERNAL_OBJECT 1)
 		ADD_CUSTOM_COMMAND(
-			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj
-			COMMAND ml64 /DEM64T=1 /c /Zi ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/intel64-masm/atomic_support.asm /Fo"${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
-			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/intel64-masm/atomic_support.asm
+			OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
+			COMMAND ml64 /DEM64T=1 /c /Zi "${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/intel64-masm/atomic_support.asm" /Fo"${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
+			DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/intel64-masm/atomic_support.asm"
 		)
     ELSE(CMAKE_CL_64)
-		SET(PLATFORM_FILES ${PLATFORM_FILES} ${CMAKE_CURRENT_BINARY_DIR}/lock_byte.obj src/tbb/win32-tbb-export.def)
-		SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/lock_byte.obj PROPERTIES EXTERNAL_OBJECT 1)
-		ADD_CUSTOM_COMMAND(
-			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj
-			COMMAND ml /c /coff /Zi ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/ia32-masm/atomic_support.asm /Fo"${CMAKE_CURRENT_BINARY_DIR}/atomic_support.obj"
-			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/ia32-masm/atomic_support.asm
+		SET(PLATFORM_FILES
+			${PLATFORM_FILES}
+			src/tbb/ia32-masm/lock_byte.obj
+			src/tbb/ia32-masm/atomic_support.obj
 		)
-		ADD_CUSTOM_COMMAND(
-			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lock_byte.obj
-			COMMAND ml /c /coff /Zi  ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/ia32-masm/lock_byte.asm /Fo"${CMAKE_CURRENT_BINARY_DIR}/lock_byte.obj"
-			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/ia32-masm/lock_byte.asm
+		SET_SOURCE_FILES_PROPERTIES(
+			src/tbb/ia32-masm/lock_byte.obj
+			src/tbb/ia32-masm/atomic_support.obj
+			PROPERTIES EXTERNAL_OBJECT 1
 		)
+		IF(NOT CMAKE_COMPILER_IS_GNUCC)
+			SET(PLATFORM_FILES ${PLATFORM_FILES} src/tbb/win32-tbb-export.def)
+		ENDIF()
 	ENDIF(CMAKE_CL_64)
 	ADD_DEFINITIONS(-DUSE_WINTHREAD -D_WIN32_WINNT=0x0400 -DDO_ITT_NOTIFY -DUNICODE)
 ELSEIF(APPLE)
@@ -133,7 +137,7 @@ ADD_LIBRARY(pg_tbb ${STATIC_OR_SHARED}
 	src/tbb/tbb_assert_impl.h
 	src/tbb/tbb_misc.cpp
 	src/tbb/tbb_misc.h
-	src/tbb/tbb_resource.rc
+	#src/tbb/tbb_resource.rc
 	src/tbb/tbb_thread.cpp
 	src/tbb/tbb_version.h
 	src/tbb/tls.h
@@ -141,3 +145,12 @@ ADD_LIBRARY(pg_tbb ${STATIC_OR_SHARED}
 )
 
 TARGET_LINK_LIBRARIES(pg_tbb ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+
+SET_TARGET_PROPERTIES(pg_tbb PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+IF(WIN32)
+	SET_TARGET_PROPERTIES(pg_tbb PROPERTIES PREFIX "")
+ENDIF()

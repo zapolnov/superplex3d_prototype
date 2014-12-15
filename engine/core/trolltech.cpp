@@ -678,14 +678,14 @@ void * QLibrary::resolve(const char * symbol)
 #ifdef WIN32
 	Q_ASSERT(m_Handle);
 
-	void * func = GetProcAddress((HMODULE)m_Handle, symbol);
+	FARPROC func = GetProcAddress((HMODULE)m_Handle, symbol);
 	if (unlikely(!func))
 	{
 		m_ErrorString = QString("Symbol %2 was not found in library \"%1\".")
 			.arg(m_Name).arg(QString::fromLatin1(symbol));
 	}
 
-	return func;
+	return (void*)func;
 #else
 	Q_ASSERT(m_Handle);
 

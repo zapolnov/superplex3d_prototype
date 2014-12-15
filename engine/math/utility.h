@@ -308,6 +308,7 @@ inline double RadiansToDegrees(double angle)
 	return angle * 180.0 / PI;
 }
 
+#if 0
 /** Rounds the specified value. */
 inline float round(float v)
 {
@@ -319,6 +320,7 @@ inline double round(double v)
 {
 	return v >= 0.0 ? floor(v + 0.5) : ceil(v - 0.5);
 }
+#endif
 
 #if defined(WIN32) && !defined(__CYGWIN__) && !defined(__MWERKS__)
 

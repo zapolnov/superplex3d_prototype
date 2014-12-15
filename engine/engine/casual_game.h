@@ -20,7 +20,7 @@
  	} \
 	int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) \
 	{ \
-		char * argv[] = { "", NULL }; \
+		char * argv[] = { (char*)"", NULL }; \
 		return CasualGame::main(1, argv, constructor); \
 	}
 

@@ -13,23 +13,29 @@ INCLUDE_DIRECTORIES(
 	"${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-ADD_EXECUTABLE(syn_to_c
-	shader/slang/library/syn_to_c.c
-)
+IF(NOT CMAKE_CROSSCOMPILING)
+	ADD_EXECUTABLE(syn_to_c
+		shader/slang/library/syn_to_c.c
+	)
+	SET(SYN_TO_C syn_to_c)
+ENDIF()
 
-ADD_EXECUTABLE(gc_to_bin
-   	shader/slang/library/gc_to_bin.c
-	shader/grammar/grammar.h
-	shader/grammar/grammar_crt.h
-	"${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h"
-)
+IF(NOT CMAKE_CROSSCOMPILING)
+	ADD_EXECUTABLE(gc_to_bin
+		shader/slang/library/gc_to_bin.c
+		shader/grammar/grammar.h
+		shader/grammar/grammar_crt.h
+		"${CMAKE_CURRENT_BINARY_DIR}/library/slang_shader_syn.h"
+	)
+	SET(GC_TO_BIN gc_to_bin)
+ENDIF()
 
 FUNCTION(SYN_TO_C inFile outFile)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
-		COMMAND syn_to_c "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" > "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		COMMAND "${SYN_TO_C}" "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" > "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
 		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}"
-		DEPENDS syn_to_c
+		DEPENDS "${SYN_TO_C}"
 		COMMENT "Generating library/${outFile}"
 	)
 ENDFUNCTION(SYN_TO_C)
@@ -37,9 +43,9 @@ ENDFUNCTION(SYN_TO_C)
 FUNCTION(GC_TO_BIN shaderType inFile outFile)
 	ADD_CUSTOM_COMMAND(
 		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
-		COMMAND gc_to_bin ${shaderType} "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
+		COMMAND "${GC_TO_BIN}" ${shaderType} "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}" "${CMAKE_CURRENT_BINARY_DIR}/library/${outFile}"
 		MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/shader/slang/library/${inFile}"
-		DEPENDS gc_to_bin
+		DEPENDS "${GC_TO_BIN}"
 		COMMENT "Generating library/${outFile}"
 	)
 ENDFUNCTION(GC_TO_BIN)

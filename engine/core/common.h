@@ -181,7 +181,7 @@
 
  #endif // __cplusplus
 
- #ifdef _MSC_VER
+ #if !defined(HAVE_SNPRINTF) && defined(HAVE__SNPRINTF)
   #define snprintf _snprintf
  #endif
 

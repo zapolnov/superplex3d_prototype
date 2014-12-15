@@ -1,6 +1,8 @@
 #include <core/stack_trace.h>
-#ifdef __GNUC__
+#ifdef HAVE_EXECINFO_H
  #include <execinfo.h>
+#endif
+#ifdef __GNUC__
  #include <cxxabi.h>
 #endif
 #include <stdio.h>
@@ -8,8 +10,6 @@
 
 #ifndef _MSC_VER
  #include <stdint.h>
-#else
- typedef unsigned long long uintptr_t;
 #endif
 
 /* StackTrace methods */
@@ -20,7 +20,7 @@
 StackTrace::StackTrace(bool getNames)
 	: m_HaveNames(false)
 {
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(HAVE_EXECINFO_H)
 	void * buffer[100];
 	int nptrs = backtrace(buffer, sizeof(buffer) / sizeof(buffer[0]));
 
@@ -58,7 +58,7 @@ bool StackTrace::extractNames()
 	if (m_HaveNames)
 		return true;
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(HAVE_EXECINFO_H)
 	void * buffer[100];
 	for (size_t i = 0; i < m_Symbols.size(); i++)
 		buffer[i] = m_Symbols[i].address;
@@ -77,9 +77,7 @@ bool StackTrace::extractNames()
 	return true;
 #endif // __GNUC__
 
-#ifdef _MSC_VER
 	return false;
-#endif // _MSC_VER
 }
 
 //
@@ -92,7 +90,7 @@ std::string StackTrace::toStdString() const
 
 	for (uint i = 0; i < m_Symbols.size(); i++)
 	{
-		snprintf(buf, sizeof(buf), "%016llX: ", (unsigned long long)((uintptr_t)m_Symbols[i].address));
+		snprintf(buf, sizeof(buf), "%016llX: ", (unsigned long long)((size_t)m_Symbols[i].address));
 		result.append(buf);
 		result.append(m_Symbols[i].name.constData(), m_Symbols[i].name.length());
 		if (i < m_Symbols.size() - 1)
@@ -107,7 +105,7 @@ std::string StackTrace::toStdString() const
 //
 void StackTrace::demangleNames()
 {
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(HAVE_EXECINFO_H)
 	for (size_t i = 0; i < m_Symbols.size(); i++)
 	{
 		const char * symbol = m_Symbols[i].name.constData();

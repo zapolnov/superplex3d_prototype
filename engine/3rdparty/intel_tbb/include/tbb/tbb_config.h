@@ -108,7 +108,7 @@
 
 /* TODO: The following condition should be extended as soon as new compilers/runtimes 
          with std::exception_ptr support appear. */
-#define __TBB_EXCEPTION_PTR_PRESENT  ( _MSC_VER >= 1600 )
+#define __TBB_EXCEPTION_PTR_PRESENT  0 /* ( _MSC_VER >= 1600 ) */
 
 
 #ifndef TBB_USE_CAPTURED_EXCEPTION

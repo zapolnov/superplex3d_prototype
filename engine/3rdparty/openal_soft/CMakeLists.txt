@@ -59,7 +59,7 @@ CHECK_TYPE_SIZE("void*" SIZEOF_VOIDP)
 
 
 # Add definitions, compiler switches, etc.
-INCLUDE_DIRECTORIES(OpenAL32/Include include "${openal_soft_BINARY_DIR}")
+INCLUDE_DIRECTORIES(OpenAL32/Include include "${pg_openal_BINARY_DIR}")
 
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
@@ -154,9 +154,9 @@ IF(NOT HAVE_STRNCASECMP)
     ADD_DEFINITIONS(-Dstrncasecmp=_strnicmp)
 ENDIF()
 
-CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
+#CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 IF(NOT HAVE_SNPRINTF)
-    CHECK_FUNCTION_EXISTS(_snprintf HAVE__SNPRINTF)
+    #CHECK_FUNCTION_EXISTS(_snprintf HAVE__SNPRINTF)
     IF(NOT HAVE__SNPRINTF)
         MESSAGE(FATAL_ERROR "No snprintf function found, please report!")
     ENDIF()
@@ -353,8 +353,8 @@ SET(PACKAGE_VERSION "${LIB_VERSION}")
 
 # End configuration
 CONFIGURE_FILE(
-    "${openal_soft_SOURCE_DIR}/config.h.in"
-    "${openal_soft_BINARY_DIR}/config.h")
+    "${pg_openal_SOURCE_DIR}/config.h.in"
+    "${pg_openal_BINARY_DIR}/config.h")
 
 ADD_DEFINITIONS(-DAL_BUILD_LIBRARY)
 
@@ -370,6 +370,10 @@ SET_TARGET_PROPERTIES(pg_openal PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+
+IF(WIN32)
+	SET_TARGET_PROPERTIES(pg_openal PROPERTIES PREFIX "")
+ENDIF()
 
 TARGET_LINK_LIBRARIES(pg_openal ${EXTRA_LIBS})
 

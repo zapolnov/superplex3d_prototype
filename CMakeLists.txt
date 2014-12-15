@@ -1,6 +1,44 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
 
+INCLUDE(CheckCSourceCompiles)
+INCLUDE(CheckIncludeFile)
+
+CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
+IF(HAVE_EXECINFO_H)
+	ADD_DEFINITIONS(-DHAVE_EXECINFO_H)
+ENDIF()
+
+CHECK_C_SOURCE_COMPILES("
+	#include <stdio.h>
+	int main() {
+		char buf[256];
+		snprintf(buf, sizeof(buf), \"%d\", 4);
+		return 0;
+	}
+	"
+	HAVE_SNPRINTF
+)
+
+CHECK_C_SOURCE_COMPILES("
+	#include <stdio.h>
+	int main() {
+		char buf[256];
+		_snprintf(buf, sizeof(buf), \"%d\", 4);
+		return 0;
+	}
+	"
+	HAVE__SNPRINTF
+)
+
+IF(HAVE_SNPRINTF)
+	ADD_DEFINITIONS(-DHAVE_SNPRINTF)
+ENDIF()
+
+IF(HAVE__SNPRINTF)
+	ADD_DEFINITIONS(-DHAVE__SNPRINTF)
+ENDIF()
+
 ADD_SUBDIRECTORY(engine)
 
 INCLUDE(engine/cmake/Common.cmake)

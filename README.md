@@ -19,14 +19,16 @@ Please use CMake (http://www.cmake.org/) to build the project.
 I have tested build in the following environments:
 
   * Apple OSX Yosemite with Xcode 6.1.1.
-  * Ubuntu Linux 14.10 (Utopic Unicorn) with GCC 4.9.1.
+  * Ubuntu Linux 14.10 with GCC 4.9.1.
+  * Ubuntu Linux 14.10 with MinGW-w64 4.9.1 (cross-compile to Windows).
 
-If you are using another system, your mileage may vary. Anyway,
+If you are using another system or compiler, your mileage may vary. Anyway,
 the code is quite portable so it should build and run with very little efforts.
 Feel free to contact me via e-mail zapolnov@gmail.com if you have any
 problems.
 
-On Ubuntu Linux you may use the following command to install required packages:
+On Ubuntu Linux you may use the following command to install required packages
+before building:
 
     sudo apt-get install \
         build-essential \

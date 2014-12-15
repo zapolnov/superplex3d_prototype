@@ -16,11 +16,15 @@ MACRO(GENERATE_PACKED_DATA target_name )
     	ENDFOREACH(datafile)
     ENDIF()
 
+	IF(NOT CMAKE_CROSSCOMPILING)
+		SET(PACKER packer)
+	ENDIF()
+
 	ADD_CUSTOM_COMMAND(
 		OUTPUT "${outfile}"
-		COMMAND packer "${CMAKE_CURRENT_SOURCE_DIR}/data" "${listfile}" "${outfile}"
+		COMMAND "${PACKER}" "${CMAKE_CURRENT_SOURCE_DIR}/data" "${listfile}" "${outfile}"
 		MAIN_DEPENDENCY "${listfile}"
-		DEPENDS ${datafiles} packer
+		DEPENDS ${datafiles} "${PACKER}"
 		COMMENT "Generating packed data file"
 	)
 
