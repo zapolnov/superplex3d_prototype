@@ -140,7 +140,7 @@ for more information). This fact, and also the fact that there are already a
 lot of Supaplex clones available in the wild, makes me believe that I am not
 doing nothing bad for nobody.
 
-**If you are a copyright holder for the Supaplex and you believe that I infinge
+**If you are a copyright holder for the Supaplex and you believe that I infringe
 your rights, please contact me immediately via e-mail zapolnov@gmail.com.**
 
 Sounds
